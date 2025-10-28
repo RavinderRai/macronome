@@ -1,6 +1,6 @@
 from PIL.Image import Image
 from typing import List
-from ml.pantry_scanner.schemas.pantry import PantryItem
+from ml.pantry_scanner.schemas import PantryItem
 
 
 def cropper(img: Image, item: PantryItem) -> Image:

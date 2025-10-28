@@ -1,0 +1,11 @@
+Analyze this image and identify the food item shown.
+
+{% if context %}
+Context: {{ context }}
+{% endif %}
+
+Instructions:
+- Identify the specific food item
+- Be precise with the name (e.g., "Granny Smith apple" not just "apple")
+- Return ONLY the item name, nothing else
+- If uncertain, return "unknown"
