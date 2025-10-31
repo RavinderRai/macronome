@@ -27,7 +27,7 @@ class PantryScannerService:
         self.detector = PantryDetector()
         self.classifier = FoodClassifier()
     
-    async def scan_pantry(self, img: Image, conf_threshold: float = 0.25, crop_padding: int = 10) -> List[Dict]:
+    async def scan_pantry(self, img: Image, conf_threshold: float = 0.01, crop_padding: int = 10) -> List[Dict]:
         """
         Full pipeline: Detect → Crop → Classify
         
@@ -62,7 +62,8 @@ class PantryScannerService:
         
         # Step 3: Classify cropped items
         logger.info("🥘 Classifying items...")
-        classifications = await self.classifier.food_classifier_batch(cropped_images)
+        logger.warning("For testing purposes, only classifying the first 5 items, make sure to remove this before production")
+        classifications = await self.classifier.food_classifier_batch(cropped_images[0:5])
         
         # Combine results
         results = []

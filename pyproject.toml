@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "fastapi>=0.120.1",
+    "ipykernel>=6.31.0",
     "litellm>=1.79.0",
     "marimo>=0.17.2",
     "mlflow>=3.1.4",

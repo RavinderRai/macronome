@@ -6,6 +6,7 @@ from __future__ import annotations
 from PIL.Image import Image
 from pathlib import Path
 from typing import List, Optional
+from pydantic.v1 import NoneIsAllowedError
 from ultralytics import YOLO
 from ml.pantry_scanner.schemas import PantryItem, BoundingBox
 from ml.shared.mlflow.model_registry import get_latest_model_path
@@ -46,7 +47,7 @@ class PantryDetector:
             List[PantryItem]: Detected pantry items with bounding boxes
         """
         # Run YOLO inference
-        results = self.model(img)
+        results = self.model.predict(img, conf=0.01)
         
         pantry_items = []
         
@@ -54,9 +55,13 @@ class PantryDetector:
         for result in results:
             boxes = result.boxes
             
-            if boxes is None or len(boxes) == 0:
-                # No detections
-                return []
+            if boxes is None:
+                continue
+
+            num_detections = boxes.xyxy.shape[0] if hasattr(boxes, 'xyxy') and boxes.xyxy is not None else 0
+
+            if num_detections == 0:
+                continue
             
             for i in range(len(boxes)):
                 # Get bounding box coordinates (in pixels)
