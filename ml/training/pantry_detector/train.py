@@ -23,6 +23,11 @@ def train_detector():
     tracking_dir.mkdir(parents=True, exist_ok=True)
     mlflow.set_tracking_uri(tracking_dir.as_uri())
 
+    # Keep YOLO's internal outputs alongside MLflow runs
+    yolo_project_dir = tracking_dir / "yolo"
+    yolo_project_dir.mkdir(parents=True, exist_ok=True)
+    config.project_dir = yolo_project_dir
+
     config.weights_cache_dir.mkdir(parents=True, exist_ok=True)
     base_weights_path = config.base_weights_path
     root_weights_path = Path.cwd() / f"{config.model_size}.pt"
@@ -43,7 +48,7 @@ def train_detector():
     with mlflow.start_run():
         # Log hyperparameters
         mlflow.log_params({
-            "model": config.model_size,
+            "model_size": config.model_size,
             "epochs": config.epochs,
             "batch_size": config.batch_size,
             "imgsz": config.image_size,
@@ -66,12 +71,17 @@ def train_detector():
             save=True,
             save_period=config.save_period,
             patience=config.patience,
-            device=config.device,
+            device='cpu' #config.device, mps is buggy with ultralytics
         )
         
         # Evaluate model
         print(f"\n📊 Evaluating model...")
-        metrics = model.val()
+        val_run_name = f"{config.experiment_name}-val"
+        metrics = model.val(
+            project=str(config.project_dir),
+            name=val_run_name,
+        )
+        val_output_dir = Path(getattr(metrics, "save_dir", config.project_dir / val_run_name))
         
         # Log metrics to MLflow
         mlflow.log_metrics({
@@ -95,7 +105,9 @@ def train_detector():
         if base_weights_path.exists():
             mlflow.log_artifact(str(base_weights_path))
         if config.model_save_dir.exists():
-            mlflow.log_artifacts(str(config.model_save_dir))
+            mlflow.log_artifacts(str(config.model_save_dir), artifact_path="training_outputs")
+        if val_output_dir.exists():
+            mlflow.log_artifacts(str(val_output_dir), artifact_path="validation_outputs")
         
         print(f"\n✅ Training complete!")
         print(f"   Model saved to: {config.model_save_dir}")
