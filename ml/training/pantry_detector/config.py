@@ -30,7 +30,7 @@ class TrainingConfig:
     
     # Model settings
     model_size: str = "yolov8n"  # yolov8n, yolov8s, yolov8m, yolov8l, yolov8x
-    epochs: int = 10
+    epochs: int = 3
     batch_size: int = 16
     image_size: int = 640
     
@@ -46,6 +46,9 @@ class TrainingConfig:
     # Training hyperparameters
     patience: int = 50  # Early stopping
     save_period: int = 10  # Save checkpoint every N epochs
+    
+    # Export options
+    export_onnx: bool = False  # Export ONNX artifact after training
     
     # Device - auto-detected
     device: str = detect_device()  # Auto-detect: mps (Apple), cuda (NVIDIA), or cpu

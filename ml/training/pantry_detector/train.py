@@ -3,9 +3,13 @@ Train YOLO model for pantry item detection
 """
 import shutil
 from pathlib import Path
+from urllib.parse import urlparse
 from ultralytics import YOLO
 import mlflow
 from ml.training.pantry_detector.config import TrainingConfig
+from ultralytics import settings
+settings.update({"mlflow": False})
+
 
 
 def train_detector():
@@ -23,11 +27,6 @@ def train_detector():
     tracking_dir.mkdir(parents=True, exist_ok=True)
     mlflow.set_tracking_uri(tracking_dir.as_uri())
 
-    # Keep YOLO's internal outputs alongside MLflow runs
-    yolo_project_dir = tracking_dir / "yolo"
-    yolo_project_dir.mkdir(parents=True, exist_ok=True)
-    config.project_dir = yolo_project_dir
-
     config.weights_cache_dir.mkdir(parents=True, exist_ok=True)
     base_weights_path = config.base_weights_path
     root_weights_path = Path.cwd() / f"{config.model_size}.pt"
@@ -36,16 +35,27 @@ def train_detector():
         shutil.move(str(root_weights_path), str(base_weights_path))
     mlflow.set_experiment("pantry-detector")
     
-    print("🚀 Starting training with config:")
-    print(f"  Model: {config.model_size}")
-    print(f"  Epochs: {config.epochs}")
-    print(f"  Batch size: {config.batch_size}")
-    print(f"  Image size: {config.image_size}")
-    print(f"  Device: {config.device}")
-    print(f"  Dataset: {config.dataset_yaml}")
-    print(f"  Output: {config.model_save_dir}")
-    
     with mlflow.start_run():
+        artifact_uri = mlflow.get_artifact_uri()
+        parsed_uri = urlparse(artifact_uri)
+        if parsed_uri.scheme == "file":
+            artifact_dir = Path(parsed_uri.path)
+        else:
+            # Fallback: treat URI as a filesystem path
+            artifact_dir = Path(artifact_uri)
+        yolo_project_dir = artifact_dir / "yolo"
+        yolo_project_dir.mkdir(parents=True, exist_ok=True)
+        config.project_dir = yolo_project_dir
+        
+        print("🚀 Starting training with config:")
+        print(f"  Model: {config.model_size}")
+        print(f"  Epochs: {config.epochs}")
+        print(f"  Batch size: {config.batch_size}")
+        print(f"  Image size: {config.image_size}")
+        print(f"  Device: {config.device}")
+        print(f"  Dataset: {config.dataset_yaml}")
+        print(f"  Output: {config.model_save_dir}")
+        
         # Log hyperparameters
         mlflow.log_params({
             "model_size": config.model_size,
@@ -71,7 +81,7 @@ def train_detector():
             save=True,
             save_period=config.save_period,
             patience=config.patience,
-            device='cpu' #config.device, mps is buggy with ultralytics
+            device='cpu',  # config.device, mps is buggy with ultralytics
         )
         
         # Evaluate model
@@ -97,17 +107,35 @@ def train_detector():
         print(f"  Precision: {metrics.box.mp:.3f}")
         print(f"  Recall: {metrics.box.mr:.3f}")
         
-        # Export model to ONNX for inference
-        print(f"\n📦 Exporting model to ONNX...")
-        model.export(format="onnx")
+        # Optional: export model to ONNX for inference
+        if config.export_onnx:
+            print(f"\n📦 Exporting model to ONNX...")
+            try:
+                exported = model.export(format="onnx")
+                # exported may be a path or list/tuple; normalize to paths for logging
+                exported_paths = []
+                if isinstance(exported, (list, tuple)):
+                    for e in exported:
+                        try:
+                            exported_paths.append(str(Path(e)))
+                        except Exception:
+                            pass
+                else:
+                    try:
+                        exported_paths.append(str(Path(exported)))
+                    except Exception:
+                        pass
+                for p in exported_paths:
+                    if Path(p).exists():
+                        mlflow.log_artifact(p, artifact_path="onnx")
+            except ModuleNotFoundError as e:
+                print(f"⚠️  Skipping ONNX export (missing dependency): {e}")
+            except Exception as e:
+                print(f"⚠️  ONNX export failed: {e}")
         
         # Log artifacts
         if base_weights_path.exists():
-            mlflow.log_artifact(str(base_weights_path))
-        if config.model_save_dir.exists():
-            mlflow.log_artifacts(str(config.model_save_dir), artifact_path="training_outputs")
-        if val_output_dir.exists():
-            mlflow.log_artifacts(str(val_output_dir), artifact_path="validation_outputs")
+            mlflow.log_artifact(str(base_weights_path), artifact_path="base_weights")
         
         print(f"\n✅ Training complete!")
         print(f"   Model saved to: {config.model_save_dir}")
