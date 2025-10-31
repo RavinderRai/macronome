@@ -40,7 +40,7 @@ class TrainingConfig:
     
     # Output paths
     project_dir: Path = Path("ml/data/models/detector")
-    experiment_name: str = "pantry-detector"
+    experiment_name: str = "pantry_detector"
     weights_cache_dir: Path = MODULE_ROOT / "weights"
     
     # Training hyperparameters

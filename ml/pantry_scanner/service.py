@@ -1,14 +1,18 @@
 """
 Pantry Scanner Service - Orchestrates the full pipeline
 """
+from __future__ import annotations
+
 from PIL import Image
 from typing import List, Dict
+import asyncio
+import logging
 from ml.pantry_scanner.pipeline.pantry_detector import PantryDetector
 from ml.pantry_scanner.pipeline.cropper import crop_items_with_padding
 from ml.pantry_scanner.pipeline.food_classifier import FoodClassifier
 from ml.pantry_scanner.schemas import PantryItem
-import asyncio
 
+logger = logging.getLogger(__name__)
 
 class PantryScannerService:
     """
@@ -44,20 +48,20 @@ class PantryScannerService:
             ]
         """
         # Step 1: Detect items
-        print("🔍 Detecting items in pantry image...")
+        logger.info("🔍 Detecting items in pantry image...")
         items = self.detector.detect_with_confidence_threshold(img, conf_threshold)
-        print(f"   Detected {len(items)} items")
+        logger.info(f"   Detected {len(items)} items")
         
         if not items:
-            print("❌ No items detected")
+            logger.error("❌ No items detected")
             return []
         
         # Step 2: Crop detected items
-        print(f"✂️  Cropping {len(items)} items...")
+        logger.info(f"✂️  Cropping {len(items)} items...")
         cropped_images = crop_items_with_padding(img, items, padding=crop_padding)
         
         # Step 3: Classify cropped items
-        print("🥘 Classifying items...")
+        logger.info("🥘 Classifying items...")
         classifications = await self.classifier.food_classifier_batch(cropped_images)
         
         # Combine results
@@ -101,29 +105,13 @@ class PantryScannerService:
         return await self.classifier.food_classifier_batch(cropped_images)
 
 
-# Convenience function
-async def scan_pantry(image_path: str) -> List[Dict]:
-    """
-    Quick convenience function to scan a pantry image
-    
-    Args:
-        image_path: Path to pantry image
-    
-    Returns:
-        List of detected and classified items
-    """
-    service = PantryScannerService()
-    img = Image.open(image_path)
-    return await service.scan_pantry(img)
-
-
 if __name__ == "__main__":
     # Example usage
     async def main():
         service = PantryScannerService()
         
         # Load an image
-        img = Image.open("data/processed/yolo_format/test/images/img_0000.jpg")
+        img = Image.open("data/processed/yolo_format/valid/images/img_0000.jpg")
         
         # Run full pipeline
         results = await service.scan_pantry(img)

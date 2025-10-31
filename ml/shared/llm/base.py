@@ -1,17 +1,7 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from abc import ABC, abstractmethod
-from pydantic import BaseModel
 import litellm
-from litellm import completion
-from ml.shared.llm.config import LLM_DEFAULT_TIMEOUT
-
-class LLMConfig(BaseModel):
-    provider: str = "openai"
-    model: str = "gpt-4o-mini"
-    api_key: Optional[str] = None
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
-    timeout: int = LLM_DEFAULT_TIMEOUT
+from ml.shared.llm.config import LLMConfig
 
 class BaseLLMClient(ABC):
     """Base LLM client using litellm"""

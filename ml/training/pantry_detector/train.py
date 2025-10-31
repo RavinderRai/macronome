@@ -33,7 +33,7 @@ def train_detector():
     if root_weights_path.exists() and root_weights_path.resolve() != base_weights_path.resolve():
         base_weights_path.unlink(missing_ok=True)
         shutil.move(str(root_weights_path), str(base_weights_path))
-    mlflow.set_experiment("pantry-detector")
+    mlflow.set_experiment("pantry_detector")
     
     with mlflow.start_run():
         artifact_uri = mlflow.get_artifact_uri()

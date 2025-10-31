@@ -1,7 +1,14 @@
 import os
-from ml.shared.llm.base import LLMConfig
+from pydantic import BaseModel
+from typing import Optional
 
-LLM_DEFAULT_TIMEOUT = 60
+class LLMConfig(BaseModel):
+    provider: str = "openai"
+    model: str = "gpt-4o-mini"
+    api_key: Optional[str] = None
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
+    timeout: int = 10
 
 def get_vision_llm_config() -> LLMConfig:
     """Factory function to create a vision LLM config"""
@@ -9,7 +16,6 @@ def get_vision_llm_config() -> LLMConfig:
         provider="openai",
         model="gpt-4o",
         temperature=0.0,
-        timeout=LLM_DEFAULT_TIMEOUT,
     )
 
 def get_text_llm_config() -> LLMConfig:
@@ -18,5 +24,4 @@ def get_text_llm_config() -> LLMConfig:
         provider="openai",
         model="gpt-4o-mini",
         temperature=0.7,
-        timeout=LLM_DEFAULT_TIMEOUT,
     )

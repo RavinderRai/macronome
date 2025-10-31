@@ -1,29 +1,34 @@
 """
 Pantry item detector using trained YOLO model
 """
-from PIL import Image
+from __future__ import annotations
+
+from PIL.Image import Image
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from ultralytics import YOLO
 from ml.pantry_scanner.schemas import PantryItem, BoundingBox
-import numpy as np
+from ml.shared.mlflow.model_registry import get_latest_model_path
 
 
 class PantryDetector:
     """YOLO-based pantry item detector"""
     
-    def __init__(self, model_path: str = None):
+    def __init__(self, model_path: Optional[str] = None):
         """
         Initialize detector with trained YOLO model
         
         Args:
-            model_path: Path to trained model weights. If None, uses default trained model.
+            model_path: Path to trained model weights. If None, loads from latest MLflow run.
         """
+        # If no model path provided, get latest from MLflow
         if model_path is None:
-            # Use default trained model
-            model_path = Path("ml/data/models/detector/pantry-detector/weights/best.pt")
+            model_path = get_latest_model_path(
+                experiment_name="pantry_detector",
+            )
         
-        if not Path(model_path).exists():
+        model_path_obj = Path(model_path)
+        if not model_path_obj.exists():
             raise FileNotFoundError(f"Model not found at {model_path}. Please train the model first.")
         
         print(f"📥 Loading model from: {model_path}")
@@ -57,7 +62,6 @@ class PantryDetector:
                 # Get bounding box coordinates (in pixels)
                 x1, y1, x2, y2 = boxes.xyxy[i].cpu().numpy()
                 confidence = float(boxes.conf[i].cpu().numpy())
-                class_id = int(boxes.cls[i].cpu().numpy())
                 
                 # Convert to our schema format
                 bbox = BoundingBox(

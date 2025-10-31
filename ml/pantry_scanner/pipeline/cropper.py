@@ -1,9 +1,11 @@
 """
 Crop detected pantry items from images using bounding boxes
 """
-from PIL import Image
+from __future__ import annotations
+
+from PIL.Image import Image
 from typing import List
-from ml.pantry_scanner.schemas import PantryItem, BoundingBox
+from ml.pantry_scanner.schemas import PantryItem
 
 
 def crop_item(img: Image, item: PantryItem) -> Image:
