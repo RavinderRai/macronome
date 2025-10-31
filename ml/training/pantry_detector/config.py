@@ -3,6 +3,22 @@ Configuration for pantry detector training
 """
 from pathlib import Path
 from dataclasses import dataclass
+import torch
+
+
+def detect_device():
+    """
+    Auto-detect best device (MPS for Apple Silicon, CUDA for NVIDIA, CPU otherwise)
+    
+    Returns:
+        str: Device identifier
+    """
+    if torch.backends.mps.is_available():
+        return "mps"  # Apple Silicon GPU
+    elif torch.cuda.is_available():
+        return "0"  # NVIDIA GPU
+    else:
+        return "cpu"  # CPU fallback
 
 
 @dataclass
@@ -27,8 +43,8 @@ class TrainingConfig:
     patience: int = 50  # Early stopping
     save_period: int = 10  # Save checkpoint every N epochs
     
-    # Device
-    device: str = "0"  # "0" for GPU, "cpu" for CPU
+    # Device - auto-detected
+    device: str = detect_device()  # Auto-detect: mps (Apple), cuda (NVIDIA), or cpu
     
     @property
     def model_save_dir(self) -> Path:

@@ -19,6 +19,9 @@ def train_detector():
         raise FileNotFoundError(f"Dataset not found at {config.dataset_yaml}")
     
     # Set up MLflow tracking
+    tracking_dir = (Path(__file__).resolve().parent / "mlruns").resolve()
+    tracking_dir.mkdir(parents=True, exist_ok=True)
+    mlflow.set_tracking_uri(tracking_dir.as_uri())
     mlflow.set_experiment("pantry-detector")
     
     print("🚀 Starting training with config:")
@@ -26,6 +29,7 @@ def train_detector():
     print(f"  Epochs: {config.epochs}")
     print(f"  Batch size: {config.batch_size}")
     print(f"  Image size: {config.image_size}")
+    print(f"  Device: {config.device}")
     print(f"  Dataset: {config.dataset_yaml}")
     print(f"  Output: {config.model_save_dir}")
     
@@ -92,4 +96,3 @@ def train_detector():
 
 if __name__ == "__main__":
     train_detector()
-
