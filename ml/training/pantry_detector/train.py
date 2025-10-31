@@ -1,7 +1,7 @@
 """
 Train YOLO model for pantry item detection
 """
-import os
+import shutil
 from pathlib import Path
 from ultralytics import YOLO
 import mlflow
@@ -18,10 +18,17 @@ def train_detector():
     if not config.dataset_yaml.exists():
         raise FileNotFoundError(f"Dataset not found at {config.dataset_yaml}")
     
-    # Set up MLflow tracking
+    # Prepare cache dirs for MLflow and pretrained weights
     tracking_dir = (Path(__file__).resolve().parent / "mlruns").resolve()
     tracking_dir.mkdir(parents=True, exist_ok=True)
     mlflow.set_tracking_uri(tracking_dir.as_uri())
+
+    config.weights_cache_dir.mkdir(parents=True, exist_ok=True)
+    base_weights_path = config.base_weights_path
+    root_weights_path = Path.cwd() / f"{config.model_size}.pt"
+    if root_weights_path.exists() and root_weights_path.resolve() != base_weights_path.resolve():
+        base_weights_path.unlink(missing_ok=True)
+        shutil.move(str(root_weights_path), str(base_weights_path))
     mlflow.set_experiment("pantry-detector")
     
     print("🚀 Starting training with config:")
@@ -45,7 +52,7 @@ def train_detector():
         
         # Load YOLO model (pre-trained on COCO)
         print(f"\n📥 Loading model: {config.model_size}.pt")
-        model = YOLO(f"{config.model_size}.pt")
+        model = YOLO(str(base_weights_path))
         
         # Train the model
         print(f"\n🏋️  Training started...")
@@ -85,7 +92,10 @@ def train_detector():
         model.export(format="onnx")
         
         # Log artifacts
-        mlflow.log_artifact(str(config.model_save_dir))
+        if base_weights_path.exists():
+            mlflow.log_artifact(str(base_weights_path))
+        if config.model_save_dir.exists():
+            mlflow.log_artifacts(str(config.model_save_dir))
         
         print(f"\n✅ Training complete!")
         print(f"   Model saved to: {config.model_save_dir}")

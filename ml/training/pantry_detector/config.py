@@ -6,6 +6,9 @@ from dataclasses import dataclass
 import torch
 
 
+MODULE_ROOT = Path(__file__).resolve().parent
+
+
 def detect_device():
     """
     Auto-detect best device (MPS for Apple Silicon, CUDA for NVIDIA, CPU otherwise)
@@ -38,6 +41,7 @@ class TrainingConfig:
     # Output paths
     project_dir: Path = Path("ml/data/models/detector")
     experiment_name: str = "pantry-detector"
+    weights_cache_dir: Path = MODULE_ROOT / "weights"
     
     # Training hyperparameters
     patience: int = 50  # Early stopping
@@ -56,3 +60,7 @@ class TrainingConfig:
         """Get path to best weights"""
         return self.model_save_dir / "weights" / "best.pt"
 
+    @property
+    def base_weights_path(self) -> Path:
+        """Location to cache the pretrained YOLO weights"""
+        return self.weights_cache_dir / f"{self.model_size}.pt"
