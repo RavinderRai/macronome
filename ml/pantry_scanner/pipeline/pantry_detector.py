@@ -36,7 +36,7 @@ class PantryDetector:
         self.model = YOLO(str(model_path))
         print("✅ Model loaded successfully")
     
-    def detect(self, img: Image) -> List[PantryItem]:
+    def detect(self, img: Image, conf_threshold: float = 0.25) -> List[PantryItem]:
         """
         Detect food items in pantry image
         
@@ -47,7 +47,7 @@ class PantryDetector:
             List[PantryItem]: Detected pantry items with bounding boxes
         """
         # Run YOLO inference
-        results = self.model.predict(img, conf=0.01)
+        results = self.model.predict(img, conf=conf_threshold)
         
         pantry_items = []
         

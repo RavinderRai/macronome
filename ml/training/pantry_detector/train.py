@@ -85,7 +85,7 @@ def train_detector():
         )
         
         # Evaluate model
-        print(f"\n📊 Evaluating model...")
+        print("\n📊 Evaluating model...")
         val_run_name = f"{config.experiment_name}-val"
         metrics = model.val(
             project=str(config.project_dir),
@@ -137,7 +137,7 @@ def train_detector():
         if base_weights_path.exists():
             mlflow.log_artifact(str(base_weights_path), artifact_path="base_weights")
         
-        print(f"\n✅ Training complete!")
+        print("\n✅ Training complete!")
         print(f"   Model saved to: {config.model_save_dir}")
         print(f"   Best weights: {config.weights_path}")
         

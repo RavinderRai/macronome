@@ -30,7 +30,7 @@ class TrainingConfig:
     
     # Model settings
     model_size: str = "yolov8n"  # yolov8n, yolov8s, yolov8m, yolov8l, yolov8x
-    epochs: int = 3
+    epochs: int = 20
     batch_size: int = 16
     image_size: int = 640
     
