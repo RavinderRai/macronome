@@ -11,5 +11,6 @@ dependencies = [
     "marimo>=0.17.2",
     "mlflow>=3.1.4",
     "pillow>=11.3.0",
+    "python-frontmatter>=1.0.0",
     "ultralytics>=8.3.221",
 ]

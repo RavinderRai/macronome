@@ -3,10 +3,10 @@ from __future__ import annotations
 from PIL.Image import Image
 from typing import List
 from io import BytesIO
-from ml.shared.llm.vision_llm import VisionLLMClient
-from ml.shared.llm.base import LLMConfig
-from ml.shared.llm.config import get_vision_llm_config
-from ml.prompts import load_prompt
+from macronome.ai.shared.llm.vision_llm import VisionLLMClient
+from macronome.ai.shared.llm.base import LLMConfig
+from macronome.ai.shared.llm.config import get_vision_llm_config
+from macronome.ai.prompts import PromptManager
 
 
 class FoodClassifier:
@@ -15,7 +15,7 @@ class FoodClassifier:
             config = get_vision_llm_config()
 
         self.llm_client = VisionLLMClient(config)
-        self.food_query_prompt = load_prompt("food_query.j2")
+        self.food_query_prompt = PromptManager.get_prompt("food_query")
 
     async def food_classifier(self, img: Image) -> str:
         img_bytes = self._convert_image_to_bytes(img)

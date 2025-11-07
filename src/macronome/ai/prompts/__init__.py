@@ -1,26 +1,10 @@
-from pathlib import Path
-from jinja2 import Environment, FileSystemLoader
-from typing import Any, Dict
+"""
+Prompt Management Module
 
-PROMPTS_DIR = Path(__file__).parent
-env = Environment(loader=FileSystemLoader(str(PROMPTS_DIR)))
+This module provides functionality for loading and rendering prompt templates with frontmatter.
+It uses Jinja2 for template rendering and python-frontmatter for metadata handling.
+"""
 
-def load_prompt(template_name: str, **kwargs: Any) -> str:
-    """
-    Load and render a Jinja2 prompt template
-    
-    Args:
-        template_name: Name of the template file (with or without .j2)
-        **kwargs: Variables to pass to the template
-    
-    Returns:
-        str: Rendered prompt
-    
-    Example:
-        prompt = load_prompt("food_query.j2", context="pantry scanning")
-    """
-    if not template_name.endswith(".j2"):
-        template_name += ".j2"
+from .manager import PromptManager
 
-    template = env.get_template(template_name)
-    return template.render(**kwargs)
+__all__ = ["PromptManager"]
