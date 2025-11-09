@@ -3,43 +3,155 @@
  * Main chat interface screen
  */
 
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { 
+	View, 
+	StyleSheet, 
+	FlatList, 
+	KeyboardAvoidingView, 
+	Platform 
+} from 'react-native';
 import { colors } from '../theme';
-import { typography } from '../theme';
 import { spacing } from '../theme';
+import { CHAT_CONSTANTS } from '../utils/constants';
+
+// Import stores
+import { useChatStore } from '../store';
+
+// Import components
+import Header from '../components/common/Header';
+import EmptyState from '../components/common/EmptyState';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import FilterSection from '../components/filters/FilterSection';
+import ChatMessage from '../components/chat/ChatMessage';
+import ChatInput from '../components/chat/ChatInput';
 
 export default function HomeScreen() {
+	// Local state for input text
+	const [inputText, setInputText] = useState('');
+	
+	// Ref for scrolling to bottom
+	const flatListRef = useRef<FlatList>(null);
+
+  // Get state and actions from Zustand stores
+  const messages = useChatStore((state) => state.messages);
+  const isLoading = useChatStore((state) => state.isLoading);
+  const addMessage = useChatStore((state) => state.addMessage);
+
+  // Handle sending a message
+  const handleSend = () => {
+    if (inputText.trim()) {
+      // Add user message to store
+      addMessage({
+        text: inputText,
+        type: 'user',
+      });
+
+      // Clear input text
+      setInputText('');
+
+      // TODO: Call API to get response (placeholder for now)
+      // For now, add a mock response
+      setTimeout(() => {
+        addMessage({
+          text: 'This is a mock response. In a real app, you would call the API here.',
+          type: 'assistant',
+        });
+      }, 1000);
+
+      // Scroll to bottom
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  };
+
+  // Handle camera button press
+  const handleCameraPress = () => {
+    // TODO: Open camera screen 
+    console.log('Camera pressed - will implement later')
+  };
+
+  // Handle settings button press
+  const handleSettingsPress = () => {
+    // TODO: Navigate to settings 
+    console.log('Settings pressed - will implement later')
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Macronome</Text>
-      <Text style={styles.subtitle}>Eat in Rhythm, Not in Restriction</Text>
-      <Text style={styles.subtitle}>Home Screen - Coming Soon</Text>
-    </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS ==='ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={0}
+    >
+      {/* Header */}
+      <Header
+        onSettingsPress={handleSettingsPress}
+      />
+
+      {/* Filter Section */}
+      <FilterSection />
+
+      {/* Chat Messages Area */}
+      <View style={styles.messagesContainer}>
+        {messages.length === 0 ? (
+          // Empty state when no messages
+          <EmptyState
+            icon="💬"
+            title="Start a conversation"
+            message={CHAT_CONSTANTS.placeholders.empty}
+          />
+        ) : (
+          // Messages list
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <ChatMessage message={item} />}
+            contentContainerStyle={styles.messagesList}
+            onContentSizeChange={() => {
+              // Auto-scroll to bottom when new messages arrive
+              flatListRef.current?.scrollToEnd({ animated: true });
+            }}
+          />
+        )}
+
+        {/* Loading indicator */}
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <LoadingSpinner message="Thinking..." />
+          </View>
+        )}
+      </View>
+
+      {/* Chat Input */}
+      <ChatInput
+        value={inputText}
+        onChangeText={setInputText}
+        onSend={handleSend}
+        onCameraPress={handleCameraPress}
+        disabled={isLoading}
+      />
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: colors.background.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: '#DEE2E6',
-    textAlign: 'center',
-    marginTop: spacing.sm,
-  },
+		flex: 1,                              // Take full screen height
+		backgroundColor: colors.background.primary,
+	},
+	messagesContainer: {
+		flex: 1,                              // Expand to fill available space
+	},
+	messagesList: {
+		paddingTop: spacing.md,
+		paddingBottom: spacing.md,
+	},
+	loadingContainer: {
+		position: 'absolute',                 // Float above messages
+		bottom: spacing.md,
+		left: spacing.md,
+		right: spacing.md,
+	},
 });
-
