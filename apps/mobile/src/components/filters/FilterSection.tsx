@@ -311,7 +311,8 @@ const styles = StyleSheet.create({
 		borderColor: colors.border.light,
 	},
 	filterValueText: {
-		...typography.textStyles.body,
+		fontSize: 16,
+		lineHeight: 20,
 		color: colors.text.primary,
 	},
 	excludeInput: {
@@ -326,9 +327,11 @@ const styles = StyleSheet.create({
 	},
 	textInput: {
 		flex: 1,
-		paddingVertical: spacing.sm,
+		minHeight: 44,
+		paddingVertical: spacing.md,
 		color: colors.text.primary,
-		...typography.textStyles.body,
+		fontSize: 16,
+		lineHeight: 20,
 	},
 	addButton: {
 		...typography.textStyles.label,

@@ -49,7 +49,9 @@ const styles = StyleSheet.create({
 		marginBottom: spacing.sm,
 	},
 	label: {
-		...typography.textStyles.label,
+		fontSize: 14,
+		lineHeight: 18,
+		fontWeight: '500',
 		color: colors.text.primary,
 	},
 	removeButton: {

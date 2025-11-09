@@ -83,7 +83,8 @@ const styles = StyleSheet.create({
 		borderBottomLeftRadius: 4,         // Sharp corner on assistant side
 	},
 	text: {
-		...typography.textStyles.body,
+		fontSize: 16,
+		lineHeight: 22,
 		marginBottom: spacing.xs,
 	},
 	userText: {
@@ -93,7 +94,8 @@ const styles = StyleSheet.create({
 		color: colors.text.primary,
 	},
 	timestamp: {
-		...typography.textStyles.caption,
+		fontSize: 12,
+		lineHeight: 16,
 	},
 	userTimestamp: {
 		color: colors.text.primary,

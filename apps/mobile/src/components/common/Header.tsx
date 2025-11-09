@@ -65,7 +65,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'space-between',
 		paddingHorizontal: spacing.md,
-		paddingVertical: spacing.md,
+		paddingTop: spacing.xl,
+		paddingBottom: spacing.md,
 		backgroundColor: colors.background.primary,
 		borderBottomWidth: 1,
 		borderBottomColor: colors.border.light,
@@ -73,6 +74,8 @@ const styles = StyleSheet.create({
 	pantryButton: {
 		position: 'relative',
 		padding: spacing.sm,
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	pantryIcon: {
 		fontSize: 24,
@@ -102,6 +105,8 @@ const styles = StyleSheet.create({
 	},
 	settingsButton: {
 		padding: spacing.sm,
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	settingsIcon: {
 		fontSize: 24,
