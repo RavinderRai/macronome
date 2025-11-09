@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import List, Optional
 from pydantic.v1 import NoneIsAllowedError
 from ultralytics import YOLO
-from ml.pantry_scanner.schemas import PantryItem, BoundingBox
-from ml.shared.mlflow.model_registry import get_latest_model_path
+from macronome.ai.pantry_scanner.schemas import PantryItem, BoundingBox
+from macronome.ai.shared.mlflow.model_registry import get_latest_model_path
 
 
 class PantryDetector:
