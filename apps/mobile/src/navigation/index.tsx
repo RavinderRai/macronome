@@ -10,23 +10,11 @@ import HomeScreen from '../screens/HomeScreen';
 const Stack = createStackNavigator<RootStackParamList>();
 
 // Root Stack Navigator - handles all screens
-// Note: Drawer navigator will be added later when native build is ready
 export default function Navigation() {
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Home"
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen 
-          name="Home" 
-          component={HomeScreen}
-          options={{
-            headerShown: false,
-          }}
-        />
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

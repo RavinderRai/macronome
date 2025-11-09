@@ -13,6 +13,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Macronome</Text>
+      <Text style={styles.subtitle}>Eat in Rhythm, Not in Restriction</Text>
       <Text style={styles.subtitle}>Home Screen - Coming Soon</Text>
     </View>
   );
@@ -27,13 +28,18 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   title: {
-    ...typography.textStyles.h1,
-    color: colors.text.primary,
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#FFFFFF',
     marginBottom: spacing.md,
+    textAlign: 'center',
   },
   subtitle: {
-    ...typography.textStyles.body,
-    color: colors.text.secondary,
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#DEE2E6',
+    textAlign: 'center',
+    marginTop: spacing.sm,
   },
 });
 
