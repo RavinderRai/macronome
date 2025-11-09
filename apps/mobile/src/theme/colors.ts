@@ -64,7 +64,7 @@ export const colors = {
     medium: '#2A2F4A',
     dark: '#1A1F3A',
   },
-} as const;
+};
 
 // Type export for TypeScript
 export type ColorName = keyof typeof colors;

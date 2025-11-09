@@ -13,7 +13,7 @@ export const spacing = {
   '2xl': 48,
   '3xl': 64,
   '4xl': 96,
-} as const;
+};
 
 // Named spacing for common use cases
 export const namedSpacing = {
@@ -64,7 +64,7 @@ export const namedSpacing = {
   filterChipGap: spacing.sm,         // 8px
   filterChipPadding: spacing.sm,      // 8px
   filterSectionPadding: spacing.md,   // 16px
-} as const;
+};
 
 // Type exports
 export type Spacing = keyof typeof spacing;

@@ -41,11 +41,11 @@ export const typography = {
 
   // Font weights
   fontWeight: {
-    light: '300' as const,
-    normal: '400' as const,
-    medium: '500' as const,
-    semibold: '600' as const,
-    bold: '700' as const,
+    light: '300',
+    normal: '400',
+    medium: '500',
+    semibold: '600',
+    bold: '700',
   },
 
   // Line heights
@@ -61,7 +61,7 @@ export const typography = {
     // Display styles
     display: {
       fontSize: 36,
-      fontWeight: '700' as const,
+      fontWeight: '700' as '700',
       lineHeight: 1.2,
       fontFamily: 'serif',
     },
@@ -69,63 +69,63 @@ export const typography = {
     // Heading styles
     h1: {
       fontSize: 30,
-      fontWeight: '700' as const,
+      fontWeight: '700' as '700',
       lineHeight: 1.3,
     },
     h2: {
       fontSize: 24,
-      fontWeight: '600' as const,
+      fontWeight: '600' as '600',
       lineHeight: 1.3,
     },
     h3: {
       fontSize: 20,
-      fontWeight: '600' as const,
+      fontWeight: '600' as '600',
       lineHeight: 1.4,
     },
     h4: {
       fontSize: 18,
-      fontWeight: '600' as const,
+      fontWeight: '600' as '600',
       lineHeight: 1.4,
     },
 
     // Body styles
     body: {
       fontSize: 16,
-      fontWeight: '400' as const,
+      fontWeight: '400' as '400',
       lineHeight: 1.5,
     },
     bodyLarge: {
       fontSize: 18,
-      fontWeight: '400' as const,
+      fontWeight: '400' as '400',
       lineHeight: 1.5,
     },
     bodySmall: {
       fontSize: 14,
-      fontWeight: '400' as const,
+      fontWeight: '400' as '400',
       lineHeight: 1.5,
     },
 
     // UI styles
     button: {
       fontSize: 16,
-      fontWeight: '600' as const,
+      fontWeight: '600' as '600',
       lineHeight: 1.5,
     },
     caption: {
       fontSize: 12,
-      fontWeight: '400' as const,
+      fontWeight: '400' as '400',
       lineHeight: 1.5,
     },
     label: {
       fontSize: 14,
-      fontWeight: '500' as const,
+      fontWeight: '500' as '500',
       lineHeight: 1.5,
     },
   },
-} as const;
+};
 
 // Type exports
 export type FontSize = keyof typeof typography.fontSize;
-export type FontWeight = typeof typography.fontWeight[keyof typeof typography.fontWeight];
+export type FontWeight = '300' | '400' | '500' | '600' | '700';
 export type TextStyle = keyof typeof typography.textStyles;
 

@@ -8,7 +8,7 @@ export const APP_CONFIG = {
   name: 'Macronome',
   tagline: 'Eat in Rhythm, Not in Restriction',
   version: '1.0.0',
-} as const;
+};
 
 // API Configuration (TODO: Update when backend is ready)
 export const API_CONFIG = {
@@ -35,7 +35,7 @@ export const API_CONFIG = {
   
   // Request timeouts
   timeout: 30000, // 30 seconds
-} as const;
+};
 
 // UI Constants
 export const UI_CONSTANTS = {
@@ -68,7 +68,7 @@ export const UI_CONSTANTS = {
     chatInputMinHeight: 50,
     chatInputMaxHeight: 120,
   },
-} as const;
+};
 
 // Filter Constants
 export const FILTER_CONSTANTS = {
@@ -99,7 +99,7 @@ export const FILTER_CONSTANTS = {
     { label: 'Low Carb', value: 'low_carb' },
     { label: 'High Protein', value: 'high_protein' },
   ],
-} as const;
+};
 
 // Pantry Constants
 export const PANTRY_CONSTANTS = {
@@ -121,7 +121,7 @@ export const PANTRY_CONSTANTS = {
     'condiments',
     'other',
   ],
-} as const;
+};
 
 // Chat Constants
 export const CHAT_CONSTANTS = {
@@ -137,7 +137,7 @@ export const CHAT_CONSTANTS = {
     input: 'Type a message...',
     empty: 'Start a conversation to get meal recommendations!',
   },
-} as const;
+};
 
 // Export all constants as a single object for convenience
 export const CONSTANTS = {
@@ -147,5 +147,5 @@ export const CONSTANTS = {
   FILTER_CONSTANTS,
   PANTRY_CONSTANTS,
   CHAT_CONSTANTS,
-} as const;
+};
 
