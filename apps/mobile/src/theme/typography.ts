@@ -1,6 +1,16 @@
 /**
  * Typography System
  * Font styles and text configurations
+ * 
+ * TODO: Reintroduce typography system properly
+ * Currently disabled due to React Native native bridge type issues with spread operators.
+ * 
+ * Future fix options:
+ * 1. Create helper functions that return explicit style objects (e.g., `getHeadingStyle('h2')`)
+ * 2. Use direct property access instead of spread operators
+ * 3. Create a StyleSheet factory that handles the type conversions properly
+ * 
+ * For now, components use explicit fontSize/fontWeight/lineHeight values.
  */
 
 import { Platform } from 'react-native';
