@@ -6,7 +6,6 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { colors } from '../../theme';
-import { typography } from '../../theme';
 import { spacing } from '../../theme';
 import { CHAT_CONSTANTS } from '../../utils/constants';
 

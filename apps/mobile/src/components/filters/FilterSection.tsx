@@ -204,7 +204,7 @@ export default function FilterSection({
 								activeOpacity={0.7}
 							>
 								<Text style={styles.filterValueText}>
-									{constraints.calories ? `${constraints.calories} kcal` : 'Any'} ▼
+									{constraints.calories ? `${constraints.calories} kcal` : 'Any'}
 								</Text>
 							</TouchableOpacity>
 						</View>
@@ -218,7 +218,7 @@ export default function FilterSection({
 								activeOpacity={0.7}
 							>
 								<Text style={styles.filterValueText}>
-									{getMacrosLabel() || 'Any'} →
+									{getMacrosLabel() || 'Any'}
 								</Text>
 							</TouchableOpacity>
 						</View>
@@ -232,7 +232,7 @@ export default function FilterSection({
 								activeOpacity={0.7}
 							>
 								<Text style={styles.filterValueText}>
-									{constraints.diet || 'Any'} ▼
+									{constraints.diet || 'Any'}
 								</Text>
 							</TouchableOpacity>
 						</View>
@@ -274,7 +274,8 @@ const styles = StyleSheet.create({
 		padding: spacing.md,
 	},
 	headerText: {
-		...typography.textStyles.body,
+		fontSize: 16,
+		lineHeight: 24,
 		color: colors.text.primary,
 		fontWeight: '600',
 	},

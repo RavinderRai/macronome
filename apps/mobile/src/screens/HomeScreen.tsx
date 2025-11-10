@@ -16,7 +16,7 @@ import { spacing } from '../theme';
 import { CHAT_CONSTANTS } from '../utils/constants';
 
 // Import stores
-import { useChatStore } from '../store';
+import { useChatStore, usePantryStore } from '../store';
 
 // Import components
 import Header from '../components/common/Header';
@@ -25,6 +25,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import FilterSection from '../components/filters/FilterSection';
 import ChatMessage from '../components/chat/ChatMessage';
 import ChatInput from '../components/chat/ChatInput';
+import PantryDrawer from '../components/pantry/PantryDrawer';
 
 export default function HomeScreen() {
 	// Local state for input text
@@ -37,6 +38,36 @@ export default function HomeScreen() {
   const messages = useChatStore((state) => state.messages);
   const isLoading = useChatStore((state) => state.isLoading);
   const addMessage = useChatStore((state) => state.addMessage);
+	const addItems = usePantryStore((state) => state.addItems);
+
+  // TODO: Remove this mock data later
+	// Add some mock pantry items for testing (remove this later)
+	React.useEffect(() => {
+		// Only add mock items if pantry is empty
+		const currentItems = usePantryStore.getState().items;
+		if (currentItems.length === 0) {
+			addItems([
+				{
+					name: 'Eggs',
+					category: 'Protein',
+					confirmed: true,
+					confidence: 0.95,
+				},
+				{
+					name: 'Milk',
+					category: 'Dairy',
+					confirmed: true,
+					confidence: 0.92,
+				},
+				{
+					name: 'Tomatoes',
+					category: 'Vegetables',
+					confirmed: false,
+					confidence: 0.78,
+				},
+			]);
+		}
+	}, [addItems]);
 
   // Handle sending a message
   const handleSend = () => {
@@ -132,6 +163,9 @@ export default function HomeScreen() {
         onCameraPress={handleCameraPress}
         disabled={isLoading}
       />
+
+      {/* Pantry Drawer - slides in from left */}
+      <PantryDrawer onCameraPress={handleCameraPress} />
     </KeyboardAvoidingView>
   );
 }

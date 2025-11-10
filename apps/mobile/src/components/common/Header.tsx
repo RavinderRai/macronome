@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors } from '../../theme';
-import { typography } from '../../theme';
 import { spacing } from '../../theme';
 import { usePantryStore } from '../../store';
 import { useUIStore } from '../../store';
@@ -98,7 +97,9 @@ const styles = StyleSheet.create({
 		fontWeight: '600',
 	},
 	title: {
-		...typography.textStyles.h2,
+		fontSize: 20,
+		fontWeight: '700',
+		lineHeight: 24,
 		color: colors.text.primary,
 		flex: 1,
 		textAlign: 'center',

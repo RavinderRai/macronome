@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { colors } from '../../theme';
-import { typography } from '../../theme';
 import { spacing } from '../../theme';
 import type { Meal } from '../../types/chat';
 
@@ -128,7 +127,8 @@ const styles = StyleSheet.create({
 		marginTop: spacing.sm,
 	},
 	explanation: {
-		...typography.textStyles.bodySmall,
+		fontSize: 14,
+		lineHeight: 20,
 		color: colors.text.primary,
 	},
 });
