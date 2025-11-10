@@ -7,7 +7,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
 import { colors } from '../../theme';
-import { typography } from '../../theme';
 import { spacing } from '../../theme';
 import { useFilterStore } from '../../store';
 import { useUIStore } from '../../store';
@@ -298,7 +297,9 @@ const styles = StyleSheet.create({
 		marginBottom: spacing.sm,
 	},
 	filterLabel: {
-		...typography.textStyles.label,
+		fontSize: 14,
+		fontWeight: '500',
+		lineHeight: 20,
 		color: colors.text.secondary,
 		width: 80,
 	},
@@ -335,9 +336,10 @@ const styles = StyleSheet.create({
 		lineHeight: 20,
 	},
 	addButton: {
-		...typography.textStyles.label,
-		color: colors.accent.coral,
+		fontSize: 14,
 		fontWeight: '600',
+		lineHeight: 20,
+		color: colors.accent.coral,
 	},
 });
 

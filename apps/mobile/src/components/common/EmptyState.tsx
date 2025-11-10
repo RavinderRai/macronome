@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../../theme';
-import { typography } from '../../theme';
 import { spacing } from '../../theme';
 
 interface EmptyStateProps {
@@ -38,13 +37,16 @@ const styles = StyleSheet.create({
 		marginBottom: spacing.md,
 	},
 	title: {
-		...typography.textStyles.h3,
+		fontSize: 20,
+		fontWeight: '600',
+		lineHeight: 28,
 		color: colors.text.primary,
 		marginBottom: spacing.sm,
 		textAlign: 'center',
 	},
 	message: {
-		...typography.textStyles.body,
+		fontSize: 16,
+		lineHeight: 24,
 		color: colors.text.secondary,
 		textAlign: 'center',
 		maxWidth: 300,

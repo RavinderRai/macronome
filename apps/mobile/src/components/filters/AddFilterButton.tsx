@@ -6,7 +6,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { colors } from '../../theme';
-import { typography } from '../../theme';
 import { spacing } from '../../theme';
 
 interface AddFilterButtonProps {
@@ -51,7 +50,9 @@ const styles = StyleSheet.create({
 		marginBottom: spacing.sm,
 	},
 	text: {
-		...typography.textStyles.label,
+		fontSize: 14,
+		fontWeight: '500',
+		lineHeight: 20,
 		color: colors.text.secondary,
 	},
 	disabled: {

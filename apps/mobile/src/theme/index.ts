@@ -4,6 +4,6 @@
  */
 
 export * from './colors';
-export * from './typography';
+// export * from './typography'; // Removed - using explicit font values instead
 export * from './spacing';
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors } from '../../theme';
-import { typography } from '../../theme';
 import { spacing } from '../../theme';
 
 interface FilterChipProps {

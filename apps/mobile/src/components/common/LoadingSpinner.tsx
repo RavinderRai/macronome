@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { colors } from '../../theme';
-import { typography } from '../../theme';
 import { spacing } from '../../theme';
 
 interface LoadingSpinnerProps {
@@ -42,7 +41,8 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background.primary,
     },
     message: {
-        ...typography.textStyles.body,
+        fontSize: 16,
+        lineHeight: 24,
         color: colors.text.secondary,
         marginTop: spacing.md,
         textAlign: 'center',
