@@ -9,14 +9,15 @@ import {
 	StyleSheet, 
 	FlatList, 
 	KeyboardAvoidingView, 
-	Platform 
+	Platform,
+	Alert
 } from 'react-native';
 import { colors } from '../theme';
 import { spacing } from '../theme';
 import { CHAT_CONSTANTS } from '../utils/constants';
 
 // Import stores
-import { useChatStore, usePantryStore } from '../store';
+import { useChatStore, usePantryStore, useUIStore } from '../store';
 
 // Import components
 import Header from '../components/common/Header';
@@ -26,12 +27,15 @@ import FilterSection from '../components/filters/FilterSection';
 import ChatMessage from '../components/chat/ChatMessage';
 import ChatInput from '../components/chat/ChatInput';
 import PantryDrawer from '../components/pantry/PantryDrawer';
+import PantryReviewSheet from '../components/pantry/PantryReviewSheet';
 import CameraScreen from './CameraScreen';
 
 export default function HomeScreen() {
 	// Local state for input text
 	const [inputText, setInputText] = useState('');
 	const [cameraVisible, setCameraVisible] = useState(false);
+	const [detectedItems, setDetectedItems] = useState<any[]>([]);
+	const [reviewSheetVisible, setReviewSheetVisible] = useState(false);
 	
 	// Ref for scrolling to bottom
 	const flatListRef = useRef<FlatList>(null);
@@ -41,6 +45,7 @@ export default function HomeScreen() {
   const isLoading = useChatStore((state) => state.isLoading);
   const addMessage = useChatStore((state) => state.addMessage);
 	const addItems = usePantryStore((state) => state.addItems);
+	const setDrawerOpen = useUIStore((state) => state.setDrawerOpen);
 
   // TODO: Remove this mock data later
 	// Add some mock pantry items for testing (remove this later)
@@ -103,6 +108,39 @@ export default function HomeScreen() {
   const handleCameraPress = () => {
     setCameraVisible(true);
   };
+
+	// Handle detected items from camera
+	const handleItemsDetected = (items: any[]) => {
+		console.log('🏠 HomeScreen received items:', items.length);
+		setDetectedItems(items);
+		setReviewSheetVisible(true);
+		console.log('🏠 Review sheet should be visible now');
+	};
+
+	// Handle review confirmation
+	const handleReviewConfirm = (confirmedItems: any[]) => {
+		addItems(confirmedItems);
+		setReviewSheetVisible(false);
+		setDetectedItems([]);
+		
+		// Open pantry drawer to show new items
+		setTimeout(() => {
+			setDrawerOpen(true);
+		}, 300);
+
+		// Show success message
+		Alert.alert(
+			'Items Added',
+			`Added ${confirmedItems.length} ${confirmedItems.length === 1 ? 'item' : 'items'} to your pantry.`,
+			[{ text: 'OK' }]
+		);
+	};
+
+	// Handle review close
+	const handleReviewClose = () => {
+		setReviewSheetVisible(false);
+		setDetectedItems([]);
+	};
 
   // Handle settings button press
   const handleSettingsPress = () => {
@@ -172,7 +210,16 @@ export default function HomeScreen() {
       <CameraScreen 
         visible={cameraVisible}
         onClose={() => setCameraVisible(false)}
+				onItemsDetected={handleItemsDetected}
       />
+
+			{/* Pantry Review Sheet */}
+			<PantryReviewSheet
+				items={detectedItems}
+				visible={reviewSheetVisible}
+				onClose={handleReviewClose}
+				onConfirm={handleReviewConfirm}
+			/>
     </KeyboardAvoidingView>
   );
 }

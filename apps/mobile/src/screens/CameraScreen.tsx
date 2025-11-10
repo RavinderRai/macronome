@@ -22,21 +22,19 @@ import {
 	pickImageFromGallery,
 	requestImagePickerPermissions,
 } from '../services/camera/cameraService';
-
 interface CameraScreenProps {
 	visible: boolean;
 	onClose: () => void;
+	onItemsDetected: (items: any[]) => void;
 }
 
-export default function CameraScreen({ visible, onClose }: CameraScreenProps) {
+export default function CameraScreen({ visible, onClose, onItemsDetected }: CameraScreenProps) {
 	const [permission, requestPermission] = useCameraPermissions();
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [cameraFacing, setCameraFacing] = useState<'front' | 'back'>('back');
 	
 	const cameraRef = useRef<CameraView>(null);
-	const addItems = usePantryStore((state) => state.addItems);
 	const setLoading = usePantryStore((state) => state.setLoading);
-	const setDrawerOpen = useUIStore((state) => state.setDrawerOpen);
 
 	// Request permissions when modal opens
 	React.useEffect(() => {
@@ -64,23 +62,18 @@ export default function CameraScreen({ visible, onClose }: CameraScreenProps) {
 			setLoading(true);
 
 			// Send to ML pipeline with base64
-			const detectedItems = await detectPantryItems(photo.uri, photo.base64);
+			console.log('🔍 Detecting pantry items...');
+			const items = await detectPantryItems(photo.uri, photo.base64);
+			console.log('✅ Detection complete. Items found:', items.length);
+			console.log('📦 Items:', items);
 
-			// Add items to pantry store
-			if (detectedItems.length > 0) {
-				addItems(detectedItems);
-				
-				// Close camera and open pantry drawer to show results
-				onClose();
+			// Pass items to parent to show review sheet
+			if (items.length > 0) {
+				console.log('🎯 Showing review sheet with', items.length, 'items');
+				onClose(); // Close camera first
 				setTimeout(() => {
-					setDrawerOpen(true);
+					onItemsDetected(items); // Show review sheet after camera closes
 				}, 300);
-
-				Alert.alert(
-					'Items Detected',
-					`Found ${detectedItems.length} items. Review them in your pantry.`,
-					[{ text: 'OK' }]
-				);
 			} else {
 				Alert.alert(
 					'No Items Detected',
@@ -123,20 +116,11 @@ export default function CameraScreen({ visible, onClose }: CameraScreenProps) {
 				console.log('📊 Base64 length:', result.base64?.length || 0);
 				
 				setLoading(true);
-				const detectedItems = await detectPantryItems(result.uri, result.base64);
+				const items = await detectPantryItems(result.uri, result.base64);
 
-				if (detectedItems.length > 0) {
-					addItems(detectedItems);
-					onClose();
-					setTimeout(() => {
-						setDrawerOpen(true);
-					}, 300);
-
-					Alert.alert(
-						'Items Detected',
-						`Found ${detectedItems.length} items. Review them in your pantry.`,
-						[{ text: 'OK' }]
-					);
+				if (items.length > 0) {
+					onClose(); // Close camera first
+					onItemsDetected(items); // Show review sheet
 				} else {
 					Alert.alert(
 						'No Items Detected',
