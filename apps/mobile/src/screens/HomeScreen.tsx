@@ -26,10 +26,12 @@ import FilterSection from '../components/filters/FilterSection';
 import ChatMessage from '../components/chat/ChatMessage';
 import ChatInput from '../components/chat/ChatInput';
 import PantryDrawer from '../components/pantry/PantryDrawer';
+import CameraScreen from './CameraScreen';
 
 export default function HomeScreen() {
 	// Local state for input text
 	const [inputText, setInputText] = useState('');
+	const [cameraVisible, setCameraVisible] = useState(false);
 	
 	// Ref for scrolling to bottom
 	const flatListRef = useRef<FlatList>(null);
@@ -99,8 +101,7 @@ export default function HomeScreen() {
 
   // Handle camera button press
   const handleCameraPress = () => {
-    // TODO: Open camera screen 
-    console.log('Camera pressed - will implement later')
+    setCameraVisible(true);
   };
 
   // Handle settings button press
@@ -166,6 +167,12 @@ export default function HomeScreen() {
 
       {/* Pantry Drawer - slides in from left */}
       <PantryDrawer onCameraPress={handleCameraPress} />
+
+      {/* Camera Screen - full screen modal */}
+      <CameraScreen 
+        visible={cameraVisible}
+        onClose={() => setCameraVisible(false)}
+      />
     </KeyboardAvoidingView>
   );
 }
