@@ -29,6 +29,8 @@ You stay consistent *in rhythm* with how you actually live.
   - Cravings and prep time
   - Pantry/fridge inventory
 - Hybrid logic: deterministic constraint fitting + LLM reasoning for natural input (“something quick and spicy”).
+- RAG feature that searches a database of recipes to avoid hallucinations.
+  - Currently using static recipes from https://www.kaggle.com/datasets/paultimothymooney/recipenlg
 
 ### 💬 Chat-like Experience
 - Conversational interface for intuitive requests.
