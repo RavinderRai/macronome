@@ -66,7 +66,7 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 			const items = await detectPantryItems(photo.uri, photo.base64);
 			console.log('✅ Detection complete. Items found:', items.length);
 			console.log('📦 Items:', items);
-
+				
 			// Pass items to parent to show review sheet
 			if (items.length > 0) {
 				console.log('🎯 Showing review sheet with', items.length, 'items');
@@ -266,7 +266,7 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 								</Text>
 							</View>
 						)}
-				</>
+					</>
 			</SafeAreaView>
 		</Modal>
 	);

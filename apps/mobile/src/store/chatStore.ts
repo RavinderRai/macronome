@@ -21,15 +21,15 @@ export const useChatStore = create<ChatStore>((set) => ({
 
     // Actions
     addMessage: (messageData) => {
-        const newMessage: Message = {
-            ...messageData,
+    const newMessage: Message = {
+        ...messageData,
             id: uuidv4(),
-            timestamp: new Date(),
-        };
+        timestamp: new Date(),
+    };
 
-        set((state) => ({
-            messages: [...state.messages, newMessage],
-        }));
+    set((state) => ({
+        messages: [...state.messages, newMessage],
+    }));
     },
 
     setLoading: (isLoading) => {
@@ -37,10 +37,10 @@ export const useChatStore = create<ChatStore>((set) => ({
     },
 
     setError: (error) => {
-        set({ error });
+    set({ error });
     },
 
     clearMessages: () => {
-        set({ messages: [] });
+    set({ messages: [] });
     },
 }));

@@ -1,0 +1,34 @@
+"""
+Configuration for data ingestion scripts
+"""
+
+from pathlib import Path
+
+# Get repo root (this file is in src/macronome/data_engineering/)
+# Go up: data_engineering -> macronome -> src -> repo_root
+REPO_ROOT = Path(__file__).parent.parent.parent.parent
+
+# Kaggle dataset identifiers
+RECIPENLG_DATASET = "paultimothymooney/recipenlg"
+
+# Local paths (absolute paths from repo root)
+DATA_DIR = REPO_ROOT / "data"
+RECIPES_DIR = DATA_DIR / "recipes"
+RECIPES_RAW_DIR = RECIPES_DIR / "raw"
+RECIPES_PROCESSED_DIR = RECIPES_DIR / "processed"
+
+# Output file names
+RECIPES_PARQUET = "recipes.parquet"
+EMBEDDINGS_FAISS = "embeddings.faiss"
+EMBEDDINGS_INDEX = "embeddings.index"
+METADATA_JSON = "metadata.json"
+
+# Embedding configuration
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_BATCH_SIZE = 128
+MAX_TEXT_LENGTH = 512  # Max tokens for embedding
+
+# Recipe processing
+MIN_INGREDIENTS = 2  # Filter out recipes with too few ingredients
+MIN_DIRECTIONS_LENGTH = 20  # Filter out recipes with too short directions
+
