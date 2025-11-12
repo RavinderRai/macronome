@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 from abc import ABC, abstractmethod
 import litellm
-from ml.shared.llm.config import LLMConfig
+from macronome.ai.shared.llm.config import LLMConfig
 
 class BaseLLMClient(ABC):
     """Base LLM client using litellm"""
