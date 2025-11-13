@@ -6,8 +6,8 @@ from macronome.ai.workflows.meal_recommender_workflow_nodes import (
     PlanningAgent,
     RetrievalNode,
     SelectionAgent,
+    InitialNutritionNode,
     ModificationAgent,
-    NutritionNode,
     QCRouter,
     ExplanationAgent,
     RefinementAgent,
@@ -31,8 +31,10 @@ class MealRecommendationWorkflow(Workflow):
     2. Planning agent (decide search strategy)
     3. Retrieval (semantic search for top 3-5 candidates)
     4. Selection (pick best candidate to modify)
-    5. Modification agent (adjust recipe to meet ALL constraints)
-    6. Nutrition validation (calculate exact macros)
+    5. Initial Nutrition (calculate baseline nutrition - optional context)
+    6. Modification agent (iterative loop: modify → recalculate nutrition → check constraints, max 3 iterations)
+       - Uses calculate_nutrition tool with USDA API (cached)
+       - Outputs both ModifiedRecipe and final NutritionInfo
     7. QC Router (validate quality)
        → Success: Explanation agent (generate response)
        → Issues: Refinement agent (decide retry or ask user)
@@ -41,8 +43,8 @@ class MealRecommendationWorkflow(Workflow):
     
     Features:
     - Semantic search with FAISS
-    - 7-tool modification agent for recipe adaptation
-    - USDA API for accurate nutrition
+    - Iterative modification agent with nutrition feedback loop
+    - USDA API for accurate nutrition (with caching to minimize API calls)
     - Retry logic with smart refinement
     - Helpful failure messages
     """
@@ -76,22 +78,22 @@ class MealRecommendationWorkflow(Workflow):
             # Node 4: Select best candidate
             NodeConfig(
                 node=SelectionAgent,
-                connections=[ModificationAgent],
+                connections=[InitialNutritionNode],
                 description="Pick recipe requiring least modification"
             ),
             
-            # Node 5: Modify recipe (with 7 tools)
+            # Node 5: Calculate baseline nutrition (optional context)
             NodeConfig(
-                node=ModificationAgent,
-                connections=[NutritionNode],
-                description="Adapt recipe to meet all constraints"
+                node=InitialNutritionNode,
+                connections=[ModificationAgent],
+                description="Calculate baseline nutrition for context"
             ),
             
-            # Node 6: Calculate nutrition
+            # Node 6: Modify recipe iteratively (with nutrition tool)
             NodeConfig(
-                node=NutritionNode,
+                node=ModificationAgent,
                 connections=[QCRouter],
-                description="Calculate exact macros with USDA API"
+                description="Iteratively adapt recipe to meet all constraints (max 3 iterations, outputs nutrition)"
             ),
             
             # Node 7: Quality control router
