@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from PIL.Image import Image
 from typing import List
-from ml.pantry_scanner.schemas import PantryItem
+from macronome.ai.pantry_scanner.schemas import PantryItem
 
 
 def crop_item(img: Image, item: PantryItem) -> Image:

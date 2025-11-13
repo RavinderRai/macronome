@@ -6,7 +6,6 @@ from __future__ import annotations
 from PIL.Image import Image
 from pathlib import Path
 from typing import List, Optional
-from pydantic.v1 import NoneIsAllowedError
 from ultralytics import YOLO
 from macronome.ai.pantry_scanner.schemas import PantryItem, BoundingBox
 from macronome.ai.shared.mlflow.model_registry import get_latest_model_path

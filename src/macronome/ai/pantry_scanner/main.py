@@ -4,7 +4,7 @@ FastAPI service for pantry scanning
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from PIL import Image
 from io import BytesIO
-from ml.pantry_scanner.service import PantryScannerService
+from macronome.ai.pantry_scanner.service import PantryScannerService
 from typing import List, Dict
 import uvicorn
 
@@ -148,5 +148,5 @@ async def detect_items(
 
 
 if __name__ == "__main__":
-    uvicorn.run("ml.pantry_scanner.main:app", host="0.0.0.0", port=8001, reload=True)
+    uvicorn.run("macronome.ai.pantry_scanner.main:app", host="0.0.0.0", port=8001, reload=True)
 

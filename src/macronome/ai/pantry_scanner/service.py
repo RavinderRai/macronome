@@ -7,10 +7,10 @@ from PIL import Image
 from typing import List, Dict
 import asyncio
 import logging
-from ml.pantry_scanner.pipeline.pantry_detector import PantryDetector
-from ml.pantry_scanner.pipeline.cropper import crop_items_with_padding
-from ml.pantry_scanner.pipeline.food_classifier import FoodClassifier
-from ml.pantry_scanner.schemas import PantryItem
+from macronome.ai.pantry_scanner.pipeline.pantry_detector import PantryDetector
+from macronome.ai.pantry_scanner.pipeline.cropper import crop_items_with_padding
+from macronome.ai.pantry_scanner.pipeline.food_classifier import FoodClassifier
+from macronome.ai.pantry_scanner.schemas import PantryItem
 
 logger = logging.getLogger(__name__)
 

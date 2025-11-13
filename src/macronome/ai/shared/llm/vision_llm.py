@@ -1,7 +1,7 @@
 from typing import List
 import base64
 import asyncio
-from ml.shared.llm.base import BaseLLMClient, LLMConfig
+from macronome.ai.shared.llm.base import BaseLLMClient, LLMConfig
 
 class VisionLLMClient(BaseLLMClient):
     """Vision LLM client using litellm"""
