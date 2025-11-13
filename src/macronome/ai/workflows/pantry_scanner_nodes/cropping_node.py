@@ -15,6 +15,7 @@ from PIL.Image import Image
 
 logger = logging.getLogger(__name__)
 
+# TODO: the pantry_scanner.pipeline.cropper logic should be moved to this node rather than being imported from the old pipeline
 
 class CroppingNode(Node):
     """

@@ -13,6 +13,7 @@ from macronome.ai.schemas.pantry_scanner_schema import PantryScanRequest, Pantry
 
 logger = logging.getLogger(__name__)
 
+# TODO: the pantry_scanner.pipeline.pantry_detector logic should be moved to this node rather than being imported from the old pipeline
 
 class DetectionNode(Node):
     """

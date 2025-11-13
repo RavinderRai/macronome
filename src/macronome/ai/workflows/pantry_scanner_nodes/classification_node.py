@@ -19,6 +19,7 @@ from macronome.ai.workflows.pantry_scanner_nodes.detection_node import Detection
 
 logger = logging.getLogger(__name__)
 
+# TODO: This is still using the old LLM calls, need to use the agent node with image inputs before can delete the old pantry scanner pipeline
 
 class ClassificationNode(AgentNode):
     """
