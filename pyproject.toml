@@ -17,6 +17,7 @@ dependencies = [
     "pyarrow>=21.0.0",
     "pydantic-ai>=1.14.1",
     "python-frontmatter>=1.0.0",
+    "qdrant-client>=1.15.1",
     "sentence-transformers>=5.1.2",
     "torch>=2.9.0",
     "torchaudio>=2.9.0",

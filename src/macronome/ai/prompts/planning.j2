@@ -27,10 +27,18 @@ Top items:
 Create an optimized search strategy to find the best recipe candidates.
 
 ### 1. Search Query
-Build a concise semantic search query (5-10 words) that will find relevant recipes:
-- Use the semantic_query from constraints as base
-- Consider diet type, cuisine, meal type from custom_constraints
-- Add macro hints if relevant (e.g., "high protein" if protein > 30g)
+Build a descriptive semantic search query that matches how recipes are embedded (title + ingredients).
+Your query should be natural and descriptive (10-20 words), not just keywords:
+- Start with dish type/cuisine (e.g., "Italian pasta dish", "Asian stir fry", "American breakfast")
+- Include key ingredients if relevant (e.g., "with chicken and vegetables", "using tomatoes and basil")
+- Add cooking style/method hints if important (e.g., "baked", "grilled", "one-pot", "quick")
+- Consider diet type, meal type, and macro hints from constraints
+
+Examples of good queries:
+- "Italian pasta dish with tomatoes basil and mozzarella cheese, baked"
+- "High protein chicken meal with vegetables and rice, grilled"
+- "Vegan curry with coconut milk lentils and vegetables"
+- "Quick breakfast with eggs cheese and vegetables"
 
 ### 2. Hard Filters
 Identify non-negotiable filters to apply AFTER semantic search:
