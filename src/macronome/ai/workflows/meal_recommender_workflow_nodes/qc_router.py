@@ -14,9 +14,10 @@ logger = logging.getLogger(__name__)
 QC Router
 
 Router node that validates the modified recipe meets quality standards.
-Routes to ExplanationAgent if good, or RefinementAgent if issues found.
+Routes to ExplanationAgent if good, or FailureAgent if issues found.
 """
 
+# TODO: Rename now that we aren't using refinement agent
 
 class QCRouter(BaseRouter):
     """
@@ -25,7 +26,7 @@ class QCRouter(BaseRouter):
     Quality control router that validates the modified recipe.
     
     Input: ModifiedRecipe and NutritionInfo from previous nodes
-    Output: Routes to either ExplanationAgent or RefinementAgent
+    Output: Routes to either ExplanationAgent or FailureAgent
     
     Checks:
     - Macro tolerances (±15% of target)
@@ -54,7 +55,7 @@ class QCRouter(BaseRouter):
             
         Returns:
             ExplanationAgent if quality checks pass
-            RefinementAgent if issues found
+            FailureAgent if issues found
         """
         # Get required data
         modified: ModifiedRecipe = task_context.nodes.get("ModificationAgent")
@@ -64,8 +65,8 @@ class QCRouter(BaseRouter):
         if not all([modified, nutrition, normalized]):
             logger.error("Missing required data for QC routing")
             # Import here to avoid circular dependency
-            from macronome.ai.workflows.meal_recommender_workflow_nodes.refinement_agent import RefinementAgent
-            return RefinementAgent
+            from macronome.ai.workflows.meal_recommender_workflow_nodes.failure_agent import FailureAgent
+            return FailureAgent
         
         # Track issues
         issues = []
@@ -121,7 +122,7 @@ class QCRouter(BaseRouter):
             issues.append(f"Too many modifications ({len(modified.modifications)}), recipe may be unrecognizable")
             logger.warning(issues[-1])
         
-        # Store issues for potential use by RefinementAgent
+        # Store issues for FailureAgent
         if issues:
             task_context.nodes["qc_issues"] = issues
         
@@ -132,8 +133,8 @@ class QCRouter(BaseRouter):
             from macronome.ai.workflows.meal_recommender_workflow_nodes.explanation_agent import ExplanationAgent
             return ExplanationAgent
         else:
-            # Significant issues - needs refinement
-            logger.info(f"QC failed: {len(issues)} issues found, routing to refinement")
-            from macronome.ai.workflows.meal_recommender_workflow_nodes.refinement_agent import RefinementAgent
-            return RefinementAgent
+            # Significant issues - ModificationAgent already tried 3 iterations, fail gracefully
+            logger.info(f"QC failed: {len(issues)} issues found after modification attempts, routing to failure")
+            from macronome.ai.workflows.meal_recommender_workflow_nodes.failure_agent import FailureAgent
+            return FailureAgent
 

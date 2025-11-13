@@ -10,7 +10,6 @@ from macronome.ai.workflows.meal_recommender_workflow_nodes import (
     ModificationAgent,
     QCRouter,
     ExplanationAgent,
-    RefinementAgent,
     FailureAgent,
 )
 
@@ -37,9 +36,7 @@ class MealRecommendationWorkflow(Workflow):
        - Outputs both ModifiedRecipe and final NutritionInfo
     7. QC Router (validate quality)
        → Success: Explanation agent (generate response)
-       → Issues: Refinement agent (decide retry or ask user)
-           → Retry: Back to Modification (max 2 retries)
-           → Ask user: Failure agent (explain and suggest)
+       → Failure: Failure agent (explain issues and suggest constraint modifications)
     
     Features:
     - Semantic search with FAISS
@@ -99,9 +96,9 @@ class MealRecommendationWorkflow(Workflow):
             # Node 7: Quality control router
             NodeConfig(
                 node=QCRouter,
-                connections=[ExplanationAgent, RefinementAgent],
+                connections=[ExplanationAgent, FailureAgent],
                 is_router=True,
-                description="Validate quality, route to success or refinement"
+                description="Validate quality, route to success or failure"
             ),
             
             # Node 8: Generate explanation (success terminal)
@@ -111,15 +108,7 @@ class MealRecommendationWorkflow(Workflow):
                 description="Generate user-friendly meal explanation (terminal)"
             ),
             
-            # Node 9: Refinement decision (retry or escalate)
-            NodeConfig(
-                node=RefinementAgent,
-                connections=[ModificationAgent, FailureAgent],
-                is_router=True,
-                description="Decide retry with guidance or ask user"
-            ),
-            
-            # Node 10: Failure message (failure terminal)
+            # Node 9: Failure message (failure terminal)
             NodeConfig(
                 node=FailureAgent,
                 connections=[],

@@ -9,7 +9,6 @@ from macronome.ai.schemas.meal_recommender_constraints_schema import (
 )
 from macronome.ai.schemas.workflow_schemas import FailureResponse
 from macronome.ai.workflows.meal_recommender_workflow_nodes.normalize_node import NormalizeNode
-from macronome.ai.workflows.meal_recommender_workflow_nodes.refinement_agent import RefinementAgent
 
 """
 Failure Agent Node
@@ -26,7 +25,7 @@ class FailureAgent(AgentNode):
     
     Uses LLM to generate helpful error message and suggestions.
     
-    Input: QC issues, constraints, refinement decision
+    Input: QC issues, constraints
     Output: FailureResponse (final output) - Terminal node
     
     Generates:
@@ -69,14 +68,11 @@ class FailureAgent(AgentNode):
         normalize_output: NormalizeNode.OutputType = task_context.nodes.get("NormalizeNode")
         request: MealRecommendationRequest = task_context.event
         qc_issues = task_context.nodes.get("qc_issues", [])
-        refinement_output: RefinementAgent.OutputType = task_context.nodes.get("RefinementAgent")
-        retry_count = task_context.metadata.get("refinement_retry_count", 0)
         
         if not normalize_output:
             raise ValueError("NormalizedConstraints not found in task context")
         
         normalized = normalize_output.model_output
-        refinement_decision = refinement_output.model_output if refinement_output else None
         
         # Render the prompt
         prompt = PromptManager.get_prompt(
@@ -84,8 +80,6 @@ class FailureAgent(AgentNode):
             user_query=request.user_query,
             normalized_constraints=normalized.model_dump(),
             qc_issues=qc_issues,
-            refinement_decision=refinement_decision.model_dump() if refinement_decision else None,
-            retry_count=retry_count,
         )
         
         # Run the agent

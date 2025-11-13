@@ -17,6 +17,7 @@ An LLM-powered agent that decides whether QC issues can be fixed internally
 or require user input. Routes back to ModificationAgent for retry or to FailureAgent.
 """
 
+# TODO: Remove or decide if we want to use this, previous implementation caused an invalid cycle
 
 class RefinementAgent(AgentNode):
     """

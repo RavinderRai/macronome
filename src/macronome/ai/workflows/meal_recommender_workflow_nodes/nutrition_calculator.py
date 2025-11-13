@@ -13,6 +13,7 @@ from macronome.ai.schemas.recipe_schema import NutritionInfo, ParsedIngredient
 
 logger = logging.getLogger(__name__)
 
+# TODO: Move this to a utils file or something
 
 class NutritionCalculator:
     """

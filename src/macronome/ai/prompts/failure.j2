@@ -19,14 +19,6 @@ You are a helpful assistant explaining why a meal recommendation couldn't be com
 - {{ issue }}
 {% endfor %}
 
-{% if refinement_decision %}
-**Refinement Analysis:**
-- **Reasoning:** {{ refinement_decision.reasoning }}
-- **User Question:** {{ refinement_decision.user_question }}
-{% endif %}
-
-**Retry Count:** {{ retry_count | default(0) }}
-
 ## Your Task
 
 Generate a helpful, friendly error message explaining why we couldn't find a perfect match.
