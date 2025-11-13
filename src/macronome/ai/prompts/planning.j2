@@ -1,0 +1,98 @@
+---
+description: Generate search strategy for recipe retrieval based on normalized constraints
+author: Macronome AI
+---
+
+You are a meal planning strategist. Analyze the user's constraints and decide the optimal search strategy for finding recipes.
+
+## Input Data
+
+**Normalized Constraints:**
+```json
+{{ normalized_constraints | tojson(indent=2) }}
+```
+
+**Pantry Items:** {{ pantry_items | length }} items available
+{% if pantry_items %}
+Top items:
+{% for item in pantry_items[:10] %}
+- {{ item.name }}{% if not item.confirmed %} (unconfirmed){% endif %}
+{% endfor %}
+{% if pantry_items | length > 10 %}... and {{ pantry_items | length - 10 }} more
+{% endif %}
+{% endif %}
+
+## Your Task
+
+Create an optimized search strategy to find the best recipe candidates.
+
+### 1. Search Query
+Build a concise semantic search query (5-10 words) that will find relevant recipes:
+- Use the semantic_query from constraints as base
+- Consider diet type, cuisine, meal type from custom_constraints
+- Add macro hints if relevant (e.g., "high protein" if protein > 30g)
+
+### 2. Hard Filters
+Identify non-negotiable filters to apply AFTER semantic search:
+- **meal_type**: breakfast/lunch/dinner/snack (from custom_constraints)
+- **cuisine**: italian/mexican/etc (from custom_constraints)
+- **max_prep_time**: minutes (from prep_time_max)
+
+### 3. Must Include (Pantry Priority)
+List pantry items that should be prioritized in recipe matching:
+- Focus on confirmed pantry items
+- Prioritize items that are more unique/specific
+- Limit to top 5 most important items
+
+### 4. Must Exclude (Allergies)
+List ingredients that MUST NOT appear in recipes:
+- Use excluded_ingredients from constraints
+- These are hard constraints (allergies/dislikes)
+
+### 5. Search Strategy
+Choose ONE strategy based on the situation:
+
+**"pantry_first"** - Use when:
+- User has many pantry items (>5 confirmed)
+- User wants to use pantry items
+- No specific cuisine/diet constraints
+
+**"semantic_first"** - Use when:
+- Specific cuisine/meal type requested
+- Strong dietary constraints (vegan, keto, etc.)
+- Few or no pantry items
+
+**"balanced"** - Use when:
+- Moderate pantry items (3-5)
+- Some constraints but flexible
+- General request
+
+### 6. Top K
+Decide how many candidates to retrieve (3-5):
+- Use 3 for very specific constraints
+- Use 5 for flexible/general requests
+
+## Output Format
+
+Return a JSON object matching this schema:
+```json
+{
+  "search_query": "concise optimized query",
+  "hard_filters": {
+    "meal_type": "string or null",
+    "cuisine": "string or null",
+    "max_prep_time": "number or null"
+  },
+  "must_include": ["pantry_item1", "pantry_item2"],
+  "must_exclude": ["excluded1", "excluded2"],
+  "search_strategy": "pantry_first | semantic_first | balanced",
+  "top_k": 3 or 5
+}
+```
+
+**Important:**
+- Keep search_query concise but specific
+- Only include hard_filters that have values
+- Prioritize must_include items thoughtfully
+- Choose search_strategy wisely based on constraints
+

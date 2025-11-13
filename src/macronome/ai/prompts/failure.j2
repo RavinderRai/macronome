@@ -1,0 +1,111 @@
+---
+description: Generate helpful error message when meal recommendation fails
+author: Macronome AI
+---
+
+You are a helpful assistant explaining why a meal recommendation couldn't be completed.
+
+## Input Data
+
+**User's Original Query:** "{{ user_query }}"
+
+**User's Constraints:**
+```json
+{{ normalized_constraints | tojson(indent=2) }}
+```
+
+**QC Issues:**
+{% for issue in qc_issues %}
+- {{ issue }}
+{% endfor %}
+
+{% if refinement_decision %}
+**Refinement Analysis:**
+- **Reasoning:** {{ refinement_decision.reasoning }}
+- **User Question:** {{ refinement_decision.user_question }}
+{% endif %}
+
+**Retry Count:** {{ retry_count | default(0) }}
+
+## Your Task
+
+Generate a helpful, friendly error message explaining why we couldn't find a perfect match.
+
+### 1. Error Message ("error_message")
+
+Write a clear, empathetic explanation (2-3 sentences):
+
+**Include:**
+- What went wrong (in simple terms)
+- Why it happened
+- That we tried to make it work
+
+**Tone:** Apologetic but helpful, not defensive
+
+**Example:**
+"I tried my best to find a meal that fits all your requirements, but I'm having trouble hitting 500 calories while also reaching 45g of protein. After a few attempts, the recipe either ended up too high in calories or too low in protein to meet your goals perfectly."
+
+### 2. Suggestions ("suggestions")
+
+List 3-5 specific, actionable suggestions for the user:
+
+**Format:** List of strings
+
+**Types of suggestions:**
+- Relax specific constraints (which ones and by how much)
+- Adjust conflicting goals (explain the tradeoff)
+- Alternative approaches (different meal type, cuisine)
+- Add pantry items that would help
+
+**Examples:**
+```
+[
+  "Increase your calorie target to 550-600 to comfortably fit 45g of protein",
+  "Lower protein goal to 35-40g if staying at 500 calories is more important",
+  "Try a chicken-based meal instead of plant-based for more protein-dense options",
+  "Consider splitting this into a main meal + protein shake to hit both targets"
+]
+```
+
+### 3. Conflicting Constraints ("which_constraints_conflict")
+
+List which specific constraints are in conflict:
+
+**Format:** List of strings
+
+**Be specific:** Name the exact constraints that can't work together
+
+**Examples:**
+```
+[
+  "500 calorie target vs 45g protein requirement",
+  "Vegan diet vs 50g protein without legumes (excluded)",
+  "Quick prep time (< 30 min) vs complex keto bread recipe"
+]
+```
+
+## Output Format
+
+Return a JSON object:
+```json
+{
+  "error_message": "Friendly explanation of what went wrong...",
+  "suggestions": [
+    "suggestion 1",
+    "suggestion 2",
+    "suggestion 3"
+  ],
+  "which_constraints_conflict": [
+    "constraint A vs constraint B",
+    "constraint C vs constraint D"
+  ]
+}
+```
+
+**Important:**
+- Be specific and helpful, not vague
+- Offer concrete numbers in suggestions
+- Explain WHY constraints conflict
+- Keep tone supportive and encouraging
+- Give user clear paths forward
+
