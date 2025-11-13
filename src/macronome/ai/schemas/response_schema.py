@@ -8,6 +8,7 @@ class MealRecommendation(BaseModel):
     why_it_fits: str                             # LLM-generated explanation
     ingredient_swaps: List[str] = []             # Suggested modifications
     pantry_utilization: List[str] = []           # Which pantry items used
+    recipe_instructions: str                      # Structured markdown recipe instructions
 
 class MealRecommendationResponse(BaseModel):
     """Workflow output"""

@@ -41,12 +41,21 @@ class RefinementDecision(BaseModel):
     user_question: Optional[str] = None  # If ask_user, what to ask
 
 
+class ExplanationOutput(BaseModel):
+    """Output from Explanation Agent (LLM-generated explanation fields)"""
+    why_it_fits: str
+    ingredient_swaps: List[str] = Field(default_factory=list)
+    pantry_utilization: List[str] = Field(default_factory=list)
+    recipe_instructions: str = Field(..., description="Structured markdown recipe instructions for frontend display")
+
+
 class MealRecommendation(BaseModel):
     """Final meal recommendation output"""
     recipe: EnrichedRecipe
     why_it_fits: str
     ingredient_swaps: List[str] = Field(default_factory=list)
     pantry_utilization: List[str] = Field(default_factory=list)
+    recipe_instructions: str = Field(..., description="Structured markdown recipe instructions for frontend display")
 
 
 class FailureResponse(BaseModel):

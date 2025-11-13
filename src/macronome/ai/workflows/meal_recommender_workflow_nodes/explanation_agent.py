@@ -9,9 +9,8 @@ from macronome.ai.schemas.meal_recommender_constraints_schema import (
 )
 from macronome.ai.workflows.meal_recommender_workflow_nodes.modification_agent import ModificationAgent
 from macronome.ai.workflows.meal_recommender_workflow_nodes.normalize_node import NormalizeNode
-from macronome.ai.workflows.meal_recommender_workflow_nodes.nutrition_node import NutritionNode
 from macronome.ai.schemas.recipe_schema import NutritionInfo, EnrichedRecipe
-from macronome.ai.schemas.workflow_schemas import ModifiedRecipe, MealRecommendation
+from macronome.ai.schemas.workflow_schemas import MealRecommendation, ExplanationOutput
 
 """
 Explanation Agent Node
@@ -50,7 +49,7 @@ class ExplanationAgent(AgentNode):
         return AgentConfig(
             model_provider=ModelProvider.OPENAI,
             model_name="gpt-4o-mini",
-            output_type=MealRecommendation,
+            output_type=ExplanationOutput,
             system_prompt="You are a friendly meal recommendation expert who explains food choices warmly.",
             name="ExplanationAgent",
             retries=2,
@@ -112,6 +111,7 @@ class ExplanationAgent(AgentNode):
             why_it_fits=explanation_data.why_it_fits,
             ingredient_swaps=explanation_data.ingredient_swaps,
             pantry_utilization=explanation_data.pantry_utilization,
+            recipe_instructions=explanation_data.recipe_instructions,
         )
         
         # Store output with message history

@@ -3,114 +3,95 @@ description: Generate user-friendly explanation for recommended meal
 author: Macronome AI
 ---
 
-You are a meal recommendation expert. Generate a friendly, helpful explanation of why this meal fits the user's request.
+Generate a warm, conversational explanation for this meal recommendation.
 
 ## Input Data
 
-**User's Original Query:** "{{ user_query }}"
+**User Query:** "{{ user_query }}"
 
-**User's Constraints:**
+**Constraints:**
 ```json
 {{ normalized_constraints | tojson(indent=2) }}
 ```
 
-**Recommended Recipe:**
-- **Title:** {{ recipe.title }}
-- **Ingredients ({{ recipe.ingredients | length }}):**
+**Recipe:**
+- Title: {{ recipe.title }}
+- Ingredients:
 {% for ing in recipe.ingredients %}
   - {{ ing.quantity }} {{ ing.unit }} {{ ing.ingredient }}{% if ing.modifier %} ({{ ing.modifier }}){% endif %}
 {% endfor %}
-- **Directions:** {{ recipe.directions }}
+- Directions: {{ recipe.directions }}
 
-**Nutrition Facts:**
-- Calories: {{ nutrition.calories }}
-- Protein: {{ nutrition.protein }}g
-- Carbs: {{ nutrition.carbs }}g
-- Fat: {{ nutrition.fat }}g
+**Nutrition:** {{ nutrition.calories }} cal, {{ nutrition.protein }}g protein, {{ nutrition.carbs }}g carbs, {{ nutrition.fat }}g fat
 
-**Modifications Made ({{ recipe.modifications | length }}):**
+**Modifications:**
 {% for mod in recipe.modifications %}
 - {{ mod }}
 {% endfor %}
 
-**Pantry Items Available:**
+**Pantry Items:**
 {% for item in pantry_items %}
 - {{ item.name }}
 {% endfor %}
 
-## Your Task
+## Output Fields
 
-Generate a warm, conversational explanation that includes:
+### 1. why_it_fits (string)
+2-3 sentences explaining why this meal fits. Include specific numbers (calories/macros), diet alignment, and custom constraints. Tone: friendly, enthusiastic.
 
-### 1. Why It Fits ("why_it_fits")
+**Example:** "This Spicy Mexican Chickpea Bowl is perfect! At 680 calories with 35g protein, it hits your target. As a vegan dish, it aligns with your preferences, and the chipotle peppers bring that spicy kick you wanted."
 
-Write 2-3 sentences explaining why this meal is perfect for the user:
+### 2. ingredient_swaps (list of strings)
+Notable substitutions with reasons. Format: "Replaced X with Y because Z". Return empty list if none.
 
-**Address:**
-- How it meets their calorie/macro targets (be specific with numbers)
-- How it aligns with their diet type (if specified)
-- How it matches custom constraints (cuisine, meal type, spicy, etc.)
-- Why it's a good choice for their request
+**Example:** `["Replaced chicken with chickpeas to make it vegan while maintaining high protein", "Swapped sour cream for cashew cream to keep it dairy-free"]`
 
-**Tone:** Friendly, enthusiastic, helpful (like a personal chef)
+### 3. pantry_utilization (list of strings)
+Pantry items used in recipe. Return empty list if none.
 
-**Example:**
-"This Spicy Mexican Chickpea Bowl is perfect for your request! At 680 calories with 35g of protein, it hits your target right in the sweet spot. As a vegan dish, it completely aligns with your dietary preferences, and the chipotle peppers bring that spicy kick you were craving."
+**Example:** `["chickpeas", "onions", "tomatoes"]`
 
-### 2. Ingredient Swaps ("ingredient_swaps")
+### 4. recipe_instructions (markdown string)
+Structured markdown recipe for frontend display:
 
-List any notable ingredient substitutions that were made, explaining WHY:
+```markdown
+# {{ recipe.title }}
 
-**Format:** List of strings, each describing one swap
-**Include:**
-- Original → Replacement
-- Reason for swap (diet, pantry, preference)
-- How it affects the dish
+## Ingredients
 
-**Example:**
-```
-[
-  "Replaced chicken with chickpeas to make it vegan while maintaining high protein",
-  "Swapped sour cream for cashew cream to keep it dairy-free without losing creaminess",
-  "Used chipotle peppers instead of jalapeños for deeper, smokier heat"
-]
-```
+- 1 cup chickpeas, drained and rinsed
+- 2 tablespoons olive oil
+- 1 medium onion, diced
+- ... (all ingredients with quantities)
 
-**Skip if:** No significant swaps were made (return empty list)
+## Instructions
 
-### 3. Pantry Utilization ("pantry_utilization")
+1. Heat olive oil in a large skillet over medium heat.
+2. Add diced onion and cook until translucent, about 5 minutes.
+3. ... (numbered steps)
 
-List which pantry items are being used in this recipe:
+## Notes
 
-**Format:** List of strings
-**Include:** Only items that appear in both the recipe AND the user's pantry
-
-**Example:**
-```
-[
-  "chickpeas",
-  "onions",
-  "tomatoes"
-]
+- Prep time: ~15 minutes
+- Cook time: ~25 minutes
+- Serves: 1
 ```
 
-**Skip if:** No pantry items used (return empty list)
+**Requirements:**
+- `#` for title, `##` for sections
+- Ingredients: bullet points with full descriptions (quantities + units)
+- Instructions: numbered list with clear, actionable steps
+- Notes: prep time, cook time, serves (if available)
+- Format quantities consistently
 
 ## Output Format
 
-Return a JSON object:
 ```json
 {
   "why_it_fits": "2-3 sentence explanation...",
-  "ingredient_swaps": ["swap 1 explanation", "swap 2 explanation"],
-  "pantry_utilization": ["item1", "item2", "item3"]
+  "ingredient_swaps": ["swap 1", "swap 2"],
+  "pantry_utilization": ["item1", "item2"],
+  "recipe_instructions": "# Title\n\n## Ingredients\n\n- ...\n\n## Instructions\n\n1. ...\n\n## Notes\n\n- ..."
 }
 ```
-
-**Important:**
-- Be specific about numbers (calories, macros)
-- Be warm and encouraging
-- Explain swaps clearly
-- Only list pantry items actually used
-- Keep it concise but informative
 
