@@ -2,12 +2,12 @@ import json
 import logging
 from typing import List
 import numpy as np
+from io import BytesIO
 
-try:
-    import faiss
-    FAISS_AVAILABLE = True
-except ImportError:
-    FAISS_AVAILABLE = False
+
+import faiss
+import boto3
+import pandas as pd
     
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
@@ -21,6 +21,7 @@ from macronome.data_engineering.config import (
     EMBEDDINGS_FAISS,
     METADATA_JSON,
     EMBEDDING_MODEL,
+    RECIPES_PARQUET,
 )
 from macronome.settings import DataConfig
 
@@ -57,6 +58,7 @@ class RetrievalNode(Node):
         self._faiss_index = None
         self._qdrant_client = None
         self._recipes = None
+        self._recipes_by_id = None  # Dictionary mapping recipe_id -> Recipe (for Qdrant lookups)
         self._model = None
         self._use_qdrant = DataConfig.VECTOR_BACKEND == "qdrant"
     
@@ -82,11 +84,6 @@ class RetrievalNode(Node):
         """Load FAISS index and local metadata"""
         if self._faiss_index is not None:
             return
-        
-        if not FAISS_AVAILABLE:
-            raise RuntimeError(
-                "FAISS is not installed. Run: pip install faiss-cpu or faiss-gpu"
-            )
         
         # Load FAISS index
         index_path = RECIPES_PROCESSED_DIR / EMBEDDINGS_FAISS
@@ -121,7 +118,7 @@ class RetrievalNode(Node):
         logger.info(f"Loaded {len(self._recipes)} recipes")
     
     def _load_qdrant(self):
-        """Initialize Qdrant client"""
+        """Initialize Qdrant client and load recipe metadata from local file"""
         if self._qdrant_client is not None:
             return
         
@@ -144,6 +141,44 @@ class RetrievalNode(Node):
                 f"Failed to connect to Qdrant collection '{collection_name}': {e}. "
                 f"Run generate_embeddings.py first."
             )
+        
+        # Load recipe metadata from S3 (for looking up full recipe details)
+        if self._recipes_by_id is None:
+            
+            if not DataConfig.S3_BUCKET:
+                raise ValueError("S3_BUCKET must be set in environment")
+            
+            logger.info(f"Loading recipe metadata from S3: s3://{DataConfig.S3_BUCKET}/{RECIPES_PARQUET}")
+            
+            # Configure S3 client
+            s3_config = {}
+            if DataConfig.AWS_ACCESS_KEY_ID:
+                s3_config['aws_access_key_id'] = DataConfig.AWS_ACCESS_KEY_ID
+                s3_config['aws_secret_access_key'] = DataConfig.AWS_SECRET_ACCESS_KEY
+            
+            s3_client = boto3.client('s3', region_name=DataConfig.S3_REGION, **s3_config)
+            
+            # Download parquet file from S3
+            buffer = BytesIO()
+            try:
+                s3_client.download_fileobj(DataConfig.S3_BUCKET, RECIPES_PARQUET, buffer)
+                buffer.seek(0)
+            except Exception as e:
+                raise FileNotFoundError(
+                    f"Failed to download recipes from S3: s3://{DataConfig.S3_BUCKET}/{RECIPES_PARQUET}. "
+                    f"Error: {e}"
+                )
+            
+            # Load parquet and convert to recipes
+            df = pd.read_parquet(buffer)
+            recipes_data = df.to_dict('records')
+            
+            # Create dictionary mapping recipe_id -> Recipe for fast lookups
+            self._recipes_by_id = {
+                recipe["id"]: Recipe(**recipe) for recipe in recipes_data
+            }
+            
+            logger.info(f"Loaded {len(self._recipes_by_id)} recipes from S3 for lookup")
     
     def _embed_query(self, query: str) -> np.ndarray:
         """Embed search query using sentence-transformers"""
@@ -176,7 +211,7 @@ class RetrievalNode(Node):
         return results
     
     def _semantic_search_qdrant(self, query: str, top_k: int) -> List[tuple]:
-        """Perform Qdrant semantic search"""
+        """Perform Qdrant semantic search and look up full recipe details from local metadata"""
         # Embed query
         query_embedding = self._embed_query(query)
         
@@ -188,20 +223,28 @@ class RetrievalNode(Node):
             limit=top_k * 2  # Get more for filtering
         )
         
-        # Convert to Recipe objects
+        # Convert to Recipe objects by looking up full details from local metadata
         results = []
         for result in search_results:
             payload = result.payload
-            recipe_dict = {
-                "id": payload["recipe_id"],
-                "title": payload["title"],
-                "ingredients": payload["ingredients"],
-                "directions": payload["directions"],
-                "ner": payload["ner"],
-                "source": payload.get("source", ""),
-                "link": payload.get("link", ""),
-            }
-            recipe = Recipe(**recipe_dict)
+            recipe_id = payload["recipe_id"]
+            
+            # Look up full recipe details from local metadata
+            if recipe_id in self._recipes_by_id:
+                recipe = self._recipes_by_id[recipe_id]
+            else:
+                # Fallback: create minimal recipe from payload if not found in metadata
+                logger.warning(f"Recipe {recipe_id} not found in local metadata, using payload only")
+                recipe = Recipe(
+                    id=recipe_id,
+                    title=payload.get("title", ""),
+                    ingredients=[],
+                    directions="",
+                    ner=[],
+                    source="",
+                    link="",
+                )
+            
             # Qdrant returns cosine similarity score (0-1)
             results.append((recipe, float(result.score)))
         

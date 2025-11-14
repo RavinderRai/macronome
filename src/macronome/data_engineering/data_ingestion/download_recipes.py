@@ -189,7 +189,7 @@ def save_to_s3(recipes):
         s3_client = boto3.client('s3', region_name=DataConfig.S3_REGION, **s3_config)
         
         # Upload to S3
-        s3_key = f"{DataConfig.S3_RECIPES_PREFIX}{RECIPES_PARQUET}"
+        s3_key = f"{RECIPES_PARQUET}"
         s3_client.upload_fileobj(buffer, DataConfig.S3_BUCKET, s3_key)
         
         logger.info(f"Uploaded {len(recipes)} recipes to s3://{DataConfig.S3_BUCKET}/{s3_key}")
@@ -233,7 +233,7 @@ def main():
     logger.info("=" * 60)
     logger.info("RecipeNLG Dataset Download")
     logger.info("=" * 60)
-    logger.info(f"Environment: {ENV.value}")
+    logger.info(f"Environment: {ENV}")
     logger.info(f"Recipe limit: {limit if limit > 0 else 'None (all recipes)'}")
     logger.info(f"Save to local: {save_local}")
     logger.info(f"Upload to S3: {save_s3}")
