@@ -1,11 +1,7 @@
-export type MacroLevel = 'low' | 'moderate' | 'high';
-
-export type MacroValue = MacroLevel | number;
-
 export interface MacroConstraints {
-    carbs?: MacroValue;
-    protein?: MacroValue;
-    fat?: MacroValue;
+    carbs?: number;
+    protein?: number;
+    fat?: number;
 }
 
 export interface FilterConstraints {

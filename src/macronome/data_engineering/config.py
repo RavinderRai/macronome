@@ -29,7 +29,7 @@ EMBEDDING_BATCH_SIZE = 512  # Increased for better MPS/GPU utilization
 MAX_TEXT_LENGTH = 512  # Max tokens for embedding (legacy, not used in new format)
 
 # Chunking configuration (for streaming large datasets)
-RECIPE_CHUNK_SIZE = 25_000  # Process 50k recipes at a time to avoid OOM
+RECIPE_CHUNK_SIZE = 10_000  # Process 10k recipes at a time to avoid OOM
 QDRANT_UPLOAD_BATCH_SIZE = 1000  # Upload 1000 vectors at a time (much faster than 100)
 
 # Embedding format: title + ingredients (no directions)

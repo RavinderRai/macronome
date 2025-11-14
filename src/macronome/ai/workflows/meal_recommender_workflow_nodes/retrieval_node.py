@@ -148,7 +148,8 @@ class RetrievalNode(Node):
             if not DataConfig.S3_BUCKET:
                 raise ValueError("S3_BUCKET must be set in environment")
             
-            logger.info(f"Loading recipe metadata from S3: s3://{DataConfig.S3_BUCKET}/{RECIPES_PARQUET}")
+            s3_key = f"{DataConfig.S3_RECIPES_PREFIX}{RECIPES_PARQUET}"
+            logger.info(f"Loading recipe metadata from S3: s3://{DataConfig.S3_BUCKET}/{s3_key}")
             
             # Configure S3 client
             s3_config = {}
@@ -161,11 +162,11 @@ class RetrievalNode(Node):
             # Download parquet file from S3
             buffer = BytesIO()
             try:
-                s3_client.download_fileobj(DataConfig.S3_BUCKET, RECIPES_PARQUET, buffer)
+                s3_client.download_fileobj(DataConfig.S3_BUCKET, s3_key, buffer)
                 buffer.seek(0)
             except Exception as e:
                 raise FileNotFoundError(
-                    f"Failed to download recipes from S3: s3://{DataConfig.S3_BUCKET}/{RECIPES_PARQUET}. "
+                    f"Failed to download recipes from S3: s3://{DataConfig.S3_BUCKET}/{s3_key}. "
                     f"Error: {e}"
                 )
             

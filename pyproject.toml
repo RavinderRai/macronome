@@ -19,6 +19,7 @@ dependencies = [
     "python-frontmatter>=1.0.0",
     "qdrant-client>=1.15.1",
     "sentence-transformers>=5.1.2",
+    "supabase>=2.24.0",
     "torch>=2.9.0",
     "torchaudio>=2.9.0",
     "torchvision>=0.24.0",

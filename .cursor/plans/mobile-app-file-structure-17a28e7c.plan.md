@@ -1,5 +1,5 @@
 <!-- 17a28e7c-1c7b-477f-9898-f0ecde17185b 0b1adbf4-97bb-4421-b39d-b5dc73a116dc -->
-# 48-Hour MVP Sprint Plan
+# 48-Hour MVP Sprint Plan (Updated)
 
 ## Overview
 
@@ -10,81 +10,54 @@ Two-phase implementation plan for Macronome MVP:
 
 **Goal:** Impressive MVP showcasing full-stack ML/AI capabilities with zero refactoring between phases
 
+**Current Status:**
+
+- ✅ 1.1 Cloud Data Setup - Complete (S3, Qdrant, RetrievalNode)
+- ✅ 1.2 Backend Foundation - Complete (FastAPI app, auth, database models, SQL schema)
+- ⏳ Next: Infrastructure, Services, API Endpoints, Chat Workflow, Frontend Integration
+
 ---
 
 ## Phase 1: Production-Ready Local Setup (Today)
 
 **Timeline:** 12-18 hours
+
 **Goal:** Fully functional app running locally, using cloud services, ready for deployment
 
 ---
 
-### 1.1 Cloud Data Setup (2-3 hours)
+### 1.1 Cloud Data Setup ✅ COMPLETE
 
-**Objective:** Move recipe data and embeddings to cloud storage
+**Status:** Done
 
-**Tasks:**
-
-- Set up S3 bucket for recipe dataset
-- Set up Qdrant Cloud (free tier) collection
-- Update data ingestion script:
-- Upload recipe parquet to S3
-- Upload embeddings to Qdrant (downsample to ~50K-100K recipes for free tier)
-- Store Qdrant collection name/URL in config
-- Refactor `RetrievalNode` to use Qdrant client instead of FAISS
-- Test retrieval from Qdrant
-
-**Files to Create/Update:**
-
-- `src/macronome/data_engineering/data_ingestion/ingest_recipes.py` - Add S3/Qdrant upload
-- `src/macronome/ai/workflows/meal_recommender_workflow_nodes/retrieval_node.py` - Qdrant integration
-- `src/macronome/backend/config.py` - Add S3, Qdrant config
-
-**Dependencies:**
-
-- `qdrant-client`, `boto3`
+- S3 bucket configured for recipe dataset
+- Qdrant Cloud collection set up with INT8 quantization
+- Data ingestion scripts updated (download_recipes.py, generate_embeddings.py)
+- RetrievalNode refactored to use Qdrant with S3 recipe lookup
+- 1M recipes sampled and embedded in Qdrant
 
 ---
 
-### 1.2 Backend Foundation (3-4 hours)
+### 1.2 Backend Foundation ✅ COMPLETE
 
-**Objective:** FastAPI app with auth, database, and infrastructure
+**Status:** Done
 
-**Tasks:**
+- FastAPI app structure (`backend/app.py`)
+- Database models aligned with frontend types (`backend/db/models.py`)
+- SQL schema created and ready for Supabase
+- Clerk authentication setup (`backend/auth/`)
+- Supabase client initialization (`backend/db/session.py`)
+- Chat session helpers (`backend/db/chat_helpers.py`)
+- All config centralized in `settings.py`
 
-#### FastAPI App Structure
+**Database Tables:**
 
-- `src/macronome/backend/__init__.py`
-- `src/macronome/backend/app.py` - FastAPI app with CORS, middleware
-- `src/macronome/backend/config.py` - Environment config (Supabase, Redis, S3, Qdrant, Clerk, API keys)
-- Health check endpoint (`/health`)
-
-#### Database Setup
-
-- `src/macronome/backend/db/__init__.py`
-- `src/macronome/backend/db/session.py` - Supabase client initialization
-- `src/macronome/backend/db/models.py` - SQLAlchemy models:
-- `pantry_items`: id, user_id (clerk_user_id), name, category, confirmed, image_url, created_at
-- `meal_history`: id, user_id, meal_data (JSON), accepted, created_at
-- `user_preferences`: id, user_id, dietary_restrictions (JSON), default_constraints (JSON)
-- `src/macronome/backend/alembic.ini` - Alembic config
-- `src/macronome/backend/alembic/env.py` - Alembic environment
-- `src/macronome/backend/alembic/versions/001_initial_schema.py` - Initial migration
-
-#### Auth Setup (Clerk + Supabase)
-
-- `src/macronome/backend/auth/__init__.py`
-- `src/macronome/backend/auth/middleware.py` - Clerk JWT verification middleware
-- `src/macronome/backend/auth/clerk.py` - Clerk client setup
-- Set up Supabase tables with `clerk_user_id` foreign key
-- Clerk webhook or manual sync to create users in Supabase on first login
-
-**Dependencies:**
-
-- `fastapi`, `uvicorn[standard]`
-- `supabase-py`
-- `clerk-sdk-python` or `pyjwt` for Clerk verification
-- `sqlalchemy`, `alembic`
+- `pantry_images` - Uploaded images
+- `pantry_items` - Detected/manual items (FK to images)
+- `user_preferences` - Global user preferences (needs update for custom constraints)
+- `chat_sessions` - Conversation sessions (one active per user)
+- `chat_messages` - Message history
+- `meal_recommendations` - Recommended meals
 
 ---
 
@@ -94,20 +67,32 @@ Two-phase implementation plan for Macronome MVP:
 
 #### Redis Setup
 
+**Files to Create:**
+
 - `src/macronome/backend/cache.py` - Redis client and caching utilities
-- LLM response cache: `cache_key = f"llm:{prompt_hash}"`, TTL 1 hour
+
+**Implementation:**
+
+- Redis connection pool with `redis-py`
+- LLM response cache: `cache_key = f"llm:{prompt_hash}"`, TTL from `BackendConfig.LLM_CACHE_TTL`
 - Simple cache decorator for expensive calls
-- Connection pooling
+- Connection health check for `/health` endpoint
 
 #### Celery Setup
+
+**Files to Create:**
 
 - `src/macronome/backend/worker.py` - Celery app configuration
 - `src/macronome/backend/tasks/__init__.py`
 - `src/macronome/backend/tasks/meal_recommendation.py` - Async meal recommendation task
-- Celery app with Redis broker
+
+**Implementation:**
+
+- Celery app with Redis broker (`BackendConfig.CELERY_BROKER_URL`)
 - Task: `recommend_meal_async(request_data: dict) -> dict`
-- Task stores result in Redis with task_id key
+- Task stores result in Redis with `task_id` key
 - Error handling and retry logic (max 2 retries)
+- Task time limit: 5 minutes
 
 **Dependencies:**
 
@@ -115,7 +100,49 @@ Two-phase implementation plan for Macronome MVP:
 
 ---
 
-### 1.4 Service Layer (2-3 hours)
+### 1.4 Update User Preferences Model (30 min)
+
+**Objective:** Update `user_preferences` table to store custom constraints
+
+**Files to Update:**
+
+- `src/macronome/backend/db/models.py` - Update `UserPreferences` model
+- Add SQL migration for `user_preferences` table
+
+**Changes:**
+
+- Add `custom_constraints` JSONB field to store LLM-parsed custom constraints
+- Update Pydantic model to include `custom_constraints: Dict[str, Any]`
+- Update SQL schema in `models.py`
+
+**Note:** All constraints (preset and custom) live in `user_preferences`, not `chat_sessions.filters`
+
+---
+
+### 1.5 Cloud Storage Setup (1-2 hours)
+
+**Objective:** Supabase Storage for user images
+
+**Files to Create:**
+
+- `src/macronome/backend/storage/__init__.py`
+- `src/macronome/backend/storage/supabase_storage.py` - Supabase Storage wrapper
+
+**Implementation:**
+
+- `upload_image(user_id: str, image_bytes: bytes, filename: str) -> str` - Returns storage URL
+- `get_image_url(bucket: str, path: str) -> str` - Get public URL
+- `delete_image(bucket: str, path: str)` - Delete image
+- Local fallback for dev (save to `data/uploads/`)
+- Use `BackendConfig.PANTRY_IMAGES_BUCKET`
+
+**Dependencies:**
+
+- `supabase-py` (already installed)
+
+---
+
+### 1.6 Service Layer (2-3 hours)
 
 **Objective:** Wrap ML workflows for backend use
 
@@ -123,141 +150,311 @@ Two-phase implementation plan for Macronome MVP:
 
 - `src/macronome/backend/services/__init__.py`
 - `src/macronome/backend/services/pantry_scanner.py` - Wraps `PantryScannerWorkflow`
-- Accept image upload
-- Run workflow
-- Return detected items
 - `src/macronome/backend/services/meal_recommender.py` - Wraps `MealRecommendationWorkflow`
-- Accept `MealRecommendationRequest`
-- Queue Celery task
-- Return task_id
+
+#### Pantry Scanner Service
 
 **Implementation:**
 
-- Both services handle errors and logging
+- Accept image upload (bytes or PIL Image)
 - Image processing (resize, format conversion)
-- Input validation
+- Run `PantryScannerWorkflow` with `PantryScanRequest`
+- Return detected items as list of `PantryItem` dicts
+- Error handling and logging
+
+#### Meal Recommender Service
+
+**Implementation:**
+
+- Accept `MealRecommendationRequest` (constraints, pantry items, chat context)
+- Queue Celery task: `recommend_meal_async`
+- Return `task_id` for polling
+- Error handling and input validation
+
+**Dependencies:**
+
+- Import workflows from `macronome.ai.workflows`
 
 ---
 
-### 1.5 API Endpoints (2-3 hours)
+### 1.7 Chat Workflow (3-4 hours)
 
-**Objective:** FastAPI routers for all functionality
+**Objective:** Create AI workflow for chat that routes user messages to appropriate actions
+
+**Files to Create:**
+
+- `src/macronome/ai/workflows/chat_workflow.py` - Main chat workflow
+- `src/macronome/ai/workflows/chat_workflow_nodes/__init__.py`
+- `src/macronome/ai/workflows/chat_workflow_nodes/chat_router.py` - Router node (AgentNode)
+- `src/macronome/ai/workflows/chat_workflow_nodes/constraint_parser.py` - Constraint parsing node (AgentNode)
+- `src/macronome/ai/schemas/chat_schema.py` - Chat request/response schemas
+
+#### Chat Router Node
+
+**Purpose:** Decide action based on user message (don't parse if nothing to parse)
+
+**Actions:**
+
+1. **Add Constraint** - User mentions constraint (preset or custom)
+2. **Start Meal Recommendation** - User asks for meal recommendation
+3. **General Chat** - User has question, confusion, or general conversation
+
+**Output Schema:**
+
+```python
+class ChatAction(str, Enum):
+    ADD_CONSTRAINT = "add_constraint"
+    START_RECOMMENDATION = "start_recommendation"
+    GENERAL_CHAT = "general_chat"
+
+class ChatRouterOutput(BaseModel):
+    action: ChatAction
+    confidence: float
+    reasoning: str
+    # If ADD_CONSTRAINT:
+    constraint_type: Optional[str]  # "preset" or "custom"
+    constraint_data: Optional[Dict[str, Any]]
+```
+
+#### Constraint Parser Node
+
+**Purpose:** Parse constraint from user message (only called if router decides ADD_CONSTRAINT)
+
+**Implementation:**
+
+- Extract constraint details (calories, macros, diet, custom constraints)
+- Return structured constraint data
+- Update `user_preferences.custom_constraints` via backend service
+
+#### Chat Workflow Structure
+
+**Simple 2-node workflow:**
+
+1. **ChatRouter** (AgentNode) - Routes to action
+2. **ConstraintParser** (AgentNode) - Only called if action is ADD_CONSTRAINT
+
+**Flow:**
+
+- Router decides action
+- If ADD_CONSTRAINT → Call ConstraintParser → Update user_preferences → Return confirmation
+- If START_RECOMMENDATION → Return signal to trigger meal recommendation workflow (async)
+- If GENERAL_CHAT → Return helpful response
+
+**Streaming:**
+
+- Chat workflow responses should stream text as they generate
+- Use FastAPI StreamingResponse for SSE (Server-Sent Events)
+
+#### Integration Points
+
+**Backend Service:**
+
+- `src/macronome/backend/services/chat.py` - Wraps ChatWorkflow
+- Handles streaming responses
+- Updates user_preferences when constraints added
+- Triggers meal recommendation workflow (returns task_id)
+
+**Chat Schema:**
+
+```python
+class ChatRequest(BaseModel):
+    message: str
+    chat_session_id: str
+    user_id: str
+    pantry_items: List[PantryItem]  # Current pantry state
+    user_preferences: UserPreferences  # Current preferences
+
+class ChatResponse(BaseModel):
+    response: str  # Streamed text
+    action: Optional[ChatAction]
+    task_id: Optional[str]  # If START_RECOMMENDATION
+```
+
+---
+
+### 1.8 API Endpoints (3-4 hours)
+
+**Objective:** FastAPI routers split into AI endpoints and backend CRUD
 
 **Files to Create:**
 
 - `src/macronome/backend/api/__init__.py`
 - `src/macronome/backend/api/routers/__init__.py`
-- `src/macronome/backend/api/routers/pantry.py` - Pantry endpoints
-- `src/macronome/backend/api/routers/meals.py` - Meal recommendation endpoints
+- `src/macronome/backend/api/routers/ai/__init__.py`
+- `src/macronome/backend/api/routers/ai/pantry.py` - AI pantry scanning
+- `src/macronome/backend/api/routers/ai/meals.py` - AI meal recommendation
+- `src/macronome/backend/api/routers/ai/chat.py` - AI chat workflow (streaming)
+- `src/macronome/backend/api/routers/pantry.py` - Pantry CRUD
+- `src/macronome/backend/api/routers/chat.py` - Chat session/message CRUD
+- `src/macronome/backend/api/routers/meals.py` - Meal history CRUD
+- `src/macronome/backend/api/routers/preferences.py` - User preferences CRUD
 - `src/macronome/backend/api/schemas.py` - Pydantic request/response schemas
 
-**Endpoints:**
+#### AI Endpoints (`/api/ai/`)
 
 **Pantry:**
 
-- `POST /api/pantry/scan` - Upload image, return detected items (calls pantry scanner service)
-- `POST /api/pantry/items` - Save pantry items to DB
-- `GET /api/pantry/items` - Get user's pantry items
-- `DELETE /api/pantry/items/{item_id}` - Delete pantry item
+- `POST /api/ai/pantry/scan` - Upload image, return detected items
+  - Calls `pantry_scanner` service
+  - Returns list of `PantryItem`
 
 **Meals:**
 
-- `POST /api/meals/recommend` - Request meal recommendation (async, returns task_id)
-- `GET /api/meals/recommend/{task_id}` - Poll for recommendation result
-- `POST /api/meals/history` - Save accepted meal to history
+- `POST /api/ai/meals/recommend` - Request meal recommendation (async)
+  - Calls `meal_recommender` service
+  - Returns `task_id`
+- `GET /api/ai/meals/recommend/{task_id}` - Poll for recommendation result
+  - Returns meal data or status
+
+**Chat:**
+
+- `POST /api/ai/chat/message` - Send chat message (streaming)
+  - Calls `chat` service
+  - Returns SSE stream with response text
+  - If action is START_RECOMMENDATION, includes `task_id` in final message
+
+#### Backend CRUD Endpoints (`/api/`)
+
+**Pantry:**
+
+- `GET /api/pantry/items` - Get user's pantry items
+- `POST /api/pantry/items` - Save pantry items to DB
+- `DELETE /api/pantry/items/{item_id}` - Delete pantry item
+- `POST /api/pantry/images` - Upload image, return image_id
+
+**Chat:**
+
+- `GET /api/chat/sessions` - Get user's chat sessions
+- `POST /api/chat/sessions` - Create new chat session (deactivates old)
+- `GET /api/chat/sessions/{session_id}/messages` - Get messages for session
+- `POST /api/chat/sessions/{session_id}/messages` - Add message (manual, for history)
+
+**Meals:**
+
+- `GET /api/meals/history` - Get meal recommendation history
+- `POST /api/meals/history` - Save accepted meal
+- `PUT /api/meals/history/{id}/rating` - Update meal rating
+
+**Preferences:**
+
+- `GET /api/preferences` - Get user preferences
+- `PUT /api/preferences` - Update user preferences
 
 **All endpoints protected with Clerk auth middleware**
 
 **Dependencies:**
 
 - `python-multipart` (file uploads)
+- `sse-starlette` (Server-Sent Events for streaming)
 
 ---
 
-### 1.6 Cloud Storage Setup (1-2 hours)
+### 1.9 Frontend Integration (4-5 hours)
 
-**Objective:** S3 for recipe data, Supabase Storage for user images
+**Objective:** Connect mobile app to backend with Clerk auth
 
-**Files to Create:**
+#### Clerk Auth Setup
 
-- `src/macronome/backend/storage/__init__.py`
-- `src/macronome/backend/storage/s3.py` - S3 client wrapper (for recipe dataset)
-- `src/macronome/backend/storage/supabase_storage.py` - Supabase Storage wrapper (for pantry images)
+**Files to Create/Update:**
+
+- `apps/mobile/src/services/auth/clerk.ts` - Clerk client setup
+- `apps/mobile/src/contexts/AuthContext.tsx` - Auth context provider
+- `apps/mobile/src/screens/auth/SignInScreen.tsx` - Sign in screen
+- `apps/mobile/src/screens/auth/SignUpScreen.tsx` - Sign up screen
 
 **Implementation:**
 
-- S3: `upload_file()`, `download_file()` - for recipe artifacts
-- Supabase Storage: `upload_image()`, `get_image_url()` - for pantry images
-- Local fallback for dev (save to `data/uploads/`)
-
-**Dependencies:**
-
-- `boto3` (S3)
-- `supabase-py` (already installed)
-
----
-
-### 1.7 Frontend Integration (4-5 hours)
-
-**Objective:** Connect mobile app to backend
+- Install `@clerk/clerk-expo`
+- Set up Clerk provider in app root
+- Create sign in/up screens
+- Store auth token in secure storage
+- Add token to all API requests
 
 #### API Client Setup
 
-- `apps/mobile/src/services/api/client.ts` - HTTP client setup
-- `apps/mobile/src/services/api/pantry.ts` - Pantry API calls
-- `apps/mobile/src/services/api/meals.ts` - Meal recommendation API calls
+**Files to Create:**
+
+- `apps/mobile/src/services/api/client.ts` - HTTP client with auth
+- `apps/mobile/src/services/api/ai/pantry.ts` - Pantry scanning API
+- `apps/mobile/src/services/api/ai/meals.ts` - Meal recommendation API
+- `apps/mobile/src/services/api/ai/chat.ts` - Chat API (with streaming)
+- `apps/mobile/src/services/api/pantry.ts` - Pantry CRUD API
+- `apps/mobile/src/services/api/chat.ts` - Chat CRUD API
+- `apps/mobile/src/services/api/meals.ts` - Meal history API
+- `apps/mobile/src/services/api/preferences.ts` - Preferences API
 - `apps/mobile/src/services/api/types.ts` - API response types
 
 **Implementation:**
 
 - Axios client with base URL from env
-- Error handling wrapper
-- Request/response interceptors
-- Add Clerk auth token to all requests
+- Request interceptor: Add Clerk token to headers
+- Response interceptor: Handle errors
+- Streaming support for chat (EventSource or fetch with streaming)
 - TypeScript types matching backend schemas
 
-#### Clerk Auth in Mobile
+#### Connect Screens
 
-- Install `@clerk/clerk-expo`
-- Set up Clerk provider
-- Sign up/sign in screens
-- Store auth token
-- Add token to API requests
+**Files to Update:**
 
-#### Connect Services
-
-- `apps/mobile/src/screens/CameraScreen.tsx` - Call `/api/pantry/scan` endpoint
-- `apps/mobile/src/screens/HomeScreen.tsx` - Call `/api/meals/recommend` with polling
-- `apps/mobile/src/components/pantry/PantryDrawer.tsx` - Fetch pantry items from API
-- `apps/mobile/src/store/pantryStore.ts` - Sync with backend on add/remove
+- `apps/mobile/src/screens/CameraScreen.tsx` - Call `/api/ai/pantry/scan`
+- `apps/mobile/src/screens/HomeScreen.tsx` - Chat integration, meal recommendation polling
+- `apps/mobile/src/components/pantry/PantryDrawer.tsx` - Fetch from `/api/pantry/items`
+- `apps/mobile/src/store/pantryStore.ts` - Sync with backend
+- `apps/mobile/src/store/chatStore.ts` - Chat state management (new)
 
 **Implementation:**
 
 - Replace mock ML pipeline with real API calls
 - Add loading states for async operations
-- Poll Celery task status every 2 seconds
+- Poll Celery task status every 2 seconds for meal recommendations
+- Stream chat responses in real-time
 - Handle errors gracefully with user feedback
+- Sync pantry store with backend on add/remove
+
+#### Chat Integration
+
+**Files to Create/Update:**
+
+- `apps/mobile/src/components/chat/ChatInterface.tsx` - Chat UI component
+- `apps/mobile/src/store/chatStore.ts` - Chat state (messages, session, loading)
+- Update `HomeScreen.tsx` to include chat interface
+
+**Flow:**
+
+1. User sends message → Call `/api/ai/chat/message` (streaming)
+2. Display streamed response in real-time
+3. If action is START_RECOMMENDATION:
+
+   - Show loading spinner
+   - Disable all buttons
+   - Poll `/api/ai/meals/recommend/{task_id}` every 2 seconds
+   - When complete, show meal recommendation
+
+4. Save messages to `/api/chat/sessions/{id}/messages` for history
 
 **Dependencies:**
 
 - `axios` (if not already)
 - `@clerk/clerk-expo`
+- `eventsource` or native EventSource for streaming
 
 ---
 
-### 1.8 Testing & Iteration (2-3 hours)
+### 1.10 Testing & Iteration (2-3 hours)
 
 **Objective:** Verify everything works end-to-end
 
 **Tasks:**
 
-- Test full flow: auth → scan → recommend → save
+- Test Clerk auth flow (sign up, sign in, token refresh)
 - Test pantry scan with real images
-- Test meal recommendation with real workflow
+- Test chat workflow (all 3 actions: add constraint, recommend meal, general chat)
+- Test meal recommendation workflow (async polling)
+- Test chat streaming responses
 - Verify Celery async task completion
-- Test error handling (invalid images, failed recommendations)
+- Test error handling (invalid images, failed recommendations, network errors)
 - Verify Redis caching works
-- Test Clerk auth flow
+- Test all CRUD endpoints
 - Fix any integration issues
 
 ---
@@ -265,13 +462,25 @@ Two-phase implementation plan for Macronome MVP:
 ## Phase 1 Success Criteria
 
 ✅ Recipe data and embeddings in cloud (S3 + Qdrant)
+
 ✅ RetrievalNode works with Qdrant
+
 ✅ FastAPI app running with Clerk auth
-✅ Supabase database with tables and migrations
+
+✅ Supabase database with all tables and RLS policies
+
 ✅ Redis + Celery working for async tasks
-✅ All API endpoints functional and protected
-✅ Frontend connects to backend with auth
+
+✅ Chat workflow with router-based action selection
+
+✅ All API endpoints functional and protected (AI + CRUD)
+
+✅ Frontend connects to backend with Clerk auth
+
+✅ Chat streaming working
+
 ✅ Full end-to-end flow working locally
+
 ✅ No refactoring needed for Phase 2
 
 ---
@@ -279,24 +488,69 @@ Two-phase implementation plan for Macronome MVP:
 ## Phase 2: Deployment & Polish (Tomorrow)
 
 **Timeline:** 8-12 hours
+
 **Goal:** Docker setup, monitoring, polish, and Play Store submission
 
----
-
 ### 2.1 Docker Setup (2-3 hours)
-
-**Objective:** Containerize for easy deployment
 
 **Files to Create:**
 
 - `docker-compose.yml` - Local development setup
 - `Dockerfile.backend` - Backend API container
 - `Dockerfile.celery` - Celery worker container
-- `.dockerignore` - Exclude unnecessary files
-- `.env.example` - Template for environment variables
+- `.dockerignore`
 
 **Services:**
 
 - `backend` - FastAPI app (port 8000)
 - `celery-worker` - Celery worker process
-- `re
+- `redis` - Redis service (or use external)
+
+### 2.2 Monitoring & Observability (2-3 hours)
+
+**Files to Create:**
+
+- Basic logging setup
+- Error tracking
+- Health check improvements
+
+### 2.3 Polish & Testing (2-3 hours)
+
+- UI/UX improvements
+- Error message improvements
+- Performance optimization
+- Final end-to-end testing
+
+### 2.4 Play Store Submission (1-2 hours)
+
+- Build production APK
+- Prepare store listing
+- Submit to Google Play Store
+
+---
+
+## Implementation Order Summary
+
+**Recommended execution order:**
+
+1. ✅ 1.1 Cloud Data Setup (DONE)
+2. ✅ 1.2 Backend Foundation (DONE)
+3. **1.3 Infrastructure Setup** (Redis + Celery)
+4. **1.4 Update User Preferences Model** (add custom_constraints)
+5. **1.5 Cloud Storage Setup** (Supabase Storage)
+6. **1.6 Service Layer** (wrap ML workflows)
+7. **1.7 Chat Workflow** (AI workflow with router)
+8. **1.8 API Endpoints** (AI + CRUD routers)
+9. **1.9 Frontend Integration** (Clerk auth + API client + screens)
+10. **1.10 Testing & Iteration**
+
+---
+
+## Key Design Decisions
+
+1. **Chat Workflow:** Simple 2-node workflow (Router + ConstraintParser) for minimal complexity
+2. **Constraints Storage:** All constraints (preset + custom) in `user_preferences`, not `chat_sessions`
+3. **API Structure:** Split into `/api/ai/` (ML workflows) and `/api/` (CRUD) for clarity
+4. **Streaming:** Chat responses stream via SSE for real-time UX
+5. **Meal Recommendation:** Async via Celery, frontend polls with loading state
+6. **Auth:** Clerk JWT verification on all protected endpoints

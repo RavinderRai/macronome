@@ -19,6 +19,7 @@ Options:
 """
 
 import argparse
+import gc
 import json
 import logging
 import sys
@@ -166,6 +167,11 @@ def generate_embeddings(recipes: List[Dict], model=None, id_offset=0, show_progr
         # Load embedding model on selected device
         logger.info(f"Loading embedding model: {EMBEDDING_MODEL}")
         model = SentenceTransformer(EMBEDDING_MODEL, device=device)
+        
+        # Limit MPS memory usage to prevent system slowdown
+        if device == "mps":
+            torch.mps.set_per_process_memory_fraction(0.8)  # Use max 80% of GPU memory
+            logger.info("Limited MPS memory to 80% to prevent system slowdown")
     
     # Prepare texts for embedding (title + ingredients only)
     texts = [
@@ -366,7 +372,9 @@ def process_qdrant_streamed(source_path, is_s3=False, limit=0, clear_existing=Tr
         
         s3_client = boto3.client('s3', region_name=DataConfig.S3_REGION, **s3_config)
         buffer = BytesIO()
-        s3_client.download_fileobj(DataConfig.S3_BUCKET, source_path, buffer)
+        # Use consistent S3 key pattern with prefix (source_path is RECIPES_PARQUET when is_s3=True)
+        s3_key = f"{DataConfig.S3_RECIPES_PREFIX}{RECIPES_PARQUET}"
+        s3_client.download_fileobj(DataConfig.S3_BUCKET, s3_key, buffer)
         buffer.seek(0)
         df = pd.read_parquet(buffer)
     else:
@@ -430,7 +438,22 @@ def process_qdrant_streamed(source_path, is_s3=False, limit=0, clear_existing=Tr
         # Upload this chunk
         upload_to_qdrant_chunk(client, embeddings_chunk, recipes_chunk, id_offset=offset)
         
-        total_processed += len(recipes_chunk)
+        # Store length before deletion
+        chunk_length = len(recipes_chunk)
+        
+        # Free memory immediately after upload (no need to keep embeddings in memory)
+        del embeddings_chunk
+        del recipes_chunk
+        del df_chunk
+        
+        # Clear MPS memory cache to prevent accumulation
+        if torch.backends.mps.is_available():
+            torch.mps.empty_cache()
+        
+        # Force garbage collection to free memory
+        gc.collect()
+        
+        total_processed += chunk_length
         offset += chunk_size
         
         # Log progress
