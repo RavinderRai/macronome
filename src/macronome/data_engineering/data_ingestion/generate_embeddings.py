@@ -3,13 +3,18 @@ Recipe Embedding Generation Script
 
 Generates embeddings for recipes and stores in FAISS (local) or Qdrant (cloud).
 
+Optimizations:
+- Randomly samples 1M recipes from the full dataset (2.23M) for Qdrant free tier
+- Uses Qdrant's built-in INT8 scalar quantization to reduce storage footprint by ~75%
+- Uses Metal (MPS) acceleration on Apple Silicon for faster embedding generation
+
 Usage:
     python -m macronome.data_engineering.data_ingestion.generate_embeddings [options]
 
 Options:
     --source SOURCE         Load recipes from 'local' or 's3' (default: local)
     --target TARGET         Save embeddings to 'faiss', 'qdrant', or 'both' (default: qdrant)
-    --limit LIMIT           Limit number of recipes to process (0 = all, for testing)
+    --limit LIMIT           Limit number of recipes to process (0 = all up to 1M, for testing)
     --no-clear-existing     Don't clear existing Qdrant collection (default: clear to avoid duplicates)
 """
 
@@ -24,7 +29,7 @@ import boto3
 from io import BytesIO
 import pandas as pd
 from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct
+from qdrant_client.models import PointStruct, models
 import torch
 from sentence_transformers import SentenceTransformer
 
@@ -46,13 +51,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Max recipes to process (for Qdrant free tier optimization)
+MAX_RECIPES = 1_000_000
+
 
 def load_recipes_from_local() -> List[Dict]:
     """
-    Load recipes from local parquet file
+    Load recipes from local parquet file, randomly sampling if needed
     
     Returns:
-        List of recipe dictionaries
+        List of recipe dictionaries (max 1M randomly sampled)
     """
     logger.info("Loading recipes from local storage...")
     
@@ -64,18 +72,24 @@ def load_recipes_from_local() -> List[Dict]:
         )
     
     df = pd.read_parquet(recipes_path)
-    recipes = df.to_dict('records')
+    logger.info(f"Loaded {len(df)} total recipes from {recipes_path}")
     
-    logger.info(f"Loaded {len(recipes)} recipes from {recipes_path}")
+    # Randomly sample if dataset is larger than MAX_RECIPES
+    if len(df) > MAX_RECIPES:
+        logger.info(f"Dataset has {len(df)} recipes. Randomly sampling {MAX_RECIPES} recipes...")
+        df = df.sample(n=MAX_RECIPES, random_state=42)
+        logger.info(f"Sampled {len(df)} recipes")
+    
+    recipes = df.to_dict('records')
     return recipes
 
 
 def load_recipes_from_s3() -> List[Dict]:
     """
-    Download recipes from S3 and load
+    Download recipes from S3 and load, randomly sampling if needed
     
     Returns:
-        List of recipe dictionaries
+        List of recipe dictionaries (max 1M randomly sampled)
     """
     logger.info("Loading recipes from S3...")
     
@@ -97,9 +111,15 @@ def load_recipes_from_s3() -> List[Dict]:
         
         # Load parquet from buffer
         df = pd.read_parquet(buffer)
-        recipes = df.to_dict('records')
+        logger.info(f"Loaded {len(df)} total recipes from s3://{DataConfig.S3_BUCKET}/{s3_key}")
         
-        logger.info(f"Loaded {len(recipes)} recipes from s3://{DataConfig.S3_BUCKET}/{s3_key}")
+        # Randomly sample if dataset is larger than MAX_RECIPES
+        if len(df) > MAX_RECIPES:
+            logger.info(f"Dataset has {len(df)} recipes. Randomly sampling {MAX_RECIPES} recipes...")
+            df = df.sample(n=MAX_RECIPES, random_state=42)
+            logger.info(f"Sampled {len(df)} recipes")
+        
+        recipes = df.to_dict('records')
         return recipes
         
     except ImportError:
@@ -115,6 +135,7 @@ def generate_embeddings(recipes: List[Dict], model=None, id_offset=0, show_progr
     Generate embeddings for recipes using sentence-transformers
     
     Embeds only title + ingredients (not directions) for better query matching.
+    Quantization is handled by Qdrant's built-in INT8 scalar quantization.
     
     Uses Metal (MPS) acceleration on Apple Silicon Macs if available.
     
@@ -238,17 +259,13 @@ def setup_qdrant_collection(client, vector_dim, clear_existing=True):
     """
     Setup Qdrant collection (create or clear if needed)
     
+    Uses Qdrant's built-in INT8 scalar quantization to reduce storage footprint.
+    
     Args:
         client: QdrantClient instance
         vector_dim: Dimension of embedding vectors
         clear_existing: If True, delete and recreate collection
     """
-    try:
-        from qdrant_client.models import Distance, VectorParams
-    except ImportError:
-        logger.error("qdrant-client is not installed")
-        raise
-    
     collection_name = DataConfig.QDRANT_COLLECTION_NAME
     
     # Check if collection exists
@@ -264,15 +281,22 @@ def setup_qdrant_collection(client, vector_dim, clear_existing=True):
     
     # Create collection if it doesn't exist
     if not collection_exists:
-        logger.info(f"Creating collection '{collection_name}'...")
+        logger.info(f"Creating collection '{collection_name}' with INT8 scalar quantization...")
         client.create_collection(
             collection_name=collection_name,
-            vectors_config=VectorParams(
+            vectors_config=models.VectorParams(
                 size=vector_dim,
-                distance=Distance.COSINE  # Cosine similarity for semantic search
-            )
+                distance=models.Distance.COSINE,  # Cosine similarity for semantic search
+                on_disk=True  # Store vectors on disk to save RAM
+            ),
+            quantization_config=models.ScalarQuantization(
+                scalar=models.ScalarQuantizationConfig(
+                    type=models.ScalarType.INT8,
+                    always_ram=True,  # Keep quantized vectors in RAM for faster search
+                ),
+            ),
         )
-        logger.info(f"Collection '{collection_name}' created successfully")
+        logger.info(f"Collection '{collection_name}' created successfully with INT8 quantization")
 
 
 def upload_to_qdrant_chunk(client, embeddings, recipes, id_offset=0):
@@ -318,10 +342,12 @@ def process_qdrant_streamed(source_path, is_s3=False, limit=0, clear_existing=Tr
     """
     Stream-process recipes in chunks for Qdrant (memory-efficient for large datasets)
     
+    Loads full dataset, randomly samples up to 1M recipes, then processes in chunks.
+    
     Args:
         source_path: Path to parquet file (local or S3 key)
         is_s3: Whether source is S3
-        limit: Max recipes to process (0 = all)
+        limit: Max recipes to process (0 = all, but respects MAX_RECIPES = 1M)
         clear_existing: Clear Qdrant collection before starting
     """
     import time
@@ -329,16 +355,10 @@ def process_qdrant_streamed(source_path, is_s3=False, limit=0, clear_existing=Tr
     # Initialize Qdrant client
     client = init_qdrant_client()
     
-    # Load model once
-    model = None
-    total_processed = 0
-    chunk_num = 0
-    vector_dim = None
-    start_time = time.time()
-    
-    # Determine total recipes for limit
+    # Load full dataset and sample
+    logger.info("Loading full dataset for random sampling...")
     if is_s3:
-        # For S3, we'll read file info to get row count (parquet metadata)
+        # Load from S3
         s3_config = {}
         if DataConfig.AWS_ACCESS_KEY_ID:
             s3_config['aws_access_key_id'] = DataConfig.AWS_ACCESS_KEY_ID
@@ -348,21 +368,34 @@ def process_qdrant_streamed(source_path, is_s3=False, limit=0, clear_existing=Tr
         buffer = BytesIO()
         s3_client.download_fileobj(DataConfig.S3_BUCKET, source_path, buffer)
         buffer.seek(0)
-        total_recipes = len(pd.read_parquet(buffer))
-        buffer.seek(0)
-        parquet_file = buffer
+        df = pd.read_parquet(buffer)
     else:
-        total_recipes = len(pd.read_parquet(source_path))
-        parquet_file = source_path
+        df = pd.read_parquet(source_path)
     
-    # Apply limit
-    if limit > 0:
-        total_recipes = min(total_recipes, limit)
-        logger.info(f"Processing limit: {total_recipes} recipes")
+    logger.info(f"Loaded {len(df)} total recipes")
     
+    # Randomly sample if needed (up to MAX_RECIPES = 1M)
+    if len(df) > MAX_RECIPES:
+        logger.info(f"Randomly sampling {MAX_RECIPES} out of {len(df)} recipes...")
+        df = df.sample(n=MAX_RECIPES, random_state=42)
+        logger.info(f"Sampled {len(df)} recipes")
+    
+    # Apply user limit if specified
+    if limit > 0 and limit < len(df):
+        logger.info(f"Applying user limit: {limit} recipes")
+        df = df.head(limit)
+    
+    total_recipes = len(df)
     logger.info(f"Total recipes to process: {total_recipes}")
     logger.info(f"Chunk size: {RECIPE_CHUNK_SIZE}")
     logger.info(f"Estimated chunks: {(total_recipes + RECIPE_CHUNK_SIZE - 1) // RECIPE_CHUNK_SIZE}")
+    
+    # Load model once
+    model = None
+    total_processed = 0
+    chunk_num = 0
+    vector_dim = None
+    start_time = time.time()
     
     # Process in chunks
     offset = 0
@@ -374,13 +407,11 @@ def process_qdrant_streamed(source_path, is_s3=False, limit=0, clear_existing=Tr
         logger.info(f"Processing chunk {chunk_num} (recipes {offset} - {offset + chunk_size - 1})")
         logger.info("=" * 60)
         
-        # Read chunk
-        logger.info("Reading chunk from parquet...")
-        df_chunk = pd.read_parquet(parquet_file, engine='pyarrow')
-        df_chunk = df_chunk.iloc[offset:offset + chunk_size]
+        # Get chunk from dataframe
+        df_chunk = df.iloc[offset:offset + chunk_size]
         recipes_chunk = df_chunk.to_dict('records')
         
-        logger.info(f"Loaded {len(recipes_chunk)} recipes for this chunk")
+        logger.info(f"Processing {len(recipes_chunk)} recipes for this chunk")
         
         # Generate embeddings for this chunk
         embeddings_chunk, _, model = generate_embeddings(
@@ -436,7 +467,7 @@ def main():
         "--limit",
         type=int,
         default=0,
-        help="Limit number of recipes to process (0 = all, for testing)"
+        help="Limit number of recipes to process (0 = all up to 1M max, for testing)"
     )
     parser.add_argument(
         "--no-clear-existing",
@@ -454,11 +485,12 @@ def main():
     logger.info(f"Environment: {ENV}")
     logger.info(f"Source: {args.source}")
     logger.info(f"Target: {args.target}")
-    logger.info(f"Recipe limit: {args.limit if args.limit > 0 else 'None (all recipes)'}")
+    logger.info(f"Max recipes: {MAX_RECIPES:,} (random sample from full dataset)")
+    logger.info(f"User limit: {args.limit if args.limit > 0 else 'None'}")
     logger.info(f"Embedding model: {EMBEDDING_MODEL}")
     logger.info(f"Embedding batch size: {EMBEDDING_BATCH_SIZE}")
     logger.info(f"Chunk size: {RECIPE_CHUNK_SIZE}")
-    logger.info("Embedding format: title: ingredients")
+    logger.info("Embedding format: title: ingredients (INT8 quantization via Qdrant)")
     if args.target in ["qdrant", "both"]:
         logger.info(f"Qdrant collection: {DataConfig.QDRANT_COLLECTION_NAME}")
         logger.info(f"Qdrant upload batch size: {QDRANT_UPLOAD_BATCH_SIZE}")
