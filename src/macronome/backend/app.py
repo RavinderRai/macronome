@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 import logging
 
 from macronome.settings import BackendConfig, ENV
+from macronome.backend.cache import RedisCache
 
 # Configure logging
 logging.basicConfig(
@@ -48,24 +49,31 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint for monitoring"""
-    # TODO: Add checks for:
-    # - Redis connection
-    # - Supabase connection
-    # - Qdrant connection
-    # - Celery worker status
+    services = {
+        "api": "up",
+        "redis": "down",
+        "database": "unknown",  # TODO: Add Supabase check
+        "vector_db": "unknown",  # TODO: Add Qdrant check
+        "worker": "unknown",  # TODO: Add Celery check
+    }
+    
+    # Check Redis
+    try:
+        if RedisCache.health_check():
+            services["redis"] = "up"
+    except Exception as e:
+        logger.warning(f"Redis health check failed: {e}")
+    
+    # Determine overall status
+    overall_status = "healthy" if services["redis"] == "up" else "degraded"
+    status_code = 200 if overall_status == "healthy" else 503
     
     return JSONResponse(
-        status_code=200,
+        status_code=status_code,
         content={
-            "status": "healthy",
+            "status": overall_status,
             "environment": ENV,
-            "services": {
-                "api": "up",
-                "redis": "TODO",  # Add Redis ping
-                "database": "TODO",  # Add Supabase check
-                "vector_db": "TODO",  # Add Qdrant check
-                "worker": "TODO",  # Add Celery check
-            }
+            "services": services
         }
     )
 
@@ -77,9 +85,15 @@ async def startup_event():
     logger.info(f"🚀 Starting Macronome API in {ENV} mode")
     logger.info(f"📍 CORS origins: {BackendConfig.CORS_ORIGINS}")
     
-    # TODO: Initialize connections
-    # - Redis connection pool
-    # - Supabase client
+    # Initialize Redis connection
+    try:
+        RedisCache.get_client()
+        logger.info("✅ Redis connection initialized")
+    except Exception as e:
+        logger.warning(f"⚠️  Redis connection failed: {e}")
+    
+    # TODO: Initialize other connections
+    # - Supabase client check
     # - Load ML models if needed
 
 
