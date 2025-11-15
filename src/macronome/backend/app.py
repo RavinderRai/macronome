@@ -109,10 +109,35 @@ async def shutdown_event():
 
 
 # Import and register routers (after app creation to avoid circular imports)
-# TODO: Uncomment once routers are created
-# from macronome.backend.api.routers import pantry, meals
-# app.include_router(pantry.router, prefix="/api/pantry", tags=["pantry"])
-# app.include_router(meals.router, prefix="/api/meals", tags=["meals"])
+from macronome.backend.api.routers import pantry, meals, chat, preferences  # noqa: E402
+
+# Pantry endpoints (ML + CRUD)
+app.include_router(
+    pantry.router,
+    prefix="/api/pantry",
+    tags=["pantry"]
+)
+
+# Meals endpoints (ML + CRUD)
+app.include_router(
+    meals.router,
+    prefix="/api/meals",
+    tags=["meals"]
+)
+
+# Chat endpoints (ML + CRUD)
+app.include_router(
+    chat.router,
+    prefix="/api/chat",
+    tags=["chat"]
+)
+
+# Preferences endpoints (CRUD)
+app.include_router(
+    preferences.router,
+    prefix="/api/preferences",
+    tags=["preferences"]
+)
 
 
 if __name__ == "__main__":
