@@ -3,9 +3,9 @@ Storage factory - selects storage implementation based on configuration
 """
 import logging
 from macronome.settings import BackendConfig
-from .interface import StorageInterface
-from .local import LocalStorage
-from .supabase import SupabaseStorage
+from macronome.backend.storage.interface import StorageInterface
+from macronome.backend.storage.local import LocalStorage
+from macronome.backend.storage.supabase import SupabaseStorage
 
 logger = logging.getLogger(__name__)
 
