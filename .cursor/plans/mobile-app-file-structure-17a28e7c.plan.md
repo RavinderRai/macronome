@@ -511,8 +511,10 @@ class ChatResponse(BaseModel):
 **Files to Create:**
 
 - Basic logging setup
-- Error tracking
+- Error tracking (Sentry)
 - Health check improvements
+- Prometheus and Grafana for CV model
+- Tracing for LLM API calls
 
 ### 2.3 Polish & Testing (2-3 hours)
 

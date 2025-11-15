@@ -8,7 +8,6 @@ from typing import Dict, Any
 
 from macronome.backend.worker.config import celery_app
 from macronome.ai.workflows.meal_recommender_workflow import MealRecommendationWorkflow
-from macronome.ai.schemas.meal_recommender_constraints_schema import MealRecommendationRequest
 
 logger = logging.getLogger(__name__)
 
@@ -36,36 +35,84 @@ def recommend_meal_async(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
             - chat_history: List[Dict] (optional)
     
     Returns:
-        Dict with workflow result:
-            - status: "success" or "error"
-            - result: Complete workflow output (if success)
-            - error: Error message (if error)
+        Dict with workflow result (matches service format):
+            Success:
+            {
+                "success": True,
+                "recommendation": {...}
+            }
+            Failure:
+            {
+                "success": False,
+                "error_message": str,
+                "suggestions": List[str]
+            }
     
     Raises:
         Retries on failure (max 2 times with 60s delay)
     """
     try:
-        logger.info(f"Starting meal recommendation task {self.request.id}")
+        logger.info(f"🔄 Starting meal recommendation task {self.request.id}")
         
-        # Parse request data into Pydantic model
-        request = MealRecommendationRequest(**request_data)
-        
-        # Run meal recommendation workflow
+        # Run meal recommendation workflow (sync version for Celery worker)
         workflow = MealRecommendationWorkflow()
-        task_context = workflow.run(request)
+        task_context = workflow.run(request_data)  # workflow.run() takes dict, not Pydantic model
         
-        # Extract final result from workflow
-        result = {
-            "status": "success",
-            "task_id": self.request.id,
-            "result": task_context.model_dump(mode="json")
-        }
+        # Extract results - check both success and failure nodes
+        explanation_output = task_context.nodes.get("ExplanationAgent")
+        failure_output = task_context.nodes.get("FailureAgent")
         
-        logger.info(f"Meal recommendation task {self.request.id} completed successfully")
-        return result
+        if explanation_output:
+            # Success path
+            recommendation = explanation_output.model_output
+            result = {
+                "success": True,
+                "recommendation": {
+                    "recipe": {
+                        "id": recommendation.recipe.id,
+                        "name": recommendation.recipe.name,
+                        "ingredients": recommendation.recipe.ingredients,
+                        "directions": recommendation.recipe.directions,
+                        "nutrition": {
+                            "calories": recommendation.recipe.nutrition.calories,
+                            "protein": recommendation.recipe.nutrition.protein,
+                            "carbs": recommendation.recipe.nutrition.carbs,
+                            "fat": recommendation.recipe.nutrition.fat
+                        },
+                        "prep_time": getattr(recommendation.recipe, "prep_time", None),
+                        "semantic_score": getattr(recommendation.recipe, "semantic_score", 0.0)
+                    },
+                    "why_it_fits": recommendation.why_it_fits,
+                    "ingredient_swaps": recommendation.ingredient_swaps,
+                    "pantry_utilization": recommendation.pantry_utilization,
+                    "recipe_instructions": recommendation.recipe_instructions
+                }
+            }
+            logger.info(f"✅ Meal recommendation task {self.request.id} succeeded: {recommendation.recipe.name}")
+            return result
+        
+        elif failure_output:
+            # Failure path
+            failure_response = failure_output.model_output
+            result = {
+                "success": False,
+                "error_message": failure_response.error_message,
+                "suggestions": failure_response.suggestions
+            }
+            logger.warning(f"⚠️ Meal recommendation task {self.request.id} failed: {failure_response.error_message}")
+            return result
+        
+        else:
+            # Unexpected: no output from either terminal node
+            logger.error(f"❌ Task {self.request.id}: Workflow completed but no output found")
+            return {
+                "success": False,
+                "error_message": "Workflow failed to produce a result",
+                "suggestions": ["Please try again or adjust your constraints"]
+            }
         
     except Exception as e:
-        logger.error(f"Meal recommendation task {self.request.id} failed: {e}", exc_info=True)
+        logger.error(f"❌ Meal recommendation task {self.request.id} failed: {e}", exc_info=True)
         
         # Retry on failure with exponential backoff
         try:
@@ -73,9 +120,9 @@ def recommend_meal_async(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         except self.MaxRetriesExceededError:
             # Max retries exceeded, return error
             return {
-                "status": "error",
-                "task_id": self.request.id,
-                "error": str(e)
+                "success": False,
+                "error_message": f"Task failed after {self.request.retries} retries: {str(e)}",
+                "suggestions": ["Please try again later or contact support"]
             }
 
 

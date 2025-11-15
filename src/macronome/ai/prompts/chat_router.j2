@@ -1,0 +1,51 @@
+{#
+Chat Router Prompt Template
+
+Analyzes user chat message to determine intent and route to appropriate action.
+#}
+You are analyzing a user's chat message in a meal recommendation app. Your job is to determine what the user wants to do.
+
+**User's Message:**
+{{ message }}
+
+**Your Task:**
+Analyze the message and classify it into ONE of these actions:
+
+1. **ADD_CONSTRAINT** - User wants to add or modify meal constraints
+   Examples:
+   - "I want something vegan"
+   - "Make it under 700 calories"
+   - "I'm allergic to peanuts"
+   - "Something spicy"
+   - "Quick meal, under 30 minutes"
+   - "I prefer Italian food"
+
+2. **START_RECOMMENDATION** - User explicitly requests a meal recommendation
+   Examples:
+   - "Recommend me a meal"
+   - "What should I cook?"
+   - "Find me a recipe"
+   - "Give me a meal suggestion"
+   - "I'm ready to see options"
+
+3. **GENERAL_CHAT** - User has questions, needs help, or general conversation
+   Examples:
+   - "How does this app work?"
+   - "What can I do here?"
+   - "Can you explain the filters?"
+   - "Hello"
+   - "Thanks!"
+
+**Important Guidelines:**
+- If the user mentions ANY constraint (diet, calories, ingredients, time, preferences), classify as ADD_CONSTRAINT
+- Only use START_RECOMMENDATION if user explicitly asks for meal/recipe/recommendation
+- Use GENERAL_CHAT for greetings, questions, help requests, or unclear messages
+- Be confident in your classification (aim for 0.8+ confidence)
+- Provide clear reasoning for your decision
+
+**Response Format:**
+Return a structured response with:
+- `action`: The classification (ADD_CONSTRAINT, START_RECOMMENDATION, or GENERAL_CHAT)
+- `confidence`: Your confidence level (0.0 to 1.0)
+- `reasoning`: Brief explanation of why you chose this action
+

@@ -1,11 +1,12 @@
 """
 Meal Recommender Service
-Wraps MealRecommendationWorkflow for backend use
+Wraps MealRecommendationWorkflow for backend use via Celery
 """
 import logging
 from typing import Dict, Any, List
+from celery.result import AsyncResult
 
-from macronome.ai.workflows.meal_recommender_workflow import MealRecommendationWorkflow
+from macronome.backend.worker.tasks import recommend_meal_async
 from macronome.ai.schemas.meal_recommender_constraints_schema import (
     FilterConstraints,
     PantryItem as WorkflowPantryItem,
@@ -18,23 +19,19 @@ class MealRecommenderService:
     """
     Service wrapper for MealRecommendationWorkflow
     
-    Handles request formatting, workflow execution, and result formatting
-    for the meal recommendation AI feature.
+    Queues async Celery tasks for meal recommendations and provides
+    status checking functionality.
     """
     
-    def __init__(self):
-        """Initialize the service with workflow instance"""
-        self._workflow = MealRecommendationWorkflow()
-    
-    async def recommend_meal(
+    def queue_recommendation(
         self,
         user_query: str,
         constraints: Dict[str, Any],
         pantry_items: List[Dict[str, Any]] = None,
         chat_history: List[Dict[str, str]] = None
-    ) -> Dict[str, Any]:
+    ) -> str:
         """
-        Generate meal recommendation based on user constraints
+        Queue async meal recommendation task
         
         Args:
             user_query: Free text query (e.g., "something quick and spicy")
@@ -48,28 +45,10 @@ class MealRecommenderService:
             chat_history: Previous chat messages (optional)
         
         Returns:
-            Dict with meal recommendation or error:
-            Success:
-            {
-                "success": True,
-                "recommendation": {
-                    "recipe": {...},
-                    "why_it_fits": str,
-                    "ingredient_swaps": List[str],
-                    "pantry_utilization": List[str],
-                    "recipe_instructions": str
-                }
-            }
-            Failure:
-            {
-                "success": False,
-                "error_message": str,
-                "suggestions": List[str]
-            }
+            task_id: Celery task ID for polling status
         
         Raises:
             ValueError: If request data is invalid
-            Exception: If workflow execution fails
         """
         # Prepare request data
         request_data = self._prepare_request(
@@ -79,42 +58,47 @@ class MealRecommenderService:
             chat_history or []
         )
         
-        logger.info(f"🍽️ Starting meal recommendation: '{user_query[:50]}...'")
+        logger.info(f"📤 Queueing meal recommendation task: '{user_query[:50]}...'")
         
-        try:
-            # Execute workflow
-            task_context = await self._workflow.run_async(request_data)
-            
-            # Extract results - check both success and failure nodes
-            explanation_output = task_context.nodes.get("ExplanationAgent")
-            failure_output = task_context.nodes.get("FailureAgent")
-            
-            if explanation_output:
-                # Success path
-                recommendation = explanation_output.model_output
-                result = self._format_success_result(recommendation)
-                logger.info(f"✅ Meal recommendation succeeded: {result['recommendation']['recipe'].name}")
-                return result
-            
-            elif failure_output:
-                # Failure path
-                failure_response = failure_output.model_output
-                result = self._format_failure_result(failure_response)
-                logger.warning(f"⚠️ Meal recommendation failed: {result['error_message']}")
-                return result
-            
-            else:
-                # Unexpected: no output from either terminal node
-                logger.error("❌ Workflow completed but no output found from terminal nodes")
+        # Queue Celery task
+        task = recommend_meal_async.delay(request_data)
+        
+        logger.info(f"✅ Task queued with ID: {task.id}")
+        return task.id
+    
+    def get_task_status(self, task_id: str) -> Dict[str, Any]:
+        """
+        Get status and result of meal recommendation task
+        
+        Args:
+            task_id: Celery task ID
+        
+        Returns:
+            Dict with task status:
+            - status: "pending" | "started" | "success" | "failure"
+            - result: Task result (if success)
+            - error: Error message (if failure)
+        """
+        task_result = AsyncResult(task_id)
+        
+        if task_result.ready():
+            # Task completed
+            if task_result.successful():
                 return {
-                    "success": False,
-                    "error_message": "Workflow failed to produce a result",
-                    "suggestions": ["Please try again or adjust your constraints"]
+                    "status": "success",
+                    "result": task_result.result
                 }
-        
-        except Exception as e:
-            logger.error(f"❌ Meal recommendation failed: {e}")
-            raise
+            else:
+                return {
+                    "status": "failure",
+                    "error": str(task_result.info)
+                }
+        else:
+            # Task still processing
+            return {
+                "status": task_result.state.lower(),  # "pending" or "started"
+                "result": None
+            }
     
     def _prepare_request(
         self,
@@ -163,54 +147,4 @@ class MealRecommenderService:
         }
         
         return request_data
-    
-    def _format_success_result(self, recommendation: Any) -> Dict[str, Any]:
-        """
-        Format successful recommendation for API response
-        
-        Args:
-            recommendation: MealRecommendation from ExplanationAgent
-        
-        Returns:
-            Formatted success dict
-        """
-        return {
-            "success": True,
-            "recommendation": {
-                "recipe": {
-                    "id": recommendation.recipe.id,
-                    "name": recommendation.recipe.name,
-                    "ingredients": recommendation.recipe.ingredients,
-                    "directions": recommendation.recipe.directions,
-                    "nutrition": {
-                        "calories": recommendation.recipe.nutrition.calories,
-                        "protein": recommendation.recipe.nutrition.protein,
-                        "carbs": recommendation.recipe.nutrition.carbs,
-                        "fat": recommendation.recipe.nutrition.fat
-                    },
-                    "prep_time": getattr(recommendation.recipe, "prep_time", None),
-                    "semantic_score": getattr(recommendation.recipe, "semantic_score", 0.0)
-                },
-                "why_it_fits": recommendation.why_it_fits,
-                "ingredient_swaps": recommendation.ingredient_swaps,
-                "pantry_utilization": recommendation.pantry_utilization,
-                "recipe_instructions": recommendation.recipe_instructions
-            }
-        }
-    
-    def _format_failure_result(self, failure_response: Any) -> Dict[str, Any]:
-        """
-        Format failure response for API response
-        
-        Args:
-            failure_response: FailureResponse from FailureAgent
-        
-        Returns:
-            Formatted failure dict
-        """
-        return {
-            "success": False,
-            "error_message": failure_response.error_message,
-            "suggestions": failure_response.suggestions
-        }
 
