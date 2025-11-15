@@ -6,8 +6,6 @@ from typing import Optional
 from supabase import Client
 import logging
 
-from macronome.backend.db.models import ChatSession
-
 logger = logging.getLogger(__name__)
 
 

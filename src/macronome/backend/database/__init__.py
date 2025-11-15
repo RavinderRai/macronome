@@ -1,7 +1,7 @@
 """
 Database module
 """
-from macronome.backend.db.session import get_supabase_client
+from macronome.backend.database.session import get_supabase_client, get_db, get_admin_db
 
-__all__ = ["get_supabase_client"]
+__all__ = ["get_supabase_client", "get_db", "get_admin_db"]
 

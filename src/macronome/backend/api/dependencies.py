@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import Depends, HTTPException, status, Header
 from supabase import Client
 
-from macronome.backend.auth.clerk import verify_clerk_token
+from macronome.backend.auth.clerk import clerk_auth
 from macronome.backend.database.session import get_db
 
 
@@ -47,7 +47,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> str:
         )
     
     # Verify token
-    user_data = verify_clerk_token(token)
+    user_data = clerk_auth.verify_token(token)
     if not user_data:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

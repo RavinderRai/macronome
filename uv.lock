@@ -617,6 +617,16 @@ wheels = [
 ]
 
 [[package]]
+name = "clerk"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "masonite" },
+    { name = "stripe" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/49/3a/5d2058fdbbdb43ef71f582cdf716488d49a322576062fa088dfdb234ae89/clerk-0.1.0.tar.gz", hash = "sha256:41dabae23569b2e5fe0b4daffc6c1ed0075d6b0c56db9e1f53aae644782b7115", size = 2743, upload-time = "2018-01-17T21:08:39.88Z" }
+
+[[package]]
 name = "click"
 version = "8.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2795,6 +2805,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "celer" },
     { name = "celery" },
+    { name = "clerk" },
     { name = "faiss-cpu" },
     { name = "fastapi" },
     { name = "huggingface" },
@@ -2821,6 +2832,7 @@ dependencies = [
 requires-dist = [
     { name = "celer", specifier = ">=0.7.4" },
     { name = "celery", specifier = ">=5.5.3" },
+    { name = "clerk", specifier = ">=0.1.0" },
     { name = "faiss-cpu", specifier = ">=1.12.0" },
     { name = "fastapi", specifier = ">=0.120.1" },
     { name = "huggingface", specifier = ">=0.0.1" },
@@ -2989,6 +3001,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/1a/8a/0402ba61a2f16038b48b39bccca271134be00c5c9f0f623208399333c448/markupsafe-3.0.3-cp314-cp314t-win_amd64.whl", hash = "sha256:4faffd047e07c38848ce017e8725090413cd80cbc23d86e55c587bf979e579c9", size = 15426, upload-time = "2025-09-27T18:37:27.316Z" },
     { url = "https://files.pythonhosted.org/packages/70/bc/6f1c2f612465f5fa89b95bead1f44dcb607670fd42891d8fdcd5d039f4f4/markupsafe-3.0.3-cp314-cp314t-win_arm64.whl", hash = "sha256:32001d6a8fc98c8cb5c947787c5d08b0a50663d139f1305bac5885d98d9b40fa", size = 14146, upload-time = "2025-09-27T18:37:28.327Z" },
 ]
+
+[[package]]
+name = "masonite"
+version = "0.2.9.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "validator-py" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bb/d4/1e56465d370a0dc2bb19791482df4329f7e4f2fa697c055ba49a7dcdbcfc/masonite-0.2.9.4.tar.gz", hash = "sha256:9a420303b8f19fc0b5e64ba37b900e5fce7f94f107d453d040fdef9cf840ee77", size = 6691, upload-time = "2018-01-26T05:26:34.703Z" }
 
 [[package]]
 name = "matplotlib"
@@ -5858,6 +5879,19 @@ wheels = [
 ]
 
 [[package]]
+name = "stripe"
+version = "13.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4f/c1/e687ba904a78eeb9ac8e0845630c625a03d380b7569647530c4bafd12677/stripe-13.2.0.tar.gz", hash = "sha256:ed6ad1c27725e1e32a336fa9d835cfa8f0bd6dafcc98b3ab7bc7e8791390453b", size = 1357785, upload-time = "2025-11-05T23:04:23.043Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a0/39/5a7a7ac27372e8bd1ec45f52b884d039f504900a1a41885745c5a7976519/stripe-13.2.0-py3-none-any.whl", hash = "sha256:e7d18bd44bab1812bc4e9e75da4ceacedd587f71737bb9193955edf420605f88", size = 1962001, upload-time = "2025-11-05T23:04:21.056Z" },
+]
+
+[[package]]
 name = "supabase"
 version = "2.24.0"
 source = { registry = "https://pypi.org/simple" }
@@ -6423,6 +6457,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/cb/ce/f06b84e2697fef4688ca63bdb2fdf113ca0a3be33f94488f2cadb690b0cf/uvicorn-0.38.0.tar.gz", hash = "sha256:fd97093bdd120a2609fc0d3afe931d4d4ad688b6e75f0f929fde1bc36fe0e91d", size = 80605, upload-time = "2025-10-18T13:46:44.63Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ee/d9/d88e73ca598f4f6ff671fb5fde8a32925c2e08a637303a1d12883c7305fa/uvicorn-0.38.0-py3-none-any.whl", hash = "sha256:48c0afd214ceb59340075b4a052ea1ee91c16fbc2a9b1469cca0e54566977b02", size = 68109, upload-time = "2025-10-18T13:46:42.958Z" },
+]
+
+[[package]]
+name = "validator-py"
+version = "1.2.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d0/60/f818ff1a3353145a57e61f10b25b7bf78e87e1a0fb47459cb031aa908f15/validator.py-1.2.5.tar.gz", hash = "sha256:22fbf5f0c912005127099140407117c7c97dd00192d74e7d47d1830e8d6cb354", size = 6697, upload-time = "2015-10-26T13:45:23.002Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/44/0a8c9baa49d5d293a9b174cc5b34cbc615bd277071212de4c95c49088718/validator.py-1.2.5-py2.py3-none-any.whl", hash = "sha256:0865fbb5d978e23860a1663578aac4ea556e35eb38f275d70b641471973771d3", size = 8688, upload-time = "2015-10-26T13:45:27.237Z" },
 ]
 
 [[package]]

@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -13,6 +14,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events"""
+    # Startup
+    logger.info(f"🚀 Starting Macronome API in {ENV} mode")
+    logger.info(f"📍 CORS origins: {BackendConfig.CORS_ORIGINS}")
+    
+    # Initialize Redis connection
+    try:
+        RedisCache.get_client()
+        logger.info("✅ Redis connection initialized")
+    except Exception as e:
+        logger.warning(f"⚠️  Redis connection failed: {e}")
+    
+    yield
+    
+    # Shutdown
+    logger.info("👋 Shutting down Macronome API")
+
+
 # Create FastAPI app
 app = FastAPI(
     title="Macronome API",
@@ -20,6 +42,7 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs" if BackendConfig.DEBUG else None,  # Disable docs in prod
     redoc_url="/redoc" if BackendConfig.DEBUG else None,
+    lifespan=lifespan,
 )
 
 # CORS middleware
@@ -76,36 +99,6 @@ async def health_check():
             "services": services
         }
     )
-
-
-# Startup event
-@app.on_event("startup")
-async def startup_event():
-    """Initialize services on startup"""
-    logger.info(f"🚀 Starting Macronome API in {ENV} mode")
-    logger.info(f"📍 CORS origins: {BackendConfig.CORS_ORIGINS}")
-    
-    # Initialize Redis connection
-    try:
-        RedisCache.get_client()
-        logger.info("✅ Redis connection initialized")
-    except Exception as e:
-        logger.warning(f"⚠️  Redis connection failed: {e}")
-    
-    # TODO: Initialize other connections
-    # - Supabase client check
-    # - Load ML models if needed
-
-
-# Shutdown event
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown"""
-    logger.info("👋 Shutting down Macronome API")
-    
-    # TODO: Cleanup connections
-    # - Close Redis pool
-    # - Close database connections
 
 
 # Import and register routers (after app creation to avoid circular imports)
