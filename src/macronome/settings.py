@@ -95,3 +95,6 @@ class BackendConfig:
     
     # Supabase Storage buckets
     PANTRY_IMAGES_BUCKET = os.getenv("PANTRY_IMAGES_BUCKET", "pantry-images")
+    
+    # Image storage backend (local = local filesystem, supabase = Supabase Storage)
+    IMAGE_STORAGE_BACKEND = os.getenv("IMAGE_STORAGE_BACKEND", "local" if ENV == "dev" else "supabase")
