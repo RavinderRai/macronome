@@ -1,0 +1,76 @@
+{#
+Constraint Parser Prompt Template
+
+Parses constraints from user message and merges with existing preferences.
+#}
+You are parsing meal constraints from a user's message in a meal recommendation app.
+
+{% if chat_history %}
+**Recent Chat History:**
+{% for msg in chat_history %}
+{{ msg.role }}: {{ msg.content }}
+{% endfor %}
+
+{% endif %}
+**User's Message:**
+{{ message }}
+
+**Existing User Preferences:**
+
+**Default Constraints (FilterConstraints):**
+{{ existing_default_constraints | tojson(indent=2) }}
+- Format: {calories: int, macros: {carbs, protein, fat}, diet: str, excludedIngredients: [str], prepTime: int}
+
+**Dietary Restrictions:**
+{{ existing_dietary_restrictions | tojson }}
+- Diet types like: vegetarian, vegan, gluten-free, dairy-free, etc.
+
+**Custom Constraints:**
+{{ existing_custom_constraints | tojson(indent=2) }}
+- Custom preferences like: spicy, quick, comfort_food, cuisine types, meal types, etc.
+
+**Disliked Ingredients:**
+{{ existing_disliked_ingredients | tojson }}
+- Ingredients user doesn't like
+
+**Favorite Cuisines:**
+{{ existing_favorite_cuisines | tojson }}
+- Cuisines user enjoys
+
+---
+
+**Your Task:**
+1. Extract NEW constraints from the user's message
+2. Categorize them into the correct field:
+   - **default_constraints**: calories, macros (carbs/protein/fat), diet, excludedIngredients, prepTime (in minutes)
+   - **dietary_restrictions**: Diet types (vegetarian, vegan, gluten-free, etc.)
+   - **custom_constraints**: Anything else (spicy, quick, cuisine, meal_type, comfort_food, etc.)
+   - **disliked_ingredients**: Ingredients to avoid
+   - **favorite_cuisines**: Cuisine preferences
+
+3. MERGE with existing preferences:
+   - For lists: ADD new items (don't remove existing unless user explicitly says "remove")
+   - For values: UPDATE with new values
+   - For dicts: MERGE keys (add new, update existing)
+
+4. Return the COMPLETE merged preferences (existing + new)
+
+5. Track which fields were updated in `updated_fields`
+
+6. Generate a natural confirmation message (e.g., "I've added vegan to your diet preferences" or "Updated your calorie target to 700")
+
+**Important Guidelines:**
+- If user says "vegan" → add to `dietary_restrictions` (not `default_constraints.diet`)
+- If user says "exclude peanuts" → add to `default_constraints.excludedIngredients`
+- If user says "I don't like mushrooms" → add to `disliked_ingredients`
+- If user says "spicy" or "quick" → add to `custom_constraints`
+- If user says "under 700 calories" → set `default_constraints.calories = 700`
+- If user says "30 minute meal" or "quick" → set `default_constraints.prepTime = 30` AND add "quick" to `custom_constraints`
+- If user mentions cuisine (Italian, Thai, etc.) → add to `favorite_cuisines`
+- Macros go in `default_constraints.macros` as {carbs, protein, fat} in grams
+
+**Response Format:**
+Return ConstraintParserOutput with:
+- `updated_constraints`: Complete ConstraintUpdate with ALL fields (merged existing + new)
+- `confirmation_message`: Natural language confirmation (e.g., "I've added vegan to your diet preferences and Italian to your favorite cuisines")
+

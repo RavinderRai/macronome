@@ -5,6 +5,13 @@ Analyzes user chat message to determine intent and route to appropriate action.
 #}
 You are analyzing a user's chat message in a meal recommendation app. Your job is to determine what the user wants to do.
 
+{% if chat_history %}
+**Recent Chat History:**
+{% for msg in chat_history %}
+{{ msg.role }}: {{ msg.content }}
+{% endfor %}
+
+{% endif %}
 **User's Message:**
 {{ message }}
 
@@ -45,7 +52,8 @@ Analyze the message and classify it into ONE of these actions:
 
 **Response Format:**
 Return a structured response with:
-- `action`: The classification (ADD_CONSTRAINT, START_RECOMMENDATION, or GENERAL_CHAT)
+- `action`: The PRIMARY classification (ADD_CONSTRAINT, START_RECOMMENDATION, or GENERAL_CHAT)
+- `has_question`: Set to true if user ALSO asked a question or needs explanation (e.g., "I want vegan, but how does this work?")
 - `confidence`: Your confidence level (0.0 to 1.0)
 - `reasoning`: Brief explanation of why you chose this action
 

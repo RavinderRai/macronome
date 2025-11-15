@@ -16,7 +16,11 @@ class ChatAction(str, Enum):
 
 class ChatRouterOutput(BaseModel):
     """Output from ChatRouter node - routes user message to appropriate action"""
-    action: ChatAction = Field(..., description="Detected user intention")
+    action: ChatAction = Field(..., description="Primary user intention")
+    has_question: bool = Field(
+        default=False,
+        description="User also asked a question or needs explanation (handled by ResponseGenerator)"
+    )
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence in action classification")
     reasoning: str = Field(..., description="Explanation of why this action was chosen")
 
@@ -67,6 +71,10 @@ class ChatRequest(BaseModel):
     message: str = Field(..., description="User's chat message")
     chat_session_id: str = Field(..., description="Active chat session ID")
     user_id: str = Field(..., description="Clerk user ID")
+    chat_history: List[Dict[str, str]] = Field(
+        default_factory=list,
+        description="Recent chat history (last 5 messages): [{'role': 'user'/'assistant', 'content': '...'}]"
+    )
     # Note: user_preferences are loaded from DB in ConstraintParser node
     # Note: pantry_items are passed separately to meal recommender workflow when needed
 
