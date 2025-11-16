@@ -7,7 +7,7 @@ from fastapi import Depends, HTTPException, status, Header
 from supabase import Client
 
 from macronome.backend.auth.clerk import clerk_auth
-from macronome.backend.database.session import get_db
+from macronome.backend.database.session import get_db, get_admin_db
 
 
 async def get_current_user(authorization: Optional[str] = Header(None)) -> str:
@@ -60,12 +60,29 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> str:
 
 def get_supabase() -> Client:
     """
-    Get Supabase client for database operations
+    Get Supabase client for database operations (with RLS)
     
     Returns:
-        Supabase client instance
+        Supabase client instance with anon key (subject to RLS)
     """
     return get_db()
+
+
+def get_supabase_admin() -> Client:
+    """
+    Get Supabase admin client (bypasses RLS)
+    # TODO: Should probably fix RLS in Supabase so we don't need admin for instantiating users in Supabase
+    
+    Use this for operations that need to bypass RLS, such as:
+    - User initialization (creating records for new users)
+    - Admin operations
+    
+    Note: Still requires Clerk auth verification before use.
+    
+    Returns:
+        Supabase client instance with service_role key (bypasses RLS)
+    """
+    return get_admin_db()
 
 
 async def get_user_id(user_id: str = Depends(get_current_user)) -> str:

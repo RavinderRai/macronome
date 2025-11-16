@@ -102,7 +102,14 @@ async def health_check():
 
 
 # Import and register routers (after app creation to avoid circular imports)
-from macronome.backend.api.routers import pantry, meals, chat, preferences  # noqa: E402
+from macronome.backend.api.routers import pantry, meals, chat, preferences, users  # noqa: E402
+
+# Users endpoints (initialization, auth)
+app.include_router(
+    users.router,
+    prefix="/api/users",
+    tags=["users"]
+)
 
 # Pantry endpoints (ML + CRUD)
 app.include_router(

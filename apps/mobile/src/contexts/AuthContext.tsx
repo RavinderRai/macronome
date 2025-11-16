@@ -5,6 +5,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { tokenManager } from '../services/auth/tokenManager';
+import { getUserStatus, initializeUser } from '../services/api/users';
 
 interface AuthContextType {
   isSignedIn: boolean;
@@ -64,13 +65,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Update stored token when auth state changes
+  // Update stored token and check initialization when auth state changes
   useEffect(() => {
-    if (isSignedIn) {
-      getToken();
-    } else {
-      tokenManager.deleteToken().catch(console.error);
-    }
+    const handleAuthChange = async () => {
+      if (isSignedIn) {
+        await getToken();
+        
+        // Check if user is initialized in Supabase
+        try {
+          const status = await getUserStatus();
+          
+          if (!status.is_initialized) {
+            console.log('User not initialized, initializing now...');
+            await initializeUser();
+            console.log('✅ User initialized successfully');
+          }
+        } catch (error) {
+          console.error('Failed to check/initialize user:', error);
+          // Continue anyway - user can be initialized lazily
+        }
+      } else {
+        tokenManager.deleteToken().catch(console.error);
+      }
+    };
+    
+    handleAuthChange();
   }, [isSignedIn]);
 
   const value: AuthContextType = {

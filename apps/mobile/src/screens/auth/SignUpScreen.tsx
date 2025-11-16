@@ -2,7 +2,7 @@
  * Sign Up Screen
  * Clerk-powered sign up with email
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,17 +13,33 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useSignUp } from '@clerk/clerk-expo';
+import { useSignUp, useAuth } from '@clerk/clerk-expo';
 import { colors } from '../../theme/colors';
+import { initializeUser } from '../../services/api/users';
+import { ENV } from '../../utils/env';
+import { tokenManager } from '../../services/auth/tokenManager';
 
 export default function SignUpScreen() {
   const { signUp, setActive, isLoaded } = useSignUp();
+  const { getToken: getClerkToken } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Debug: Log configuration on mount
+  useEffect(() => {
+    console.log('=== SignUpScreen Configuration ===');
+    console.log('Clerk isLoaded:', isLoaded);
+    console.log('API Base URL:', ENV.apiBaseUrl);
+    console.log('Clerk Key configured:', !!ENV.clerkPublishableKey);
+    console.log('==================================');
+  }, [isLoaded]);
+
   const handleSignUp = async () => {
+    console.log('handleSignUp called');
+    
     if (!isLoaded) {
+      console.log('Clerk not loaded yet');
       return;
     }
 
@@ -40,37 +56,91 @@ export default function SignUpScreen() {
     setIsLoading(true);
 
     try {
+      console.log('Creating Clerk account...');
       const result = await signUp.create({
         emailAddress: email,
         password,
       });
 
-      // Send verification email
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      console.log('Clerk account created, status:', result.status);
+      console.log('Created session ID:', result.createdSessionId);
 
-      // For now, we'll just activate the session if email verification is skipped
-      // In production, you'd show a verification code input screen
-      if (result.status === 'complete') {
+      // Try to prepare email verification, but don't block if it fails
+      try {
+        await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+        console.log('Email verification prepared');
+      } catch (verifyError: any) {
+        console.log('Email verification skipped:', verifyError.message);
+      }
+
+      // Activate the session immediately (skip verification for development)
+      if (result.createdSessionId) {
+        console.log('Setting active session...');
         await setActive({ session: result.createdSessionId });
+        console.log('Session activated successfully');
+        
+        // Get token directly from Clerk and save it before initializing
+        // Wait a moment for Clerk to fully activate the session and generate token
+        console.log('Waiting for session to be fully active...');
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        
+        let tokenRetries = 0;
+        let token: string | null = null;
+        const maxRetries = 5;
+        
+        while (!token && tokenRetries < maxRetries) {
+          try {
+            console.log(`Getting token from Clerk (attempt ${tokenRetries + 1}/${maxRetries})...`);
+            token = await getClerkToken();
+            
+            if (token) {
+              console.log('Token retrieved, saving to secure storage...');
+              await tokenManager.saveToken(token);
+              console.log('Token saved successfully');
+              console.log('Token preview:', token.substring(0, 50) + '...');
+              break;
+            } else {
+              console.log('No token available yet, waiting...');
+              await new Promise(resolve => setTimeout(resolve, 500));
+              tokenRetries++;
+            }
+          } catch (tokenError: any) {
+            console.error('Failed to get token:', tokenError);
+            tokenRetries++;
+            if (tokenRetries < maxRetries) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
+        }
+        
+        if (!token) {
+          console.warn('⚠️ Could not get token after retries - initialization will be handled by AuthContext');
+        }
+        
+        // Initialize user in Supabase (create preferences, chat session, etc.)
+        // Only try if we have a token
+        if (token) {
+          try {
+            console.log('Initializing user in Supabase...');
+            await initializeUser();
+            console.log('✅ User initialized successfully');
+          } catch (error: any) {
+            console.error('Failed to initialize user:', error);
+            console.error('Error details:', JSON.stringify(error.response?.data || error.message));
+            // Don't block sign-up if initialization fails
+            // User can be initialized lazily on first API call (AuthContext will handle it)
+          }
+        } else {
+          console.log('Skipping initialization - will be handled by AuthContext when token is ready');
+        }
       } else {
-        Alert.alert(
-          'Verification Required',
-          'Please check your email for a verification code. For development, you can skip this step.',
-          [
-            {
-              text: 'Skip for Now',
-              onPress: async () => {
-                // In dev, we can skip verification
-                if (result.createdSessionId) {
-                  await setActive({ session: result.createdSessionId });
-                }
-              },
-            },
-          ]
-        );
+        console.log('No session ID found, cannot activate session');
+        Alert.alert('Error', 'Could not create session. Please try again.');
       }
     } catch (error: any) {
-      Alert.alert('Sign Up Failed', error.errors?.[0]?.message || 'An error occurred');
+      console.error('Sign up error:', error);
+      console.error('Error details:', JSON.stringify(error.errors || error.message));
+      Alert.alert('Sign Up Failed', error.errors?.[0]?.message || error.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }

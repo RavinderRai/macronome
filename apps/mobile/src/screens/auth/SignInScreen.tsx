@@ -2,7 +2,7 @@
  * Sign In Screen
  * Clerk-powered sign in with email
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useSignIn } from '@clerk/clerk-expo';
 import { colors } from '../../theme/colors';
+import { ENV } from '../../utils/env';
 
 export default function SignInScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -22,8 +23,20 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Debug: Log configuration on mount
+  useEffect(() => {
+    console.log('=== SignInScreen Configuration ===');
+    console.log('Clerk isLoaded:', isLoaded);
+    console.log('API Base URL:', ENV.apiBaseUrl);
+    console.log('Clerk Key configured:', !!ENV.clerkPublishableKey);
+    console.log('==================================');
+  }, [isLoaded]);
+
   const handleSignIn = async () => {
+    console.log('handleSignIn called');
+    
     if (!isLoaded) {
+      console.log('Clerk not loaded yet');
       return;
     }
 
@@ -35,19 +48,54 @@ export default function SignInScreen() {
     setIsLoading(true);
 
     try {
+      console.log('Creating sign-in attempt...');
       const result = await signIn.create({
         identifier: email,
         password,
       });
 
-      if (result.status === 'complete') {
+      console.log('Sign-in result status:', result.status);
+      console.log('Created session ID:', result.createdSessionId);
+
+      // Activate session if we have a session ID (more reliable than checking status)
+      if (result.createdSessionId) {
+        console.log('Setting active session...');
         await setActive({ session: result.createdSessionId });
+        console.log('Session activated successfully');
         // Navigation will be handled by auth state change
+      } else if (result.status === 'complete') {
+        // Fallback: if status is complete but no session ID, try to get it from signIn object
+        console.log('Status is complete, attempting to activate...');
+        if (signIn.createdSessionId) {
+          await setActive({ session: signIn.createdSessionId });
+          console.log('Session activated successfully');
+        } else {
+          console.log('No session ID available despite complete status');
+          Alert.alert('Error', 'Sign in incomplete. Please try again.');
+        }
+      } else if (result.status === 'needs_second_factor') {
+        // 2FA is required but user has it disabled - this is a Clerk config issue
+        console.error('needs_second_factor but user has 2FA disabled');
+        console.log('Available second factors:', signIn.supportedSecondFactors);
+        
+        Alert.alert(
+          'Sign In Issue',
+          'Clerk is requiring 2FA even though it\'s disabled for your account.\n\n' +
+          'Please check Clerk Dashboard:\n\n' +
+          '1. Session management → Sessions → Look for "Session verification level"\n' +
+          '2. User & authentication → Multi-factor → Require MFA = "Optional"\n' +
+          '3. Try deleting this user and signing up again\n\n' +
+          'This is a Clerk configuration issue, not a code issue.',
+          [{ text: 'OK' }]
+        );
       } else {
-        Alert.alert('Error', 'Sign in incomplete. Please try again.');
+        console.log('Sign-in incomplete, status:', result.status);
+        Alert.alert('Error', `Sign in incomplete. Status: ${result.status}. Please try again.`);
       }
     } catch (error: any) {
-      Alert.alert('Sign In Failed', error.errors?.[0]?.message || 'An error occurred');
+      console.error('Sign in error:', error);
+      console.error('Error details:', JSON.stringify(error.errors || error.message));
+      Alert.alert('Sign In Failed', error.errors?.[0]?.message || error.message || 'An error occurred');
     } finally {
       setIsLoading(false);
     }
