@@ -6,6 +6,7 @@ Crops detected items from image with padding.
 """
 import logging
 
+from pydantic import ConfigDict
 from macronome.ai.core.nodes.base import Node
 from macronome.ai.core.task import TaskContext
 from macronome.ai.pantry_scanner.pipeline.cropper import crop_items_with_padding
@@ -29,6 +30,8 @@ class CroppingNode(Node):
     
     class OutputType(Node.OutputType):
         """CroppingNode outputs List[Image]"""
+        model_config = ConfigDict(arbitrary_types_allowed=True)
+        
         cropped_images: list[Image]
     
     async def process(self, task_context: TaskContext) -> TaskContext:

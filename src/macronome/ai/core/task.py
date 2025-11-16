@@ -35,7 +35,7 @@ class TaskContext(BaseModel):
         default_factory=dict,
         description="Stores workflow-level metadata and configuration"
     )
-    should_stop: Field(
+    should_stop: bool = Field(
         default=False,
         description="Boolean flag indicating whether the workflow should stop execution"
     )

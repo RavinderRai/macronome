@@ -1,17 +1,15 @@
 from macronome.ai.core.workflow import Workflow
 from macronome.ai.core.schema import WorkflowSchema, NodeConfig
 from macronome.ai.schemas.meal_recommender_constraints_schema import MealRecommendationRequest
-from macronome.ai.workflows.meal_recommender_workflow_nodes import (
-    NormalizeNode,
-    PlanningAgent,
-    RetrievalNode,
-    SelectionAgent,
-    InitialNutritionNode,
-    ModificationAgent,
-    QCRouter,
-    ExplanationAgent,
-    FailureAgent,
-)
+from macronome.ai.workflows.meal_recommender_workflow_nodes.normalize_node import NormalizeNode
+from macronome.ai.workflows.meal_recommender_workflow_nodes.planning_agent import PlanningAgent
+from macronome.ai.workflows.meal_recommender_workflow_nodes.retrieval_node import RetrievalNode
+from macronome.ai.workflows.meal_recommender_workflow_nodes.selection_agent import SelectionAgent
+from macronome.ai.workflows.meal_recommender_workflow_nodes.nutrition_node import InitialNutritionNode
+from macronome.ai.workflows.meal_recommender_workflow_nodes.modification_agent import ModificationAgent
+from macronome.ai.workflows.meal_recommender_workflow_nodes.qc_router import QCRouter
+from macronome.ai.workflows.meal_recommender_workflow_nodes.explanation_agent import ExplanationAgent
+from macronome.ai.workflows.meal_recommender_workflow_nodes.failure_agent import FailureAgent
 
 """
 Meal Recommendation Workflow

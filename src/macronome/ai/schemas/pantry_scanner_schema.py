@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from PIL.Image import Image
 from typing import List
 
@@ -18,6 +18,8 @@ class PantryItem(BaseModel):
 
 class PantryScanRequest(BaseModel):
     """Request schema for pantry scanner workflow"""
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
     image: Image  # PIL Image
     conf_threshold: float = 0.25  # Detection confidence threshold
     crop_padding: int = 10  # Pixels to add around crops

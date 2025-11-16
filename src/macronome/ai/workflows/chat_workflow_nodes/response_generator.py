@@ -12,7 +12,6 @@ from macronome.ai.core.nodes.agent import AgentNode, AgentConfig, ModelProvider
 from macronome.ai.core.task import TaskContext
 from macronome.ai.prompts import PromptManager
 from macronome.ai.schemas.chat_schema import ChatRequest, ChatAction
-from macronome.ai.workflows.chat_workflow_nodes.chat_router import ChatRouter
 from macronome.ai.workflows.chat_workflow_nodes.constraint_parser import ConstraintParser
 
 
@@ -49,7 +48,6 @@ class ResponseGenerator(AgentNode):
         """
         return AgentConfig(
             model_provider=ModelProvider.OPENAI,
-            model_name="gpt-4o",
             output_type=ChatResponseOutput,
             system_prompt="You are a friendly meal recommendation assistant that provides helpful, natural responses.",
             name="ResponseGenerator",
@@ -69,7 +67,7 @@ class ResponseGenerator(AgentNode):
         request: ChatRequest = task_context.event
         
         # Get router output
-        router_output: Optional[ChatRouter.OutputType] = task_context.nodes.get("ChatRouter")
+        router_output = task_context.nodes.get("ChatRouter")
         if not router_output:
             raise ValueError("ChatRouter output not found")
         
