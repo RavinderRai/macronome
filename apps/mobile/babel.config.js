@@ -1,3 +1,5 @@
+require('dotenv').config(); // Load environment variables from .env file
+
 module.exports = function(api) {
   api.cache(true);
   return {

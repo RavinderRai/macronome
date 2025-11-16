@@ -295,23 +295,23 @@ class ChatResponse(BaseModel):
 **Pantry:**
 
 - `POST /api/ai/pantry/scan` - Upload image, return detected items
-  - Calls `pantry_scanner` service
-  - Returns list of `PantryItem`
+    - Calls `pantry_scanner` service
+    - Returns list of `PantryItem`
 
 **Meals:**
 
 - `POST /api/ai/meals/recommend` - Request meal recommendation (async)
-  - Calls `meal_recommender` service
-  - Returns `task_id`
+    - Calls `meal_recommender` service
+    - Returns `task_id`
 - `GET /api/ai/meals/recommend/{task_id}` - Poll for recommendation result
-  - Returns meal data or status
+    - Returns meal data or status
 
 **Chat:**
 
 - `POST /api/ai/chat/message` - Send chat message (streaming)
-  - Calls `chat` service
-  - Returns SSE stream with response text
-  - If action is START_RECOMMENDATION, includes `task_id` in final message
+    - Calls `chat` service
+    - Returns SSE stream with response text
+    - If action is START_RECOMMENDATION, includes `task_id` in final message
 
 #### Backend CRUD Endpoints (`/api/`)
 
@@ -349,96 +349,171 @@ class ChatResponse(BaseModel):
 
 ---
 
+
+
 ### 1.9 Frontend Integration (4-5 hours)
 
-**Objective:** Connect mobile app to backend with Clerk auth
 
-#### Clerk Auth Setup
 
-**Files to Create/Update:**
+1.9.1 Clerk Auth Setup (1 hour)
 
-- `apps/mobile/src/services/auth/clerk.ts` - Clerk client setup
-- `apps/mobile/src/contexts/AuthContext.tsx` - Auth context provider
-- `apps/mobile/src/screens/auth/SignInScreen.tsx` - Sign in screen
-- `apps/mobile/src/screens/auth/SignUpScreen.tsx` - Sign up screen
+ - Install @clerk/clerk-expo, expo-secure-store
 
-**Implementation:**
+ - Set up Clerk provider in App.tsx
 
-- Install `@clerk/clerk-expo`
-- Set up Clerk provider in app root
-- Create sign in/up screens
-- Store auth token in secure storage
-- Add token to all API requests
+ - Create AuthContext with token management
 
-#### API Client Setup
+ - Create sign in/up screens
 
-**Files to Create:**
+ - Store token in secure storage
 
-- `apps/mobile/src/services/api/client.ts` - HTTP client with auth
-- `apps/mobile/src/services/api/ai/pantry.ts` - Pantry scanning API
-- `apps/mobile/src/services/api/ai/meals.ts` - Meal recommendation API
-- `apps/mobile/src/services/api/ai/chat.ts` - Chat API (with streaming)
-- `apps/mobile/src/services/api/pantry.ts` - Pantry CRUD API
-- `apps/mobile/src/services/api/chat.ts` - Chat CRUD API
-- `apps/mobile/src/services/api/meals.ts` - Meal history API
-- `apps/mobile/src/services/api/preferences.ts` - Preferences API
-- `apps/mobile/src/services/api/types.ts` - API response types
+ - Add token refresh logic
 
-**Implementation:**
 
-- Axios client with base URL from env
-- Request interceptor: Add Clerk token to headers
-- Response interceptor: Handle errors
-- Streaming support for chat (EventSource or fetch with streaming)
-- TypeScript types matching backend schemas
 
-#### Connect Screens
+1.9.2 Clerk → Supabase Sync (30 min)
 
-**Files to Update:**
+ - Backend: POST /api/auth/sync endpoint
 
-- `apps/mobile/src/screens/CameraScreen.tsx` - Call `/api/ai/pantry/scan`
-- `apps/mobile/src/screens/HomeScreen.tsx` - Chat integration, meal recommendation polling
-- `apps/mobile/src/components/pantry/PantryDrawer.tsx` - Fetch from `/api/pantry/items`
-- `apps/mobile/src/store/pantryStore.ts` - Sync with backend
-- `apps/mobile/src/store/chatStore.ts` - Chat state management (new)
+ - Frontend: Call sync after Clerk sign-in
 
-**Implementation:**
+ - Handle user creation/update
 
-- Replace mock ML pipeline with real API calls
-- Add loading states for async operations
-- Poll Celery task status every 2 seconds for meal recommendations
-- Stream chat responses in real-time
-- Handle errors gracefully with user feedback
-- Sync pantry store with backend on add/remove
 
-#### Chat Integration
 
-**Files to Create/Update:**
+1.9.3 API Client Setup (1 hour)
 
-- `apps/mobile/src/components/chat/ChatInterface.tsx` - Chat UI component
-- `apps/mobile/src/store/chatStore.ts` - Chat state (messages, session, loading)
-- Update `HomeScreen.tsx` to include chat interface
+ - Create axios client with interceptors
 
-**Flow:**
+ - Add auth token to all requests
 
-1. User sends message → Call `/api/ai/chat/message` (streaming)
-2. Display streamed response in real-time
-3. If action is START_RECOMMENDATION:
+ - Error handling (401, 500, network)
 
-   - Show loading spinner
-   - Disable all buttons
-   - Poll `/api/ai/meals/recommend/{task_id}` every 2 seconds
-   - When complete, show meal recommendation
+ - Request/response logging (dev only)
 
-4. Save messages to `/api/chat/sessions/{id}/messages` for history
+ - TypeScript types matching backend schemas
 
-**Dependencies:**
 
-- `axios` (if not already)
-- `@clerk/clerk-expo`
-- `eventsource` or native EventSource for streaming
+
+1.9.4 API Service Files (1 hour)
+
+ - services/api/ai/pantry.ts
+
+ - services/api/ai/meals.ts
+
+ - services/api/ai/chat.ts (with streaming)
+
+ - services/api/pantry.ts
+
+ - services/api/chat.ts
+
+ - services/api/meals.ts
+
+ - services/api/preferences.ts
+
+ - services/api/types.ts
+
+
+
+1.9.5 Connect Screens (1 hour)
+
+ - CameraScreen: Replace mock with /api/ai/pantry/scan
+
+ - HomeScreen: Chat API integration, meal polling
+
+ - PantryDrawer: Fetch from /api/pantry/items
+
+ - Sync pantry store with backend
+
+ - Load preferences on app start
+
+
+
+1.9.6 Chat Integration (1 hour)
+
+ - ChatInterface: Connect to /api/ai/chat/message
+
+ - Streaming support (EventSource or fetch streaming)
+
+ - Handle START_RECOMMENDATION action
+
+ - Poll meal recommendation status
+
+ - Save messages to chat history
+
+ - Auto-update preferences when constraints added
+
+
+
+1.9.7 Error Handling & UX (30 min)
+
+ - Global error boundary
+
+ - Toast notifications for errors
+
+ - Loading states for all async operations
+
+ - Offline detection (optional)
+
+
+
+apps/mobile/
+
+├── src/
+
+│   ├── services/
+
+│   │   ├── auth/
+
+│   │   │   ├── clerk.ts          # Clerk client setup
+
+│   │   │   └── tokenManager.ts   # Token storage/refresh
+
+│   │   ├── api/
+
+│   │   │   ├── client.ts         # Axios client with auth
+
+│   │   │   ├── types.ts          # API response types
+
+│   │   │   ├── ai/
+
+│   │   │   │   ├── pantry.ts
+
+│   │   │   │   ├── meals.ts
+
+│   │   │   │   └── chat.ts
+
+│   │   │   └── [pantry|chat|meals|preferences].ts
+
+│   │   └── sync/
+
+│   │       └── userSync.ts       # Clerk → Supabase sync
+
+│   ├── contexts/
+
+│   │   └── AuthContext.tsx       # Auth state management
+
+│   ├── screens/
+
+│   │   └── auth/
+
+│   │       ├── SignInScreen.tsx
+
+│   │       └── SignUpScreen.tsx
+
+│   └── utils/
+
+│       ├── errorHandler.ts       # Centralized error handling
+
+│       └── env.ts                # Environment config
+
+
+
+
 
 ---
+
+
 
 ### 1.10 Testing & Iteration (2-3 hours)
 
