@@ -6,18 +6,16 @@ Routes user chat messages to appropriate actions:
 - START_RECOMMENDATION: User requests a meal recommendation
 - GENERAL_CHAT: User has questions or general conversation
 """
-from typing import Any, Type
+from typing import Any
 from pydantic_core import to_jsonable_python
 from pydantic import BaseModel
 from pydantic_ai import Agent
 
-from macronome.ai.workflows.chat_workflow_nodes.constraint_parser import ConstraintParser
-from macronome.ai.workflows.chat_workflow_nodes.response_generator import ResponseGenerator
-from macronome.ai.core.nodes.base import Node
 from macronome.ai.core.nodes.router import BaseRouter
 from macronome.ai.core.task import TaskContext
 from macronome.ai.prompts import PromptManager
 from macronome.ai.schemas.chat_schema import ChatRequest, ChatRouterOutput, ChatAction
+from macronome.ai.core.nodes.base import Node
 
 
 class ChatRouter(BaseRouter):
@@ -74,7 +72,7 @@ class ChatRouter(BaseRouter):
         
         return task_context
     
-    def route(self, task_context: TaskContext) -> Type[Node]:
+    def route(self, task_context: TaskContext) -> Node:
         """
         Route to next node based on classified action.
         
@@ -82,7 +80,7 @@ class ChatRouter(BaseRouter):
             task_context: Contains ChatRouter output
             
         Returns:
-            Next node class (ConstraintParser or ResponseGenerator)
+            Next node instance (lazy-loaded from task_context metadata)
         """
         # Get router output
         router_output: ChatRouter.OutputType = task_context.nodes.get("ChatRouter")
@@ -91,10 +89,19 @@ class ChatRouter(BaseRouter):
         
         action = router_output.model_output.action
         
-        # Route based on action
+        # Get node classes from workflow (stored in task_context metadata by workflow)
+        node_map = task_context.metadata.get("nodes", {})
+        
+        # Route based on action - return node instance
         if action == ChatAction.ADD_CONSTRAINT:
-            return ConstraintParser
+            next_node_class = node_map.get("ConstraintParser")
         else:
             # START_RECOMMENDATION or GENERAL_CHAT go straight to response
-            return ResponseGenerator
+            next_node_class = node_map.get("ResponseGenerator")
+        
+        if not next_node_class:
+            raise ValueError("Node class not found in workflow metadata")
+        
+        # Return node instance with task context
+        return next_node_class(task_context)
 

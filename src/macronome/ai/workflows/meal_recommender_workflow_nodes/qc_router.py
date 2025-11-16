@@ -1,12 +1,11 @@
 import logging
-from typing import Type
 
-from macronome.ai.core.nodes.base import Node
 from macronome.ai.core.nodes.router import BaseRouter
 from macronome.ai.core.task import TaskContext
 from macronome.ai.schemas.recipe_schema import NutritionInfo
 from macronome.ai.schemas.meal_recommender_constraints_schema import NormalizedConstraints
 from macronome.ai.schemas.workflow_schemas import ModifiedRecipe
+from macronome.ai.core.nodes.base import Node
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +45,7 @@ class QCRouter(BaseRouter):
         """
         return task_context
     
-    def route(self, task_context: TaskContext) -> Type[Node]:
+    def route(self, task_context: TaskContext) -> Node:
         """
         Determine next node based on quality checks.
         
@@ -54,19 +53,22 @@ class QCRouter(BaseRouter):
             task_context: Current task context
             
         Returns:
-            ExplanationAgent if quality checks pass
-            FailureAgent if issues found
+            Next node instance (lazy-loaded from task_context metadata)
         """
         # Get required data
         modified: ModifiedRecipe = task_context.nodes.get("ModificationAgent")
         nutrition: NutritionInfo = task_context.nodes.get("NutritionNode")
         normalized: NormalizedConstraints = task_context.nodes.get("NormalizeNode")
         
+        # Get node classes from workflow
+        node_map = task_context.metadata.get("nodes", {})
+        
         if not all([modified, nutrition, normalized]):
             logger.error("Missing required data for QC routing")
-            # Import here to avoid circular dependency
-            from macronome.ai.workflows.meal_recommender_workflow_nodes.failure_agent import FailureAgent
-            return FailureAgent
+            next_node_class = node_map.get("FailureAgent")
+            if not next_node_class:
+                raise ValueError("FailureAgent not found in workflow")
+            return next_node_class(task_context)
         
         # Track issues
         issues = []
@@ -130,11 +132,14 @@ class QCRouter(BaseRouter):
         if not issues or len(issues) <= 1:
             # Minor or no issues - proceed to explanation
             logger.info("QC passed: Recipe meets quality standards")
-            from macronome.ai.workflows.meal_recommender_workflow_nodes.explanation_agent import ExplanationAgent
-            return ExplanationAgent
+            next_node_class = node_map.get("ExplanationAgent")
         else:
             # Significant issues - ModificationAgent already tried 3 iterations, fail gracefully
             logger.info(f"QC failed: {len(issues)} issues found after modification attempts, routing to failure")
-            from macronome.ai.workflows.meal_recommender_workflow_nodes.failure_agent import FailureAgent
-            return FailureAgent
+            next_node_class = node_map.get("FailureAgent")
+        
+        if not next_node_class:
+            raise ValueError("Next node class not found in workflow")
+        
+        return next_node_class(task_context)
 

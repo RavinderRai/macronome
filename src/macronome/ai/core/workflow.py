@@ -193,5 +193,12 @@ class Workflow(ABC):
         Returns:
             The class of the next node to execute, or None if at the end
         """
+        # Store node class map in metadata for router to use
+        if "nodes" not in task_context.metadata:
+            task_context.metadata["nodes"] = {
+                node_class.__name__: node_class
+                for node_class in self.nodes.keys()
+            }
+        
         next_node = router.route(task_context)
         return next_node.__class__ if next_node else None
