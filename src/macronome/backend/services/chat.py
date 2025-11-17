@@ -9,6 +9,8 @@ from macronome.backend.database.session import get_db
 from macronome.backend.database.chat_helpers import get_chat_messages
 from macronome.ai.workflows.chat_workflow import ChatWorkflow
 from macronome.ai.schemas.chat_schema import ChatRequest, ChatAction
+from macronome.ai.core.task import TaskContext
+from macronome.backend.services.meal_recommender import MealRecommenderService
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +78,6 @@ class ChatService:
         logger.info(f"💬 Processing chat message for user {user_id}: '{message[:50]}...'")
         
         # Create task context with user preferences in metadata
-        from macronome.ai.core.task import TaskContext
         task_context = TaskContext(event=request)
         task_context.metadata["user_preferences"] = user_preferences
         
@@ -86,7 +87,6 @@ class ChatService:
         
         if router_result["action"] == ChatAction.START_RECOMMENDATION:
             # Queue meal recommendation task
-            from macronome.backend.services.meal_recommender import MealRecommenderService
             recommender = MealRecommenderService()
             
             # Build constraints from user_preferences

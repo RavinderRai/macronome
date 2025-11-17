@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from supabase import Client
 import json
 
-from macronome.backend.api.dependencies import get_current_user, get_supabase
+from macronome.backend.api.dependencies import get_current_user, get_supabase, get_supabase_admin
 from macronome.backend.api.schemas import (
     ChatMessageRequest,
     ChatMessageResponse,
@@ -33,7 +33,7 @@ router = APIRouter()
 async def send_chat_message(
     request: ChatMessageRequest,
     user_id: str = Depends(get_current_user),
-    db: Client = Depends(get_supabase),
+    db: Client = Depends(get_supabase_admin),  # Use admin to bypass RLS for writes
 ):
     """
     AI: Send chat message (non-streaming version)
@@ -165,7 +165,7 @@ async def get_chat_sessions(
 async def create_chat_session(
     session_data: ChatSessionCreate,
     user_id: str = Depends(get_current_user),
-    db: Client = Depends(get_supabase),
+    db: Client = Depends(get_supabase_admin),  # Use admin to bypass RLS for writes
 ):
     """
     Create new chat session
