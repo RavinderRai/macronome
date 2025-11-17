@@ -1,0 +1,7 @@
+{
+    "message": "Hi, what are you?",
+    "chat_session_id": "test-session-123",
+    "user_id": "test-user-456",
+    "chat_history": [],
+    "user_preferences": {}
+}

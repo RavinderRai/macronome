@@ -349,11 +349,7 @@ class ChatResponse(BaseModel):
 
 ---
 
-
-
 ### 1.9 Frontend Integration (4-5 hours)
-
-
 
 1.9.1 Clerk Auth Setup (1 hour)
 
@@ -369,8 +365,6 @@ class ChatResponse(BaseModel):
 
  - Add token refresh logic
 
-
-
 1.9.2 Clerk → Supabase Sync (30 min)
 
  - Backend: POST /api/auth/sync endpoint
@@ -378,8 +372,6 @@ class ChatResponse(BaseModel):
  - Frontend: Call sync after Clerk sign-in
 
  - Handle user creation/update
-
-
 
 1.9.3 API Client Setup (1 hour)
 
@@ -392,8 +384,6 @@ class ChatResponse(BaseModel):
  - Request/response logging (dev only)
 
  - TypeScript types matching backend schemas
-
-
 
 1.9.4 API Service Files (1 hour)
 
@@ -413,8 +403,6 @@ class ChatResponse(BaseModel):
 
  - services/api/types.ts
 
-
-
 1.9.5 Connect Screens (1 hour)
 
  - CameraScreen: Replace mock with /api/ai/pantry/scan
@@ -426,8 +414,6 @@ class ChatResponse(BaseModel):
  - Sync pantry store with backend
 
  - Load preferences on app start
-
-
 
 1.9.6 Chat Integration (1 hour)
 
@@ -443,8 +429,6 @@ class ChatResponse(BaseModel):
 
  - Auto-update preferences when constraints added
 
-
-
 1.9.7 Error Handling & UX (30 min)
 
  - Global error boundary
@@ -454,8 +438,6 @@ class ChatResponse(BaseModel):
  - Loading states for all async operations
 
  - Offline detection (optional)
-
-
 
 apps/mobile/
 
@@ -507,13 +489,7 @@ apps/mobile/
 
 │       └── env.ts                # Environment config
 
-
-
-
-
 ---
-
-
 
 ### 1.10 Testing & Iteration (2-3 hours)
 

@@ -75,7 +75,10 @@ class ChatRequest(BaseModel):
         default_factory=list,
         description="Recent chat history (last 5 messages): [{'role': 'user'/'assistant', 'content': '...'}]"
     )
-    # Note: user_preferences are loaded from DB in ConstraintParser node
+    user_preferences: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Current user preferences from database (loaded by service layer)"
+    )
     # Note: pantry_items are passed separately to meal recommender workflow when needed
 
 
@@ -93,5 +96,9 @@ class ChatResponse(BaseModel):
     updated_constraints: Optional[ConstraintUpdate] = Field(
         None,
         description="Updated constraints if action is ADD_CONSTRAINT (for frontend sync)"
+    )
+    chat_session_id: Optional[str] = Field(
+        None,
+        description="Chat session ID"
     )
 

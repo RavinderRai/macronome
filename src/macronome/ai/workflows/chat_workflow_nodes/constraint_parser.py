@@ -10,7 +10,7 @@ from pydantic_core import to_jsonable_python
 from macronome.ai.core.nodes.agent import AgentNode, AgentConfig, ModelProvider
 from macronome.ai.core.task import TaskContext
 from macronome.ai.prompts import PromptManager
-from macronome.ai.schemas.chat_schema import ChatRequest, ConstraintParserOutput, ConstraintUpdate
+from macronome.ai.schemas.chat_schema import ChatRequest, ConstraintParserOutput
 
 
 class ConstraintParser(AgentNode):
@@ -56,9 +56,8 @@ class ConstraintParser(AgentNode):
         """
         request: ChatRequest = task_context.event
         
-        # Get existing user preferences from task_context metadata
-        # (These should be loaded by the service layer before running the workflow)
-        existing_prefs: Dict[str, Any] = task_context.metadata.get("user_preferences", {})
+        # Get existing user preferences from request (loaded by service layer)
+        existing_prefs: Dict[str, Any] = request.user_preferences or {}
         
         # Render the prompt with user message, chat history, and existing preferences
         prompt = PromptManager.get_prompt(
@@ -76,7 +75,7 @@ class ConstraintParser(AgentNode):
         result = await self.agent.run(user_prompt=prompt)
         
         # Get parsed output
-        parsed_output: ConstraintParserOutput = result.data
+        parsed_output: ConstraintParserOutput = result.output
         
         # Store the updated constraints in task_context for DB update by service layer
         task_context.metadata["updated_constraints"] = parsed_output.updated_constraints.model_dump()

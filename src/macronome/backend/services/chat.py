@@ -9,7 +9,6 @@ from macronome.backend.database.session import get_db
 from macronome.backend.database.chat_helpers import get_chat_messages
 from macronome.ai.workflows.chat_workflow import ChatWorkflow
 from macronome.ai.schemas.chat_schema import ChatRequest, ChatAction
-from macronome.ai.core.task import TaskContext
 from macronome.backend.services.meal_recommender import MealRecommenderService
 
 logger = logging.getLogger(__name__)
@@ -67,24 +66,22 @@ class ChatService:
             for msg in messages
         ]
         
-        # Prepare request
+        # Prepare request with user preferences included
         request = ChatRequest(
             message=message,
             chat_session_id=chat_session_id,
             user_id=user_id,
-            chat_history=chat_history
+            chat_history=chat_history,
+            user_preferences=user_preferences
         )
         
         logger.info(f"💬 Processing chat message for user {user_id}: '{message[:50]}...'")
-        
-        # Create task context with user preferences in metadata
-        task_context = TaskContext(event=request)
-        task_context.metadata["user_preferences"] = user_preferences
         
         # Handle START_RECOMMENDATION action - queue meal recommendation task
         # This is done BEFORE running workflow to get task_id for response
         router_result = await self._quick_route(message)
         
+        task_id = None
         if router_result["action"] == ChatAction.START_RECOMMENDATION:
             # Queue meal recommendation task
             recommender = MealRecommenderService()
@@ -99,13 +96,15 @@ class ChatService:
                 chat_history=chat_history  # Pass loaded chat history
             )
             
-            # Store task_id in metadata for ResponseGenerator
-            task_context.metadata["meal_recommendation_task_id"] = task_id
-            
             logger.info(f"✅ Queued meal recommendation task: {task_id}")
         
-        # Run workflow
-        result_context = await self._workflow.run_async(request, task_context)
+        # Run workflow - convert Pydantic model to dict for workflow
+        request_dict = request.model_dump() if hasattr(request, 'model_dump') else request.model_dump()
+        result_context = await self._workflow.run_async(request_dict)
+        
+        # Store task_id in result context metadata for ResponseGenerator to access
+        if task_id:
+            result_context.metadata["meal_recommendation_task_id"] = task_id
         
         # Extract response from ResponseGenerator
         response_output = result_context.nodes.get("ResponseGenerator")

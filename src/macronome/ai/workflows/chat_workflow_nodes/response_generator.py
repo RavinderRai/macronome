@@ -49,6 +49,7 @@ class ResponseGenerator(AgentNode):
         """
         return AgentConfig(
             model_provider=ModelProvider.OPENAI,
+            model_name="gpt-4o",
             output_type=ChatResponseOutput,
             system_prompt="You are a friendly meal recommendation assistant that provides helpful, natural responses.",
             name="ResponseGenerator",
@@ -104,7 +105,7 @@ class ResponseGenerator(AgentNode):
         result = await self.agent.run(user_prompt=prompt)
         
         # Get response text
-        response_output: ChatResponseOutput = result.data
+        response_output: ChatResponseOutput = result.output
         
         # Store output with message history
         history = to_jsonable_python(result.all_messages())
