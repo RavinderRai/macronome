@@ -6,6 +6,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { tokenManager } from '../services/auth/tokenManager';
 import { getUserStatus, initializeUser } from '../services/api/users';
+import { setClerkTokenGetter } from '../services/api/client';
 
 interface AuthContextType {
   isSignedIn: boolean;
@@ -26,6 +27,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Initial auth check
     setIsLoading(false);
   }, [isSignedIn]);
+
+  // Register token getter with API client for automatic refresh on 401
+  useEffect(() => {
+    setClerkTokenGetter(async () => {
+      if (!isSignedIn) return null;
+      try {
+        return await getClerkToken();
+      } catch (error) {
+        console.error('Failed to get Clerk token:', error);
+        return null;
+      }
+    });
+  }, [isSignedIn, getClerkToken]);
 
   /**
    * Get Clerk JWT token and store it securely

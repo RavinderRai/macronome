@@ -19,6 +19,9 @@ import { CHAT_CONSTANTS } from '../utils/constants';
 // Import stores
 import { useChatStore, usePantryStore, useUIStore } from '../store';
 
+// Import API services
+import { sendChatMessage, ChatMessageRequest } from '../services/api';
+
 // Import components
 import Header from '../components/common/Header';
 import EmptyState from '../components/common/EmptyState';
@@ -36,6 +39,7 @@ export default function HomeScreen() {
 	const [cameraVisible, setCameraVisible] = useState(false);
 	const [detectedItems, setDetectedItems] = useState<any[]>([]);
 	const [reviewSheetVisible, setReviewSheetVisible] = useState(false);
+	const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined);
 	
 	// Ref for scrolling to bottom
 	const flatListRef = useRef<FlatList>(null);
@@ -44,6 +48,7 @@ export default function HomeScreen() {
   const messages = useChatStore((state) => state.messages);
   const isLoading = useChatStore((state) => state.isLoading);
   const addMessage = useChatStore((state) => state.addMessage);
+  const setLoading = useChatStore((state) => state.setLoading);
 	const addItems = usePantryStore((state) => state.addItems);
 	const setDrawerOpen = useUIStore((state) => state.setDrawerOpen);
 
@@ -77,30 +82,94 @@ export default function HomeScreen() {
 	}, [addItems]);
 
   // Handle sending a message
-  const handleSend = () => {
-    if (inputText.trim()) {
-      // Add user message to store
+  const handleSend = async () => {
+    if (!inputText.trim()) return;
+
+    const userMessage = inputText.trim();
+    
+    // Add user message to store immediately
+    addMessage({
+      text: userMessage,
+      type: 'user',
+    });
+
+    // Clear input text
+    setInputText('');
+    
+    // Set loading state
+    setLoading(true);
+
+    // Scroll to bottom to show user message
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
+    try {
+      // Call chat API
+      console.log('💬 Sending message to chat API:', userMessage);
+      
+      const request: ChatMessageRequest = {
+        message: userMessage,
+        chat_session_id: chatSessionId,
+      };
+
+      const response = await sendChatMessage(request);
+      
+      console.log('✅ Chat API response:', response);
+
+      // Store chat session ID for future messages
+      if (response.chat_session_id) {
+        setChatSessionId(response.chat_session_id);
+      }
+
+      // Add assistant response to store
       addMessage({
-        text: inputText,
-        type: 'user',
+        text: response.response,
+        type: 'assistant',
       });
 
-      // Clear input text
-      setInputText('');
+      // Handle meal recommendation if task_id is present
+      if (response.task_id) {
+        console.log('🍽️ Meal recommendation task queued:', response.task_id);
+        // TODO: Implement meal recommendation polling
+        // For now, just show a message
+        setTimeout(() => {
+          addMessage({
+            text: `I'm working on a meal recommendation for you! Task ID: ${response.task_id}`,
+            type: 'assistant',
+          });
+        }, 500);
+      }
 
-      // TODO: Call API to get response (placeholder for now)
-      // For now, add a mock response
-      setTimeout(() => {
-        addMessage({
-          text: 'This is a mock response. In a real app, you would call the API here.',
-          type: 'assistant',
-        });
-      }, 1000);
+      // Handle constraint updates
+      if (response.updated_constraints) {
+        console.log('✅ Constraints updated:', response.updated_constraints);
+        // TODO: Update filter store with new constraints
+      }
 
-      // Scroll to bottom
+      // Scroll to bottom to show assistant response
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
+
+    } catch (error: any) {
+      console.error('❌ Chat API error:', error);
+      
+      // Show error message to user
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to send message. Please try again.';
+      
+      addMessage({
+        text: `Error: ${errorMessage}`,
+        type: 'assistant',
+      });
+
+      Alert.alert(
+        'Error',
+        errorMessage,
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
