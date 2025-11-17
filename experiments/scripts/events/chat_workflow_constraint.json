@@ -1,0 +1,32 @@
+{
+    "message": "Actually, make that under 500 calories too",
+    "chat_session_id": "test-session-123",
+    "user_id": "test-user-456",
+    "chat_history": [
+        {
+            "role": "user",
+            "content": "Hi, can you add a constraint for low-carb meals?"
+        },
+        {
+            "role": "assistant",
+            "content": "I've added low-carb to your dietary restrictions! This means I can help you discover meals that better align with your preferences."
+        }
+    ],
+    "user_preferences": {
+        "default_constraints": {
+            "calories": 700,
+            "macros": {
+                "carbs": 100,
+                "protein": 50,
+                "fat": 30
+            },
+            "prepTime": 30
+        },
+        "dietary_restrictions": ["vegan", "low-carb"],
+        "custom_constraints": {
+            "spicy": false,
+            "cuisine": "italian"
+        },
+        "disliked_ingredients": ["mushrooms"]
+    }
+}

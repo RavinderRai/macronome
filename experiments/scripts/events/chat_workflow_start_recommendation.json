@@ -1,0 +1,41 @@
+{
+    "message": "I'm ready! Can you recommend me a meal based on my preferences?",
+    "chat_session_id": "test-session-123",
+    "user_id": "test-user-456",
+    "chat_history": [
+        {
+            "role": "user",
+            "content": "Hi, can you add a constraint for low-carb meals?"
+        },
+        {
+            "role": "assistant",
+            "content": "I've added low-carb to your dietary restrictions! This means I can help you discover meals that better align with your preferences."
+        },
+        {
+            "role": "user",
+            "content": "Actually, make that under 500 calories too"
+        },
+        {
+            "role": "assistant",
+            "content": "I've updated your calorie target to 500. Your preferences are now set to low-carb and under 500 calories!"
+        }
+    ],
+    "user_preferences": {
+        "default_constraints": {
+            "calories": 500,
+            "macros": {
+                "carbs": 50,
+                "protein": 60,
+                "fat": 25
+            },
+            "prepTime": 30
+        },
+        "dietary_restrictions": ["vegan", "low-carb"],
+        "custom_constraints": {
+            "spicy": false,
+            "cuisine": "italian"
+        },
+        "disliked_ingredients": ["mushrooms", "olives"],
+        "favorite_cuisines": ["italian", "mediterranean"]
+    }
+}
