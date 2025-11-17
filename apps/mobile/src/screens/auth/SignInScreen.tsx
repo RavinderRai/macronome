@@ -22,8 +22,8 @@ export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
+  const [needsEmailCode, setNeedsEmailCode] = useState(false);
+  const [emailCode, setEmailCode] = useState('');
 
   // Debug: Log configuration on mount
   useEffect(() => {
@@ -76,7 +76,10 @@ export default function SignInScreen() {
           Alert.alert('Error', 'Sign in incomplete. Please try again.');
         }
       } else if (result.status === 'needs_second_factor') {
-        // Check if this is email verification (not true 2FA)
+        // Email verification required by Clerk (check Dashboard settings to disable)
+        console.log('Email verification required on sign-in');
+        console.log('Available second factors:', signIn.supportedSecondFactors);
+        
         if (!signIn) {
           Alert.alert('Error', 'Sign in session not available. Please try again.');
           return;
@@ -87,34 +90,23 @@ export default function SignInScreen() {
         ) as any;
         
         if (emailFactor) {
-          // This is email verification, not 2FA
-          console.log('Email verification required');
-          const emailAddress = emailFactor.safeIdentifier || email;
-          console.log('Email address:', emailAddress);
-          
-          // Prepare email code verification
           try {
-            await signIn.prepareSecondFactor({
-              strategy: 'email_code',
-            });
+            await signIn.prepareSecondFactor({ strategy: 'email_code' });
             console.log('Email code sent');
-            setNeedsEmailVerification(true);
+            setNeedsEmailCode(true);
             Alert.alert(
-              'Email Verification Required',
-              `A verification code has been sent to ${emailAddress}. Please enter the code below.`,
+              'Email Verification',
+              `A verification code has been sent to ${emailFactor.safeIdentifier || email}. Please enter it below.`,
               [{ text: 'OK' }]
             );
           } catch (error: any) {
-            console.error('Failed to prepare email verification:', error);
+            console.error('Failed to prepare email code:', error);
             Alert.alert('Error', 'Failed to send verification code. Please try again.');
           }
         } else {
-          // True 2FA is required
-          console.error('needs_second_factor but no email_code strategy available');
-          console.log('Available second factors:', signIn.supportedSecondFactors);
           Alert.alert(
             'Sign In Issue',
-            'Clerk is requiring 2FA. Please check your Clerk Dashboard settings.',
+            'Email verification is required but unavailable. Please check your Clerk Dashboard settings.',
             [{ text: 'OK' }]
           );
         }
@@ -131,8 +123,8 @@ export default function SignInScreen() {
     }
   };
 
-  const handleVerifyEmail = async () => {
-    if (!verificationCode || verificationCode.length < 6) {
+  const handleVerifyEmailCode = async () => {
+    if (!emailCode || emailCode.length < 6) {
       Alert.alert('Error', 'Please enter the 6-digit verification code');
       return;
     }
@@ -145,28 +137,28 @@ export default function SignInScreen() {
     setIsLoading(true);
 
     try {
-      console.log('Attempting to verify email code...');
+      console.log('Verifying email code...');
       const result = await signIn.attemptSecondFactor({
         strategy: 'email_code',
-        code: verificationCode,
+        code: emailCode,
       });
 
       console.log('Verification result status:', result.status);
       console.log('Created session ID:', result.createdSessionId);
 
       if (result.createdSessionId) {
-        console.log('Email verified, setting active session...');
+        console.log('Email verified, activating session...');
         await setActive({ session: result.createdSessionId });
         console.log('Session activated successfully');
-        setNeedsEmailVerification(false);
-        setVerificationCode('');
+        setNeedsEmailCode(false);
+        setEmailCode('');
         // Navigation will be handled by auth state change
       } else if (result.status === 'complete') {
         if (signIn.createdSessionId) {
           await setActive({ session: signIn.createdSessionId });
           console.log('Session activated successfully');
-          setNeedsEmailVerification(false);
-          setVerificationCode('');
+          setNeedsEmailCode(false);
+          setEmailCode('');
         } else {
           Alert.alert('Error', 'Verification complete but no session available. Please try again.');
         }
@@ -177,7 +169,7 @@ export default function SignInScreen() {
       console.error('Email verification error:', error);
       Alert.alert(
         'Verification Failed',
-        error.errors?.[0]?.message || error.message || 'Invalid verification code. Please try again.'
+        error.errors?.[0]?.message || error.message || 'Invalid code. Please try again.'
       );
     } finally {
       setIsLoading(false);
@@ -194,7 +186,7 @@ export default function SignInScreen() {
         <Text style={styles.subtitle}>Sign in to get started</Text>
 
         <View style={styles.form}>
-          {!needsEmailVerification ? (
+          {!needsEmailCode ? (
             <>
               <TextInput
                 style={styles.input}
@@ -239,8 +231,8 @@ export default function SignInScreen() {
                 style={styles.input}
                 placeholder="Verification Code"
                 placeholderTextColor={colors.text.muted}
-                value={verificationCode}
-                onChangeText={setVerificationCode}
+                value={emailCode}
+                onChangeText={setEmailCode}
                 keyboardType="number-pad"
                 maxLength={6}
                 editable={!isLoading}
@@ -249,8 +241,8 @@ export default function SignInScreen() {
 
               <TouchableOpacity
                 style={[styles.button, isLoading && styles.buttonDisabled]}
-                onPress={handleVerifyEmail}
-                disabled={isLoading || !isLoaded || !verificationCode}
+                onPress={handleVerifyEmailCode}
+                disabled={isLoading || !isLoaded || !emailCode}
               >
                 <Text style={styles.buttonText}>
                   {isLoading ? 'Verifying...' : 'Verify Code'}
@@ -260,8 +252,8 @@ export default function SignInScreen() {
               <TouchableOpacity
                 style={styles.linkButton}
                 onPress={() => {
-                  setNeedsEmailVerification(false);
-                  setVerificationCode('');
+                  setNeedsEmailCode(false);
+                  setEmailCode('');
                 }}
                 disabled={isLoading}
               >
