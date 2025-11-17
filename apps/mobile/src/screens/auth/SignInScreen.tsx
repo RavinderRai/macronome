@@ -22,6 +22,8 @@ export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
 
   // Debug: Log configuration on mount
   useEffect(() => {
@@ -74,20 +76,48 @@ export default function SignInScreen() {
           Alert.alert('Error', 'Sign in incomplete. Please try again.');
         }
       } else if (result.status === 'needs_second_factor') {
-        // 2FA is required but user has it disabled - this is a Clerk config issue
-        console.error('needs_second_factor but user has 2FA disabled');
-        console.log('Available second factors:', signIn.supportedSecondFactors);
+        // Check if this is email verification (not true 2FA)
+        if (!signIn) {
+          Alert.alert('Error', 'Sign in session not available. Please try again.');
+          return;
+        }
+
+        const emailFactor = signIn.supportedSecondFactors?.find(
+          (factor: any) => factor.strategy === 'email_code'
+        ) as any;
         
-        Alert.alert(
-          'Sign In Issue',
-          'Clerk is requiring 2FA even though it\'s disabled for your account.\n\n' +
-          'Please check Clerk Dashboard:\n\n' +
-          '1. Session management → Sessions → Look for "Session verification level"\n' +
-          '2. User & authentication → Multi-factor → Require MFA = "Optional"\n' +
-          '3. Try deleting this user and signing up again\n\n' +
-          'This is a Clerk configuration issue, not a code issue.',
-          [{ text: 'OK' }]
-        );
+        if (emailFactor) {
+          // This is email verification, not 2FA
+          console.log('Email verification required');
+          const emailAddress = emailFactor.safeIdentifier || email;
+          console.log('Email address:', emailAddress);
+          
+          // Prepare email code verification
+          try {
+            await signIn.prepareSecondFactor({
+              strategy: 'email_code',
+            });
+            console.log('Email code sent');
+            setNeedsEmailVerification(true);
+            Alert.alert(
+              'Email Verification Required',
+              `A verification code has been sent to ${emailAddress}. Please enter the code below.`,
+              [{ text: 'OK' }]
+            );
+          } catch (error: any) {
+            console.error('Failed to prepare email verification:', error);
+            Alert.alert('Error', 'Failed to send verification code. Please try again.');
+          }
+        } else {
+          // True 2FA is required
+          console.error('needs_second_factor but no email_code strategy available');
+          console.log('Available second factors:', signIn.supportedSecondFactors);
+          Alert.alert(
+            'Sign In Issue',
+            'Clerk is requiring 2FA. Please check your Clerk Dashboard settings.',
+            [{ text: 'OK' }]
+          );
+        }
       } else {
         console.log('Sign-in incomplete, status:', result.status);
         Alert.alert('Error', `Sign in incomplete. Status: ${result.status}. Please try again.`);
@@ -96,6 +126,59 @@ export default function SignInScreen() {
       console.error('Sign in error:', error);
       console.error('Error details:', JSON.stringify(error.errors || error.message));
       Alert.alert('Sign In Failed', error.errors?.[0]?.message || error.message || 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    if (!verificationCode || verificationCode.length < 6) {
+      Alert.alert('Error', 'Please enter the 6-digit verification code');
+      return;
+    }
+
+    if (!signIn) {
+      Alert.alert('Error', 'Sign in session not available. Please try again.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      console.log('Attempting to verify email code...');
+      const result = await signIn.attemptSecondFactor({
+        strategy: 'email_code',
+        code: verificationCode,
+      });
+
+      console.log('Verification result status:', result.status);
+      console.log('Created session ID:', result.createdSessionId);
+
+      if (result.createdSessionId) {
+        console.log('Email verified, setting active session...');
+        await setActive({ session: result.createdSessionId });
+        console.log('Session activated successfully');
+        setNeedsEmailVerification(false);
+        setVerificationCode('');
+        // Navigation will be handled by auth state change
+      } else if (result.status === 'complete') {
+        if (signIn.createdSessionId) {
+          await setActive({ session: signIn.createdSessionId });
+          console.log('Session activated successfully');
+          setNeedsEmailVerification(false);
+          setVerificationCode('');
+        } else {
+          Alert.alert('Error', 'Verification complete but no session available. Please try again.');
+        }
+      } else {
+        Alert.alert('Error', `Verification incomplete. Status: ${result.status}`);
+      }
+    } catch (error: any) {
+      console.error('Email verification error:', error);
+      Alert.alert(
+        'Verification Failed',
+        error.errors?.[0]?.message || error.message || 'Invalid verification code. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -111,38 +194,81 @@ export default function SignInScreen() {
         <Text style={styles.subtitle}>Sign in to get started</Text>
 
         <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={colors.text.muted}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            editable={!isLoading}
-          />
+          {!needsEmailVerification ? (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor={colors.text.muted}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                editable={!isLoading}
+              />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={colors.text.muted}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            editable={!isLoading}
-          />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor={colors.text.muted}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!isLoading}
+              />
 
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={handleSignIn}
-            disabled={isLoading || !isLoaded}
-          >
-            <Text style={styles.buttonText}>
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, isLoading && styles.buttonDisabled]}
+                onPress={handleSignIn}
+                disabled={isLoading || !isLoaded}
+              >
+                <Text style={styles.buttonText}>
+                  {isLoading ? 'Signing in...' : 'Sign In'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <Text style={styles.verificationText}>
+                Enter the verification code sent to {email}
+              </Text>
+
+              <TextInput
+                style={styles.input}
+                placeholder="Verification Code"
+                placeholderTextColor={colors.text.muted}
+                value={verificationCode}
+                onChangeText={setVerificationCode}
+                keyboardType="number-pad"
+                maxLength={6}
+                editable={!isLoading}
+                autoFocus
+              />
+
+              <TouchableOpacity
+                style={[styles.button, isLoading && styles.buttonDisabled]}
+                onPress={handleVerifyEmail}
+                disabled={isLoading || !isLoaded || !verificationCode}
+              >
+                <Text style={styles.buttonText}>
+                  {isLoading ? 'Verifying...' : 'Verify Code'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() => {
+                  setNeedsEmailVerification(false);
+                  setVerificationCode('');
+                }}
+                disabled={isLoading}
+              >
+                <Text style={styles.linkText}>Back to Sign In</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -199,5 +325,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  verificationText: {
+    fontSize: 14,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  linkButton: {
+    padding: 12,
+    alignItems: 'center',
+  },
+  linkText: {
+    color: colors.accent.coral,
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });
-
