@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
 		padding: spacing.sm,
 		alignItems: 'center',
 		justifyContent: 'center',
+		marginTop: spacing.sm,
 	},
 	pantryIcon: {
 		fontSize: 24,
@@ -108,6 +109,7 @@ const styles = StyleSheet.create({
 		padding: spacing.sm,
 		alignItems: 'center',
 		justifyContent: 'center',
+		marginTop: spacing.sm,
 	},
 	settingsIcon: {
 		fontSize: 24,

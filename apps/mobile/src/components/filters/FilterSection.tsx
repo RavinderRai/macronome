@@ -35,8 +35,8 @@ export default function FilterSection({
 	const setCalories = useFilterStore((state) => state.setCalories);
 	const setMacros = useFilterStore((state) => state.setMacros);
 	const setDiet = useFilterStore((state) => state.setDiet);
-	const addExcludedIngredient = useFilterStore((state) => state.addExcludedIngredient);
-	const removeExcludedIngredient = useFilterStore((state) => state.removeExcludedIngredient);
+	const addAllergy = useFilterStore((state) => state.addAllergy);
+	const removeAllergy = useFilterStore((state) => state.removeAllergy);
 	const setPrepTime = useFilterStore((state) => state.setPrepTime);
 	const setMealType = useFilterStore((state) => state.setMealType);
 	
@@ -82,7 +82,7 @@ export default function FilterSection({
 	// Handle adding ingredient
 	const handleAddIngredient = () => {
 		if (newIngredient.trim()) {
-			addExcludedIngredient(newIngredient.trim());
+			addAllergy(newIngredient.trim());
 			setNewIngredient('');
 		}
 	};
@@ -260,7 +260,7 @@ export default function FilterSection({
 								<View key={ingredient} style={styles.chipWrapper}>
 								<FilterChip 
 									label={`No ${ingredient}`}
-									onRemove={() => removeExcludedIngredient(ingredient)}
+									onRemove={() => removeAllergy(ingredient)}
 									variant="accent"
 								/>
 								</View>

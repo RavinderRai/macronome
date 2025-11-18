@@ -6,7 +6,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client
 
-from macronome.backend.api.dependencies import get_current_user, get_supabase
+from macronome.backend.api.dependencies import get_current_user, get_supabase, get_supabase_admin
 from macronome.backend.database.models import UserPreferences
 from macronome.ai.schemas.meal_recommender_constraints_schema import FilterConstraints
 
@@ -60,17 +60,30 @@ async def get_user_preferences(
         )
 
 
-@router.put("/", tags=["preferences"], response_model=UserPreferences)
+@router.patch("/", tags=["preferences"], response_model=UserPreferences)
 async def update_user_preferences(
     preferences_update: FilterConstraints,
     user_id: str = Depends(get_current_user),
-    db: Client = Depends(get_supabase),
+    db: Client = Depends(get_supabase_admin),  # Use admin to bypass RLS for writes
 ):
     """
-    Update user preferences
+    Update user preferences (partial update)
     
-    Updates the user's meal preferences. Only fields provided will be updated.
-    Creates new preferences record if one doesn't exist.
+    Updates only the provided fields in user preferences. Accepts any combination of:
+    - calories: Target calories (integer)
+    - macros: Macro targets {carbs, protein, fat} in grams
+    - diet: Diet type (e.g., "vegan", "keto", "vegetarian")
+    - allergies: Allergies/excluded ingredients (list of strings)
+    - prep_time: Maximum prep time in minutes (integer)
+    - meal_type: Meal type ("breakfast", "lunch", "snack", "dinner", "dessert")
+    - custom_constraints: Custom constraints (dict)
+    
+    Only provided fields will be updated. Creates new preferences record if one doesn't exist.
+    
+    Examples:
+    - Update only calories: `{"calories": 500}`
+    - Update multiple fields: `{"calories": 500, "diet": "vegan"}`
+    - Clear a field: `{"calories": null}`
     """
     logger.info(f"✏️  Updating preferences for user {user_id}")
     
@@ -124,7 +137,7 @@ async def update_user_preferences(
 @router.delete("/", tags=["preferences"], status_code=status.HTTP_204_NO_CONTENT)
 async def reset_user_preferences(
     user_id: str = Depends(get_current_user),
-    db: Client = Depends(get_supabase),
+    db: Client = Depends(get_supabase_admin),  # Use admin to bypass RLS for writes
 ):
     """
     Reset user preferences to defaults

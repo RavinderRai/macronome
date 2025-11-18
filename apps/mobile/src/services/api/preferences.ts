@@ -3,36 +3,27 @@
  * Handles user preferences CRUD operations
  */
 import { apiClient } from './client';
+import { FilterConstraints } from '../../types/filters';
 
-// Types
+// Types - matches backend UserPreferences model
+export interface MacroConstraints {
+  carbs?: number;
+  protein?: number;
+  fat?: number;
+}
+
 export interface UserPreferences {
   id: string;
   user_id: string;
-  dietary_restrictions: string[];
-  default_constraints: {
-    calories?: { min?: number; max?: number };
-    macros?: {
-      protein?: { min?: number; max?: number };
-      carbs?: { min?: number; max?: number };
-      fat?: { min?: number; max?: number };
-    };
-    diet?: string;
-    excludedIngredients?: string[];
-    prepTime?: { min?: number; max?: number };
-  };
+  calories?: number;
+  macros?: MacroConstraints;
+  diet?: string;
+  allergies: string[];
+  prep_time?: number;
+  meal_type?: string;
   custom_constraints: Record<string, any>;
-  favorite_cuisines: string[];
-  disliked_ingredients: string[];
   created_at: string;
   updated_at: string;
-}
-
-export interface UserPreferencesUpdate {
-  dietary_restrictions?: string[];
-  default_constraints?: Partial<UserPreferences['default_constraints']>;
-  custom_constraints?: Record<string, any>;
-  favorite_cuisines?: string[];
-  disliked_ingredients?: string[];
 }
 
 /**
@@ -44,11 +35,12 @@ export async function getUserPreferences(): Promise<UserPreferences> {
 }
 
 /**
- * Update user preferences
+ * Update user preferences (partial update)
  * Only provided fields will be updated
+ * Accepts FilterConstraints (frontend format with camelCase: prepTime, mealType)
  */
-export async function updateUserPreferences(preferences: UserPreferencesUpdate): Promise<UserPreferences> {
-  const response = await apiClient.put<UserPreferences>('/api/preferences/', preferences);
+export async function updateUserPreferences(preferences: FilterConstraints): Promise<UserPreferences> {
+  const response = await apiClient.patch<UserPreferences>('/api/preferences/', preferences);
   return response.data;
 }
 

@@ -3,6 +3,7 @@
  * Handles chat workflow and chat session management
  */
 import { apiClient } from './client';
+import { FilterConstraints } from '../../types/filters';
 
 // Types
 export type ChatAction = 'add_constraint' | 'start_recommendation' | 'general_chat';
@@ -16,7 +17,7 @@ export interface ChatMessageResponse {
   response: string;
   action?: ChatAction;
   task_id?: string; // If action is START_RECOMMENDATION
-  updated_constraints?: Record<string, any>; // If constraints were added
+  updated_constraints?: FilterConstraints; // If constraints were added
   chat_session_id: string;
 }
 

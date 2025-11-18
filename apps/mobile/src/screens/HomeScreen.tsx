@@ -21,7 +21,7 @@ import { CHAT_CONSTANTS, APP_CONFIG } from '../utils/constants';
 import { useAuthContext } from '../contexts/AuthContext';
 
 // Import stores
-import { useChatStore, usePantryStore, useUIStore } from '../store';
+import { useChatStore, usePantryStore, useUIStore, useFilterStore } from '../store';
 
 // Import API services
 import { sendChatMessage, ChatMessageRequest } from '../services/api';
@@ -59,6 +59,7 @@ export default function HomeScreen() {
   const setLoading = useChatStore((state) => state.setLoading);
 	const addItems = usePantryStore((state) => state.addItems);
 	const setDrawerOpen = useUIStore((state) => state.setDrawerOpen);
+	const setConstraintsFromBackend = useFilterStore((state) => state.setConstraintsFromBackend);
 
   // TODO: Remove this mock data later
 	// Add some mock pantry items for testing (remove this later)
@@ -149,10 +150,11 @@ export default function HomeScreen() {
         }, 500);
       }
 
-      // Handle constraint updates
+      // Handle constraint updates from chat
       if (response.updated_constraints) {
         console.log('✅ Constraints updated:', response.updated_constraints);
-        // TODO: Update filter store with new constraints
+        // Update filter store (backend already saved them, so use setConstraintsFromBackend)
+        setConstraintsFromBackend(response.updated_constraints);
       }
 
       // Scroll to bottom to show assistant response

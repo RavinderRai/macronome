@@ -6,6 +6,8 @@ class FilterConstraints(BaseModel):
     """
     User meal constraints - matches UserPreferences database structure exactly
     Used for both UI filters and chat-parsed constraints
+    
+    Accepts both camelCase (frontend: prepTime, mealType) and snake_case (backend: prep_time, meal_type)
     """
     calories: Optional[int] = Field(None, description="Target calories")
     macros: Optional[MacroConstraints] = Field(None, description="Macro targets (carbs, protein, fat in grams)")
@@ -14,12 +16,15 @@ class FilterConstraints(BaseModel):
         default_factory=list,
         description="Allergies/excluded ingredients"
     )
-    prep_time: Optional[int] = Field(None, description="Maximum prep time in minutes")
-    meal_type: Optional[str] = Field(None, description="Meal type: 'breakfast', 'lunch', 'snack', 'dinner', 'dessert'")
+    prep_time: Optional[int] = Field(None, alias="prepTime", description="Maximum prep time in minutes")
+    meal_type: Optional[str] = Field(None, alias="mealType", description="Meal type: 'breakfast', 'lunch', 'snack', 'dinner', 'dessert'")
     custom_constraints: Dict[str, Any] = Field(
         default_factory=dict,
         description="Custom constraints parsed from chat: spicy, quick, cuisine, etc."
     )
+    
+    class Config:
+        populate_by_name = True  # Allow both field names (prep_time and prepTime)
 
 class PantryItem(BaseModel):
     """Pantry context (not a hard constraint)"""
