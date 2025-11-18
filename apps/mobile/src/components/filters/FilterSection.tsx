@@ -33,6 +33,8 @@ export default function FilterSection({
 	const setDiet = useFilterStore((state) => state.setDiet);
 	const addExcludedIngredient = useFilterStore((state) => state.addExcludedIngredient);
 	const removeExcludedIngredient = useFilterStore((state) => state.removeExcludedIngredient);
+	const setPrepTime = useFilterStore((state) => state.setPrepTime);
+	const setMealType = useFilterStore((state) => state.setMealType);
 	
 	const filtersCollapsed = useUIStore((state) => state.filtersCollapsed);
 	const toggleFilters = useUIStore((state) => state.toggleFilters);
@@ -42,8 +44,9 @@ export default function FilterSection({
 		constraints.calories !== undefined,
 		constraints.macros !== undefined,
 		constraints.diet !== undefined,
-		constraints.excludedIngredients.length > 0,
+		constraints.allergies.length > 0,
 		constraints.prepTime !== undefined,
+		constraints.mealType !== undefined,
 	].filter(Boolean).length;
 
 	// Format display labels
@@ -68,6 +71,10 @@ export default function FilterSection({
 		return constraints.prepTime ? `Under ${constraints.prepTime} min` : null;
 	};
 
+	const getMealTypeLabel = () => {
+		return constraints.mealType ? `Meal: ${constraints.mealType}` : null;
+	};
+
 	// Handle adding ingredient
 	const handleAddIngredient = () => {
 		if (newIngredient.trim()) {
@@ -76,24 +83,18 @@ export default function FilterSection({
 		}
 	};
 
-	// Quick presets for calories
-	const handleCaloriesPress = () => {
-		if (onEditCalories) {
-			onEditCalories();
+	// Handle calories input - only allow integers
+	const handleCaloriesChange = (text: string) => {
+		// Remove any non-numeric characters
+		const numericValue = text.replace(/[^0-9]/g, '');
+		
+		if (numericValue === '') {
+			setCalories(undefined);
 		} else {
-			// Simple preset picker (can be replaced with modal later)
-			Alert.alert(
-				'Set Calories',
-				'Choose a calorie limit:',
-				[
-					{ text: 'Any', onPress: () => setCalories(undefined) },
-					{ text: '300 or less', onPress: () => setCalories(300) },
-					{ text: '500 or less', onPress: () => setCalories(500) },
-					{ text: '700 or less', onPress: () => setCalories(700) },
-					{ text: '1000 or less', onPress: () => setCalories(1000) },
-					{ text: 'Cancel', style: 'cancel' },
-				]
-			);
+			const caloriesValue = parseInt(numericValue, 10);
+			if (!isNaN(caloriesValue)) {
+				setCalories(caloriesValue);
+			}
 		}
 	};
 
@@ -133,6 +134,23 @@ export default function FilterSection({
 		}
 	};
 
+	// Quick presets for meal type
+	const handleMealTypePress = () => {
+		Alert.alert(
+			'Set Meal Type',
+			'Choose a meal type:',
+			[
+				{ text: 'Any', onPress: () => setMealType(undefined) },
+				{ text: 'Breakfast', onPress: () => setMealType('breakfast') },
+				{ text: 'Lunch', onPress: () => setMealType('lunch') },
+				{ text: 'Snack', onPress: () => setMealType('snack') },
+				{ text: 'Dinner', onPress: () => setMealType('dinner') },
+				{ text: 'Dessert', onPress: () => setMealType('dessert') },
+				{ text: 'Cancel', style: 'cancel' },
+			]
+		);
+	};
+
 	return (
 		<View style={styles.container}>
 			{/* Collapsible header */}
@@ -154,106 +172,173 @@ export default function FilterSection({
 					{activeFilterCount > 0 && (
 						<View style={styles.chipsContainer}>
 							{getCaloriesLabel() && (
-								<FilterChip 
-									label={getCaloriesLabel()!}
-									onRemove={() => setCalories(undefined)}
-								/>
+								<View style={styles.chipWrapper}>
+									<FilterChip 
+										label={getCaloriesLabel()!}
+										onRemove={() => setCalories(undefined)}
+									/>
+								</View>
 							)}
 
 							{getMacrosLabel() && (
-								<FilterChip 
-									label={getMacrosLabel()!}
-									onRemove={() => setMacros(undefined)}
-								/>
+								<View style={styles.chipWrapper}>
+									<FilterChip 
+										label={getMacrosLabel()!}
+										onRemove={() => setMacros(undefined)}
+									/>
+								</View>
 							)}
 
 							{getDietLabel() && (
-								<FilterChip 
-									label={getDietLabel()!}
-									onRemove={() => setDiet(undefined)}
-								/>
+								<View style={styles.chipWrapper}>
+									<FilterChip 
+										label={getDietLabel()!}
+										onRemove={() => setDiet(undefined)}
+									/>
+								</View>
 							)}
 
 							{getPrepTimeLabel() && (
-								<FilterChip 
-									label={getPrepTimeLabel()!}
-									onRemove={() => setCalories(undefined)}
-								/>
+								<View style={styles.chipWrapper}>
+									<FilterChip 
+										label={getPrepTimeLabel()!}
+										onRemove={() => setPrepTime(undefined)}
+									/>
+								</View>
 							)}
 
-							{constraints.excludedIngredients.map((ingredient) => (
-								<FilterChip 
-									key={ingredient}
-									label={`No ${ingredient}`}
-									onRemove={() => removeExcludedIngredient(ingredient)}
-									variant="accent"
-								/>
+							{getMealTypeLabel() && (
+								<View style={styles.chipWrapper}>
+									<FilterChip 
+										label={getMealTypeLabel()!}
+										onRemove={() => setMealType(undefined)}
+									/>
+								</View>
+							)}
+
+							{constraints.allergies.map((ingredient) => (
+								<View key={ingredient} style={styles.chipWrapper}>
+									<FilterChip 
+										label={`No ${ingredient}`}
+										onRemove={() => removeExcludedIngredient(ingredient)}
+										variant="accent"
+									/>
+								</View>
 							))}
 						</View>
 					)}
 
 					{/* Always-visible filter controls */}
 					<View style={styles.controlsContainer}>
-						{/* Calories row */}
+						{/* Row 1: Calories | Macros */}
 						<View style={styles.filterRow}>
-							<Text style={styles.filterLabel}>Calories:</Text>
-							<TouchableOpacity 
-								style={styles.filterValue}
-								onPress={handleCaloriesPress}
-								activeOpacity={0.7}
-							>
-								<Text style={styles.filterValueText}>
-									{constraints.calories ? `${constraints.calories} kcal` : 'Any'}
-								</Text>
-							</TouchableOpacity>
+							<View style={styles.filterColumn}>
+								<Text style={styles.filterLabel}>Calories:</Text>
+								<View style={styles.caloriesInput}>
+									<TextInput
+										style={styles.caloriesTextInput}
+										placeholder="Any"
+										placeholderTextColor={colors.text.muted}
+										value={constraints.calories !== undefined ? constraints.calories.toString() : ''}
+										onChangeText={handleCaloriesChange}
+										keyboardType="number-pad"
+										returnKeyType="done"
+									/>
+									{constraints.calories !== undefined && (
+										<Text style={styles.caloriesUnit}>kcal</Text>
+									)}
+								</View>
+							</View>
+
+							<View style={styles.filterColumn}>
+								<Text style={styles.filterLabel}>Macros:</Text>
+								<TouchableOpacity 
+									style={styles.filterValue}
+									onPress={handleMacrosPress}
+									activeOpacity={0.7}
+								>
+									<Text style={styles.filterValueText}>
+										{getMacrosLabel() || 'Any'}
+									</Text>
+								</TouchableOpacity>
+							</View>
 						</View>
 
-						{/* Macros row */}
+						{/* Row 2: Diet | Prep Time */}
 						<View style={styles.filterRow}>
-							<Text style={styles.filterLabel}>Macros:</Text>
-							<TouchableOpacity 
-								style={styles.filterValue}
-								onPress={handleMacrosPress}
-								activeOpacity={0.7}
-							>
-								<Text style={styles.filterValueText}>
-									{getMacrosLabel() || 'Any'}
-								</Text>
-							</TouchableOpacity>
+							<View style={styles.filterColumn}>
+								<Text style={styles.filterLabel}>Diet:</Text>
+								<TouchableOpacity 
+									style={styles.filterValue}
+									onPress={handleDietPress}
+									activeOpacity={0.7}
+								>
+									<Text style={styles.filterValueText}>
+										{constraints.diet || 'Any'}
+									</Text>
+								</TouchableOpacity>
+							</View>
+
+							<View style={styles.filterColumn}>
+								<Text style={styles.filterLabel}>Prep Time:</Text>
+								<TouchableOpacity 
+									style={styles.filterValue}
+									onPress={() => {
+										Alert.alert(
+											'Set Prep Time',
+											'Choose maximum prep time:',
+											[
+												{ text: 'Any', onPress: () => setPrepTime(undefined) },
+												{ text: '15 min', onPress: () => setPrepTime(15) },
+												{ text: '30 min', onPress: () => setPrepTime(30) },
+												{ text: '45 min', onPress: () => setPrepTime(45) },
+												{ text: '60 min', onPress: () => setPrepTime(60) },
+												{ text: 'Cancel', style: 'cancel' },
+											]
+										);
+									}}
+									activeOpacity={0.7}
+								>
+									<Text style={styles.filterValueText}>
+										{constraints.prepTime ? `Under ${constraints.prepTime} min` : 'Any'}
+									</Text>
+								</TouchableOpacity>
+							</View>
 						</View>
 
-						{/* Diet row */}
+						{/* Row 3: Meal Type | Allergies */}
 						<View style={styles.filterRow}>
-							<Text style={styles.filterLabel}>Diet:</Text>
-							<TouchableOpacity 
-								style={styles.filterValue}
-								onPress={handleDietPress}
-								activeOpacity={0.7}
-							>
-								<Text style={styles.filterValueText}>
-									{constraints.diet || 'Any'}
-								</Text>
-							</TouchableOpacity>
-						</View>
+							<View style={styles.filterColumn}>
+								<Text style={styles.filterLabel}>Meal Type:</Text>
+								<TouchableOpacity 
+									style={styles.filterValue}
+									onPress={handleMealTypePress}
+									activeOpacity={0.7}
+								>
+									<Text style={styles.filterValueText}>
+										{constraints.mealType ? constraints.mealType.charAt(0).toUpperCase() + constraints.mealType.slice(1) : 'Any'}
+									</Text>
+								</TouchableOpacity>
+							</View>
 
-						{/* Exclude ingredients input */}
-						<View style={styles.filterRow}>
-							<Text style={styles.filterLabel}>Exclude:</Text>
-							<View style={styles.excludeInput}>
-								<TextInput
-									style={styles.textInput}
-									placeholder="Add ingredient..."
-									placeholderTextColor={colors.text.muted}
-									value={newIngredient}
-									onChangeText={setNewIngredient}
-									onSubmitEditing={handleAddIngredient}
-									returnKeyType="done"
-								/>
-								{newIngredient.trim() && (
-									<TouchableOpacity onPress={handleAddIngredient}>
-										<Text style={styles.addButton}>Add</Text>
-									</TouchableOpacity>
-								)}
+							<View style={styles.filterColumn}>
+								<Text style={styles.filterLabel}>Allergies:</Text>
+								<View style={styles.excludeInput}>
+									<TextInput
+										style={styles.textInput}
+										placeholder="Add ingredient..."
+										placeholderTextColor={colors.text.muted}
+										value={newIngredient}
+										onChangeText={setNewIngredient}
+										onSubmitEditing={handleAddIngredient}
+										returnKeyType="done"
+									/>
+									{newIngredient.trim() && (
+										<TouchableOpacity onPress={handleAddIngredient}>
+											<Text style={styles.addButton}>Add</Text>
+										</TouchableOpacity>
+									)}
+								</View>
 							</View>
 						</View>
 					</View>
@@ -286,36 +371,71 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		flexWrap: 'wrap',
 		marginBottom: spacing.md,
+		justifyContent: 'space-between',
+	},
+	chipWrapper: {
+		width: '48%',
+		marginBottom: spacing.sm,
 	},
 	controlsContainer: {
 		gap: spacing.md,
 	},
 	filterRow: {
 		flexDirection: 'row',
-		alignItems: 'center',
 		justifyContent: 'space-between',
-		marginBottom: spacing.sm,
+		marginBottom: spacing.md,
+		gap: spacing.sm,
+	},
+	filterColumn: {
+		flex: 1,
+		gap: spacing.xs,
 	},
 	filterLabel: {
 		fontSize: 14,
 		fontWeight: '500',
 		lineHeight: 20,
 		color: colors.text.secondary,
-		width: 80,
+		marginBottom: spacing.xs,
 	},
 	filterValue: {
-		flex: 1,
 		paddingVertical: spacing.sm,
 		paddingHorizontal: spacing.md,
 		backgroundColor: colors.primary.light,
 		borderRadius: 8,
 		borderWidth: 1,
 		borderColor: colors.border.light,
+		minHeight: 44,
+		justifyContent: 'center',
 	},
 	filterValueText: {
 		fontSize: 16,
 		lineHeight: 20,
 		color: colors.text.primary,
+	},
+	caloriesInput: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		paddingHorizontal: spacing.md,
+		backgroundColor: colors.primary.light,
+		borderRadius: 8,
+		borderWidth: 1,
+		borderColor: colors.border.light,
+		minHeight: 44,
+		justifyContent: 'center',
+	},
+	caloriesTextInput: {
+		flex: 1,
+		minHeight: 44,
+		paddingVertical: spacing.md,
+		color: colors.text.primary,
+		fontSize: 16,
+		lineHeight: 20,
+		textAlign: 'left',
+	},
+	caloriesUnit: {
+		fontSize: 14,
+		color: colors.text.secondary,
+		marginLeft: spacing.xs,
 	},
 	excludeInput: {
 		flex: 1,

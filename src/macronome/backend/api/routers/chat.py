@@ -91,6 +91,7 @@ async def send_chat_message(
         # If constraints were updated, save to database
         if response.get("updated_constraints"):
             updated_constraints = response["updated_constraints"]
+            logger.info(f"📝 Saving updated constraints: {updated_constraints.keys()}")
             
             # Update or create user_preferences
             if user_preferences:

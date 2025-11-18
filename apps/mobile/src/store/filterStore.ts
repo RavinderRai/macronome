@@ -11,6 +11,7 @@ interface FilterStore extends FilterState {
   addExcludedIngredient: (ingredient: string) => void;
   removeExcludedIngredient: (ingredient: string) => void;
   setPrepTime: (prepTime: number | undefined) => void;
+  setMealType: (mealType: string | undefined) => void;
   setConstraints: (constraints: FilterConstraints) => void;
   clearFilters: () => void;
 }
@@ -19,7 +20,7 @@ interface FilterStore extends FilterState {
 export const useFilterStore = create<FilterStore>((set) => ({
   // Initial state
   constraints: {
-    excludedIngredients: [], // Always initialize as empty array
+    allergies: [], // Always initialize as empty array
   },
 
   // Actions
@@ -61,7 +62,7 @@ export const useFilterStore = create<FilterStore>((set) => ({
 
   addExcludedIngredient: (ingredient) => {
     set((state) => {
-      const current = state.constraints.excludedIngredients || [];
+      const current = state.constraints.allergies || [];
       if (!current.includes(ingredient)) {
         return {
           constraints: {
@@ -78,7 +79,7 @@ export const useFilterStore = create<FilterStore>((set) => ({
     set((state) => ({
       constraints: {
         ...state.constraints,
-        excludedIngredients: (state.constraints.excludedIngredients || []).filter(
+        excludedIngredients: (state.constraints.allergies || []).filter(
           (item) => item !== ingredient
         ),
       },
@@ -94,6 +95,15 @@ export const useFilterStore = create<FilterStore>((set) => ({
     }));
   },
 
+  setMealType: (mealType) => {
+    set((state) => ({
+      constraints: {
+        ...state.constraints,
+        mealType,
+      },
+    }));
+  },
+
   setConstraints: (constraints) => {
     set({ constraints });
   },
@@ -101,7 +111,7 @@ export const useFilterStore = create<FilterStore>((set) => ({
   clearFilters: () => {
     set({
       constraints: {
-        excludedIngredients: [],
+        allergies: [],
       },
     });
   },

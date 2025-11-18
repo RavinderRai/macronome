@@ -51,10 +51,6 @@ class ConstraintUpdate(BaseModel):
         default_factory=list,
         description="User's favorite cuisines (optional, rarely updated via chat)"
     )
-    updated_fields: List[str] = Field(
-        default_factory=list,
-        description="List of field names that were updated (e.g., ['default_constraints', 'dietary_restrictions'])"
-    )
 
 
 class ConstraintParserOutput(BaseModel):
