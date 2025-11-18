@@ -7,11 +7,13 @@ from typing import List
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from supabase import Client
 
-from macronome.backend.api.dependencies import get_current_user, get_supabase
-from macronome.backend.database.models import PantryItem
+from macronome.backend.api.dependencies import get_current_user, get_supabase, get_supabase_admin
+from macronome.backend.database.models import PantryItem, PantryImage
+from macronome.backend.storage import storage
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from macronome.backend.services.pantry_scanner import PantryScannerService
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -30,6 +32,7 @@ class PantryScanResponse(BaseModel):
     """Response from pantry scan endpoint"""
     items: List[DetectedItem]
     num_items: int
+    image_id: Optional[str] = None  # ID of saved pantry image for linking items
 
 
 class PantryItemCreate(BaseModel):
@@ -38,6 +41,16 @@ class PantryItemCreate(BaseModel):
     category: Optional[str] = None
     confirmed: bool = True
     confidence: Optional[float] = None
+    image_id: Optional[str] = None  # Link to pantry_images table
+
+
+class PantryItemUpdate(BaseModel):
+    """Update pantry item (partial update)"""
+    name: Optional[str] = None
+    category: Optional[str] = None
+    confirmed: Optional[bool] = None
+    confidence: Optional[float] = None
+    image_id: Optional[str] = None
 
 
 class PantryItemsResponse(BaseModel):
@@ -50,12 +63,14 @@ class PantryItemsResponse(BaseModel):
 async def scan_pantry(
     file: UploadFile = File(...),
     user_id: str = Depends(get_current_user),
+    db: Client = Depends(get_supabase_admin),  # Use admin to bypass RLS for writes
 ):
     """
     AI: Scan pantry image to detect food items
     
     Uses computer vision and LLM to identify pantry items from an image.
-    Returns detected items with confidence scores.
+    Saves the image to storage and returns detected items with confidence scores.
+    The image_id is included in the response for linking items to the image.
     """
     logger.info(f"📸 Scanning pantry image for user {user_id}")
     
@@ -69,6 +84,26 @@ async def scan_pantry(
     try:
         # Read image bytes
         image_bytes = await file.read()
+        
+        # Save image to storage
+        filename = file.filename or "pantry-scan.jpg"
+        storage_url = storage.upload_image(user_id, image_bytes, filename)
+        
+        # Save image record to database
+        image_record = {
+            "user_id": user_id,
+            "storage_url": storage_url,
+            "uploaded_at": datetime.utcnow().isoformat(),
+            "metadata": {
+                "filename": filename,
+                "content_type": file.content_type,
+                "size": len(image_bytes),
+            }
+        }
+        image_result = db.table("pantry_images").insert(image_record).execute()
+        image_id = image_result.data[0]["id"] if image_result.data else None
+        
+        logger.info(f"💾 Saved pantry image {image_id} to storage: {storage_url}")
         
         # Call pantry scanner service
         scanner = PantryScannerService()
@@ -89,7 +124,8 @@ async def scan_pantry(
         
         return PantryScanResponse(
             items=detected_items,
-            num_items=len(detected_items)
+            num_items=len(detected_items),
+            image_id=image_id
         )
     
     except Exception as e:
@@ -139,12 +175,13 @@ async def get_pantry_items(
 async def add_pantry_items(
     items: List[PantryItemCreate],
     user_id: str = Depends(get_current_user),
-    db: Client = Depends(get_supabase),
+    db: Client = Depends(get_supabase_admin),  # Use admin to bypass RLS for writes
 ):
     """
     Add items to pantry
     
     Saves detected or manually added items to the user's pantry.
+    Can optionally link items to a pantry image via image_id.
     """
     logger.info(f"➕ Adding {len(items)} items to pantry for user {user_id}")
     
@@ -157,6 +194,8 @@ async def add_pantry_items(
                 "category": item.category,
                 "confirmed": item.confirmed,
                 "confidence": item.confidence,
+                "image_id": item.image_id,  # Link to pantry_images if provided
+                "detected_at": datetime.utcnow().isoformat() if item.confidence else None,
             }
             for item in items
         ]
@@ -178,11 +217,72 @@ async def add_pantry_items(
         )
 
 
+@router.patch("/items/{item_id}", tags=["pantry"], response_model=PantryItem)
+async def update_pantry_item(
+    item_id: str,
+    updates: PantryItemUpdate,
+    user_id: str = Depends(get_current_user),
+    db: Client = Depends(get_supabase_admin),  # Use admin to bypass RLS for writes
+):
+    """
+    Update pantry item (partial update)
+    
+    Updates only the provided fields in a pantry item.
+    Can update name, category, confirmed status, confidence, or image_id.
+    """
+    logger.info(f"✏️  Updating pantry item {item_id} for user {user_id}")
+    
+    try:
+        # Verify ownership first
+        existing = db.table("pantry_items").select("id").eq("id", item_id).eq("user_id", user_id).limit(1).execute()
+        
+        if not existing.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Pantry item not found"
+            )
+        
+        # Prepare update data (exclude None values)
+        update_data = updates.model_dump(exclude_none=True)
+        
+        if not update_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No fields to update"
+            )
+        
+        # Add updated_at timestamp
+        update_data["updated_at"] = datetime.utcnow().isoformat()
+        
+        # Update item
+        result = db.table("pantry_items").update(update_data).eq("id", item_id).eq("user_id", user_id).execute()
+        
+        if not result.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Pantry item not found"
+            )
+        
+        updated_item = PantryItem(**result.data[0])
+        logger.info(f"✅ Updated pantry item {item_id} for user {user_id}")
+        
+        return updated_item
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to update pantry item {item_id} for user {user_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update pantry item: {str(e)}"
+        )
+
+
 @router.delete("/items/{item_id}", tags=["pantry"], status_code=status.HTTP_204_NO_CONTENT)
 async def delete_pantry_item(
     item_id: str,
     user_id: str = Depends(get_current_user),
-    db: Client = Depends(get_supabase),
+    db: Client = Depends(get_supabase_admin),  # Use admin to bypass RLS for writes
 ):
     """
     Delete pantry item

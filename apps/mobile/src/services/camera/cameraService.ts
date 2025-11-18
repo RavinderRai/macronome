@@ -90,8 +90,9 @@ export async function processImageForML(imageUri: string, base64?: string): Prom
 /**
  * Send image to ML backend for pantry item detection
  * Calls the pantry scanner workflow API endpoint
+ * Returns items and image_id for linking items to the scanned image
  */
-export async function detectPantryItems(imageUri: string, base64?: string): Promise<any[]> {
+export async function detectPantryItems(imageUri: string, base64?: string): Promise<{ items: any[]; image_id?: string }> {
     try {
         console.log('📸 Sending image to pantry scanner API...', imageUri);
         console.log('📊 Base64 length:', base64?.length || 0);
@@ -103,15 +104,23 @@ export async function detectPantryItems(imageUri: string, base64?: string): Prom
 		const response = await scanPantryImage(imageUri);
 		
 		console.log('✅ Pantry scan complete:', response.num_items, 'items detected');
+		if (response.image_id) {
+			console.log('🖼️ Image saved with ID:', response.image_id);
+		}
 		
 		// Transform API response to match expected format
-		return response.items.map(item => ({
+		const items = response.items.map(item => ({
 			name: item.name,
 			category: item.category,
 			confidence: item.confidence,
 			confirmed: false,
 			boundingBox: item.bounding_box,
 		}));
+		
+		return {
+			items,
+			image_id: response.image_id,
+		};
 	} catch (error) {
 		console.error('❌ Error detecting pantry items:', error);
 		throw error;

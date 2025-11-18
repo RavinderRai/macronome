@@ -20,6 +20,7 @@ export interface DetectedItem {
 export interface PantryScanResponse {
   items: DetectedItem[];
   num_items: number;
+  image_id?: string; // ID of saved pantry image for linking items
 }
 
 export interface PantryItem {
@@ -43,6 +44,14 @@ export interface PantryItemCreate {
   name: string;
   category?: string;
   confirmed: boolean;
+  confidence?: number;
+  image_id?: string; // Link to pantry_images table
+}
+
+export interface PantryItemUpdate {
+  name?: string;
+  category?: string;
+  confirmed?: boolean;
   confidence?: number;
   image_id?: string;
 }
@@ -84,6 +93,17 @@ export async function getPantryItems(): Promise<PantryItemsResponse> {
  */
 export async function addPantryItems(items: PantryItemCreate[]): Promise<{ message: string; items: PantryItem[] }> {
   const response = await apiClient.post<{ message: string; items: PantryItem[] }>('/api/pantry/items', items);
+  return response.data;
+}
+
+/**
+ * Update pantry item (partial update)
+ */
+export async function updatePantryItem(
+  itemId: string,
+  updates: PantryItemUpdate
+): Promise<PantryItem> {
+  const response = await apiClient.patch<PantryItem>(`/api/pantry/items/${itemId}`, updates);
   return response.data;
 }
 

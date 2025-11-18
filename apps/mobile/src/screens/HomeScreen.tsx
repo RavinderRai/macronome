@@ -42,6 +42,7 @@ export default function HomeScreen() {
 	const [inputText, setInputText] = useState('');
 	const [cameraVisible, setCameraVisible] = useState(false);
 	const [detectedItems, setDetectedItems] = useState<any[]>([]);
+	const [detectedImageId, setDetectedImageId] = useState<string | undefined>(undefined);
 	const [reviewSheetVisible, setReviewSheetVisible] = useState(false);
 	const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined);
 	const [settingsModalVisible, setSettingsModalVisible] = useState(false);
@@ -189,9 +190,13 @@ export default function HomeScreen() {
   };
 
 	// Handle detected items from camera
-	const handleItemsDetected = (items: any[]) => {
-		console.log('🏠 HomeScreen received items:', items.length);
-		setDetectedItems(items);
+	const handleItemsDetected = (result: { items: any[]; image_id?: string }) => {
+		console.log('🏠 HomeScreen received items:', result.items.length);
+		if (result.image_id) {
+			console.log('🏠 HomeScreen received image_id:', result.image_id);
+		}
+		setDetectedItems(result.items);
+		setDetectedImageId(result.image_id);
 		setReviewSheetVisible(true);
 		console.log('🏠 Review sheet should be visible now');
 	};
@@ -199,9 +204,11 @@ export default function HomeScreen() {
 	// Handle review confirmation
 	const handleReviewConfirm = async (confirmedItems: any[]) => {
 		try {
-			await addItems(confirmedItems);
+			// Add items with image_id if available (addItems will sync to backend)
+			await addItems(confirmedItems, detectedImageId);
 			setReviewSheetVisible(false);
 			setDetectedItems([]);
+			setDetectedImageId(undefined);
 			
 			// Open pantry drawer to show new items
 			setTimeout(() => {
@@ -228,6 +235,7 @@ export default function HomeScreen() {
 	const handleReviewClose = () => {
 		setReviewSheetVisible(false);
 		setDetectedItems([]);
+		setDetectedImageId(undefined);
 	};
 
   // Handle settings button press

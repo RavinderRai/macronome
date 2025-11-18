@@ -1,24 +1,24 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import type { PantryItem, PantryState } from '../types/pantry';
-import { addPantryItems, deletePantryItem, getPantryItems } from '../services/api/pantry';
+import { addPantryItems, deletePantryItem, getPantryItems, updatePantryItem } from '../services/api/pantry';
 
 // Extend PantryState with actions
 interface PantryStore extends PantryState {
 	// Actions
 	addItem: (item: Omit<PantryItem, 'id' | 'detectedAt'>) => void;
 	removeItem: (id: string) => Promise<void>;
-	updateItem: (id: string, updates: Partial<PantryItem>) => void;
-	confirmItem: (id: string) => void;
-	unconfirmItem: (id: string) => void;
-	addItems: (items: Omit<PantryItem, 'id' | 'detectedAt'>[]) => Promise<void>;
+	updateItem: (id: string, updates: Partial<PantryItem>) => Promise<void>;
+	confirmItem: (id: string) => Promise<void>;
+	unconfirmItem: (id: string) => Promise<void>;
+	addItems: (items: Omit<PantryItem, 'id' | 'detectedAt'>[], imageId?: string) => Promise<void>;
 	clearItems: () => void;
 	setLoading: (isLoading: boolean) => void;
 	setError: (error: string | null) => void;
 	
 	// API integration
 	loadItems: () => Promise<void>;
-	syncItemsToBackend: (items: Omit<PantryItem, 'id' | 'detectedAt'>[]) => Promise<void>;
+	syncItemsToBackend: (items: Omit<PantryItem, 'id' | 'detectedAt'>[], imageId?: string) => Promise<void>;
 }
 
 // Create the store
@@ -41,7 +41,7 @@ export const usePantryStore = create<PantryStore>((set, get) => ({
 		}));
 	},
 
-	addItems: async (itemsData) => {
+	addItems: async (itemsData, imageId?: string) => {
 		const newItems: PantryItem[] = itemsData.map((itemData) => ({
 			...itemData,
 			id: uuidv4(),
@@ -52,10 +52,10 @@ export const usePantryStore = create<PantryStore>((set, get) => ({
 			items: [...state.items, ...newItems],
 		}));
 
-		// Sync to backend
+		// Sync to backend with image_id if provided
 		try {
 			const { syncItemsToBackend } = get();
-			await syncItemsToBackend(itemsData);
+			await syncItemsToBackend(itemsData, imageId);
 		} catch (error) {
 			console.error('❌ Failed to sync items to backend:', error);
 			// Don't throw - UI should still work if backend sync fails
@@ -86,28 +86,63 @@ export const usePantryStore = create<PantryStore>((set, get) => ({
 		}
 	},
 
-	updateItem: (id, updates) => {
+	updateItem: async (id, updates) => {
+		// Update local state optimistically
 		set((state) => ({
 			items: state.items.map((item) =>
 				item.id === id ? { ...item, ...updates } : item
 			),
 		}));
+
+		// Sync to backend if item exists in backend (has backend ID format)
+		// Check if item has a backend-like ID (not just a UUID from frontend)
+		const item = get().items.find((item: PantryItem) => item.id === id);
+		if (item) {
+			try {
+				// Try to update in backend (will fail gracefully if item doesn't exist there)
+				await updatePantryItem(id, updates);
+				console.log('✅ Synced item update to backend');
+			} catch (error) {
+				console.error('❌ Failed to sync item update to backend:', error);
+				// Don't throw - local state is already updated
+			}
+		}
 	},
 
-	confirmItem: (id) => {
+	confirmItem: async (id) => {
+		// Update local state optimistically
 		set((state) => ({
 			items: state.items.map((item) =>
 				item.id === id ? { ...item, confirmed: true } : item
 			),
 		}));
+
+		// Sync to backend
+		try {
+			await updatePantryItem(id, { confirmed: true });
+			console.log('✅ Synced confirm status to backend');
+		} catch (error) {
+			console.error('❌ Failed to sync confirm status to backend:', error);
+			// Don't throw - local state is already updated
+		}
 	},
 
-	unconfirmItem: (id) => {
+	unconfirmItem: async (id) => {
+		// Update local state optimistically
 		set((state) => ({
 			items: state.items.map((item) =>
 				item.id === id ? { ...item, confirmed: false } : item
 			),
 		}));
+
+		// Sync to backend
+		try {
+			await updatePantryItem(id, { confirmed: false });
+			console.log('✅ Synced unconfirm status to backend');
+		} catch (error) {
+			console.error('❌ Failed to sync unconfirm status to backend:', error);
+			// Don't throw - local state is already updated
+		}
 	},
 
 	clearItems: () => {
@@ -149,7 +184,7 @@ export const usePantryStore = create<PantryStore>((set, get) => ({
 		}
 	},
 
-	syncItemsToBackend: async (itemsData) => {
+	syncItemsToBackend: async (itemsData, imageId?: string) => {
 		try {
 			// Transform frontend items to backend format
 			const itemsToAdd = itemsData.map((item) => ({
@@ -157,6 +192,7 @@ export const usePantryStore = create<PantryStore>((set, get) => ({
 				category: item.category,
 				confirmed: item.confirmed ?? true,
 				confidence: item.confidence,
+				image_id: imageId, // Link all items from same scan to the same image
 			}));
 
 			const response = await addPantryItems(itemsToAdd);

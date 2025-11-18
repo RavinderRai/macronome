@@ -25,7 +25,7 @@ import {
 interface CameraScreenProps {
 	visible: boolean;
 	onClose: () => void;
-	onItemsDetected: (items: any[]) => void;
+	onItemsDetected: (result: { items: any[]; image_id?: string }) => void;
 }
 
 export default function CameraScreen({ visible, onClose, onItemsDetected }: CameraScreenProps) {
@@ -63,16 +63,19 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 
 			// Send to ML pipeline with base64
 			console.log('🔍 Detecting pantry items...');
-			const items = await detectPantryItems(photo.uri, photo.base64);
-			console.log('✅ Detection complete. Items found:', items.length);
-			console.log('📦 Items:', items);
+			const scanResult = await detectPantryItems(photo.uri, photo.base64);
+			console.log('✅ Detection complete. Items found:', scanResult.items.length);
+			console.log('📦 Items:', scanResult.items);
+			if (scanResult.image_id) {
+				console.log('🖼️ Image ID:', scanResult.image_id);
+			}
 				
-			// Pass items to parent to show review sheet
-			if (items.length > 0) {
-				console.log('🎯 Showing review sheet with', items.length, 'items');
+			// Pass items and image_id to parent to show review sheet
+			if (scanResult.items.length > 0) {
+				console.log('🎯 Showing review sheet with', scanResult.items.length, 'items');
 				onClose(); // Close camera first
 				setTimeout(() => {
-					onItemsDetected(items); // Show review sheet after camera closes
+					onItemsDetected({ items: scanResult.items, image_id: scanResult.image_id }); // Show review sheet after camera closes
 				}, 300);
 			} else {
 				Alert.alert(
@@ -116,11 +119,11 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 				console.log('📊 Base64 length:', result.base64?.length || 0);
 				
 				setLoading(true);
-				const items = await detectPantryItems(result.uri, result.base64);
+				const scanResult = await detectPantryItems(result.uri, result.base64);
 
-				if (items.length > 0) {
+				if (scanResult.items.length > 0) {
 					onClose(); // Close camera first
-					onItemsDetected(items); // Show review sheet
+					onItemsDetected({ items: scanResult.items, image_id: scanResult.image_id }); // Show review sheet
 				} else {
 					Alert.alert(
 						'No Items Detected',
