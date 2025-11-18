@@ -25,31 +25,31 @@ class ChatRouterOutput(BaseModel):
     reasoning: str = Field(..., description="Explanation of why this action was chosen")
 
 
+class MacroConstraints(BaseModel):
+    """Macro targets in grams"""
+    carbs: Optional[int] = None
+    protein: Optional[int] = None
+    fat: Optional[int] = None
+
+
 class ConstraintUpdate(BaseModel):
     """
     Updated constraints after parsing from chat message
     Matches user_preferences database structure exactly
     """
-    default_constraints: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="FilterConstraints: calories, macros (carbs/protein/fat), diet, excludedIngredients, prepTime. "
-                   "Matches frontend FilterConstraints structure."
-    )
-    dietary_restrictions: List[str] = Field(
+    calories: Optional[int] = Field(None, description="Target calories")
+    macros: Optional[MacroConstraints] = Field(None, description="Macro targets (carbs, protein, fat in grams)")
+    diet: Optional[str] = Field(None, description="Diet type (e.g. 'vegan', 'keto', 'vegetarian')")
+    allergies: List[str] = Field(
         default_factory=list,
-        description="Diet types: vegetarian, vegan, gluten-free, etc. (LLM-parsed strings)"
+        description="Allergies/excluded ingredients"
     )
+    prep_time: Optional[int] = Field(None, description="Maximum prep time in minutes")
+    meal_type: Optional[str] = Field(None, description="Meal type: 'breakfast', 'lunch', 'snack', 'dinner', 'dessert'")
+    
     custom_constraints: Dict[str, Any] = Field(
         default_factory=dict,
-        description="Custom constraints parsed from chat: spicy, quick, cuisine, meal_type, etc."
-    )
-    disliked_ingredients: List[str] = Field(
-        default_factory=list,
-        description="Ingredients user dislikes (separate from excludedIngredients in default_constraints)"
-    )
-    favorite_cuisines: List[str] = Field(
-        default_factory=list,
-        description="User's favorite cuisines (optional, rarely updated via chat)"
+        description="Custom constraints parsed from chat: spicy, quick, cuisine, etc."
     )
 
 

@@ -86,8 +86,16 @@ class ChatService:
             # Queue meal recommendation task
             recommender = MealRecommenderService()
             
-            # Build constraints from user_preferences
-            constraints = user_preferences.get("default_constraints", {})
+            # Build constraints from user_preferences (flat structure)
+            constraints = {
+                "calories": user_preferences.get("calories"),
+                "macros": user_preferences.get("macros"),
+                "diet": user_preferences.get("diet"),
+                "excludedIngredients": user_preferences.get("allergies", []),
+                "prepTime": user_preferences.get("prep_time"),
+            }
+            # Remove None values
+            constraints = {k: v for k, v in constraints.items() if v is not None}
             
             task_id = recommender.queue_recommendation(
                 user_query=message,

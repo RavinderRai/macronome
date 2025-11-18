@@ -64,11 +64,13 @@ class ConstraintParser(AgentNode):
             "constraint_parser",
             message=request.message,
             chat_history=request.chat_history,
-            existing_default_constraints=existing_prefs.get("default_constraints", {}),
-            existing_dietary_restrictions=existing_prefs.get("dietary_restrictions", []),
+            existing_calories=existing_prefs.get("calories"),
+            existing_macros=existing_prefs.get("macros", {}),
+            existing_diet=existing_prefs.get("diet"),
+            existing_allergies=existing_prefs.get("allergies", []),
+            existing_prep_time=existing_prefs.get("prep_time"),
+            existing_meal_type=existing_prefs.get("meal_type"),
             existing_custom_constraints=existing_prefs.get("custom_constraints", {}),
-            existing_disliked_ingredients=existing_prefs.get("disliked_ingredients", []),
-            existing_favorite_cuisines=existing_prefs.get("favorite_cuisines", []),
         )
         
         # Run the agent to parse and merge constraints

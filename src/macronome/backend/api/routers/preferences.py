@@ -25,11 +25,13 @@ async def get_user_preferences(
     Get user preferences
     
     Returns the user's meal preferences including:
-    - dietary_restrictions: List of dietary restrictions (e.g., ["vegan", "gluten-free"])
-    - default_constraints: FilterConstraints (calories, macros, diet, excludedIngredients, prepTime)
+    - calories: Target calories (integer)
+    - macros: Macro targets {carbs, protein, fat} in grams
+    - diet: Diet type (e.g., "vegan", "keto", "vegetarian")
+    - allergies: Allergies/excluded ingredients (list of strings)
+    - prep_time: Maximum prep time in minutes (integer)
+    - meal_type: Meal type ("breakfast", "lunch", "snack", "dinner", "dessert")
     - custom_constraints: LLM-parsed custom constraints (flexible dict)
-    - favorite_cuisines: List of favorite cuisines
-    - disliked_ingredients: List of disliked ingredients
     """
     logger.info(f"📋 Fetching preferences for user {user_id}")
     
@@ -93,14 +95,16 @@ async def update_user_preferences(
             updated_prefs = result.data[0]
             logger.info(f"✅ Updated preferences for user {user_id}")
         else:
-            # Create new preferences
+            # Create new preferences with new structure
             insert_data = {
                 "user_id": user_id,
-                "dietary_restrictions": [],
-                "default_constraints": {},
+                "calories": None,
+                "macros": None,
+                "diet": None,
+                "allergies": [],
+                "prep_time": None,
+                "meal_type": None,
                 "custom_constraints": {},
-                "favorite_cuisines": [],
-                "disliked_ingredients": [],
                 **update_data
             }
             result = db.table("user_preferences").insert(insert_data).execute()

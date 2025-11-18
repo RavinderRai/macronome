@@ -55,10 +55,19 @@ async def recommend_meal(
             for item in pantry_result.data
         ]
         
-        # Merge constraints
-        constraints = user_preferences.get("default_constraints", {})
+        # Build constraints from user_preferences (flat structure)
+        constraints = {
+            "calories": user_preferences.get("calories"),
+            "macros": user_preferences.get("macros"),
+            "diet": user_preferences.get("diet"),
+            "excludedIngredients": user_preferences.get("allergies", []),
+            "prepTime": user_preferences.get("prep_time"),
+        }
+        # Merge with request constraints if provided
         if request.constraints:
             constraints.update(request.constraints)
+        # Remove None values
+        constraints = {k: v for k, v in constraints.items() if v is not None}
         
         # Queue recommendation task
         recommender = MealRecommenderService()

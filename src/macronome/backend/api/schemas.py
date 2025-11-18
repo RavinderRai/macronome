@@ -169,24 +169,35 @@ class ChatSessionCreate(BaseModel):
 # Preferences Schemas
 # ============================================================================
 
+class MacroConstraints(BaseModel):
+    """Macro targets in grams"""
+    carbs: Optional[int] = None
+    protein: Optional[int] = None
+    fat: Optional[int] = None
+
+
 class UserPreferencesResponse(BaseModel):
-    """User preferences"""
+    """User preferences - matches database model"""
     id: str
     user_id: str
-    dietary_restrictions: List[str]
-    default_constraints: Dict[str, Any]
-    custom_constraints: Dict[str, Any]
-    favorite_cuisines: List[str]
-    disliked_ingredients: List[str]
+    calories: Optional[int] = None
+    macros: Optional[MacroConstraints] = None
+    diet: Optional[str] = None
+    allergies: List[str] = []
+    prep_time: Optional[int] = None
+    meal_type: Optional[str] = None
+    custom_constraints: Dict[str, Any] = {}
     created_at: datetime
     updated_at: datetime
 
 
 class UserPreferencesUpdate(BaseModel):
-    """Update user preferences"""
-    dietary_restrictions: Optional[List[str]] = None
-    default_constraints: Optional[Dict[str, Any]] = None
+    """Update user preferences - only provided fields will be updated"""
+    calories: Optional[int] = None
+    macros: Optional[MacroConstraints] = None
+    diet: Optional[str] = None
+    allergies: Optional[List[str]] = None
+    prep_time: Optional[int] = None
+    meal_type: Optional[str] = None
     custom_constraints: Optional[Dict[str, Any]] = None
-    favorite_cuisines: Optional[List[str]] = None
-    disliked_ingredients: Optional[List[str]] = None
 

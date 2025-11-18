@@ -45,14 +45,16 @@ async def initialize_user(
                 "already_exists": True
             }
         
-        # Create user_preferences
+        # Create user_preferences with new structure
         prefs_result = db.table("user_preferences").insert({
             "user_id": user_id,
-            "dietary_restrictions": [],
-            "default_constraints": {},
+            "calories": None,
+            "macros": None,
+            "diet": None,
+            "allergies": [],
+            "prep_time": None,
+            "meal_type": None,
             "custom_constraints": {},
-            "favorite_cuisines": [],
-            "disliked_ingredients": [],
         }).execute()
         
         logger.info(f"✅ Created user_preferences for {user_id}")
