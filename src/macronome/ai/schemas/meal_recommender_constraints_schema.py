@@ -1,19 +1,25 @@
 from typing import Optional, List, Dict, Tuple, Set, Any
-from pydantic import BaseModel
-
-class MacroConstraints(BaseModel):
-    """Numeric macro targets"""
-    carbs: Optional[int] = None      # grams
-    protein: Optional[int] = None    # grams
-    fat: Optional[int] = None        # grams
+from pydantic import BaseModel, Field
+from macronome.backend.database.models import MacroConstraints
 
 class FilterConstraints(BaseModel):
-    """User-specified constraints"""
-    calories: Optional[int] = None              # Target (becomes ±50 range)
-    macros: Optional[MacroConstraints] = None
-    diet: Optional[str] = None                  # e.g., "vegan", "keto"
-    excluded_ingredients: List[str] = []        # Allergies/dislikes
-    prep_time: Optional[str] = None             # 'quick' | 'medium' | 'long'
+    """
+    User meal constraints - matches UserPreferences database structure exactly
+    Used for both UI filters and chat-parsed constraints
+    """
+    calories: Optional[int] = Field(None, description="Target calories")
+    macros: Optional[MacroConstraints] = Field(None, description="Macro targets (carbs, protein, fat in grams)")
+    diet: Optional[str] = Field(None, description="Diet type (e.g. 'vegan', 'keto', 'vegetarian')")
+    allergies: List[str] = Field(
+        default_factory=list,
+        description="Allergies/excluded ingredients"
+    )
+    prep_time: Optional[int] = Field(None, description="Maximum prep time in minutes")
+    meal_type: Optional[str] = Field(None, description="Meal type: 'breakfast', 'lunch', 'snack', 'dinner', 'dessert'")
+    custom_constraints: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Custom constraints parsed from chat: spicy, quick, cuisine, etc."
+    )
 
 class PantryItem(BaseModel):
     """Pantry context (not a hard constraint)"""

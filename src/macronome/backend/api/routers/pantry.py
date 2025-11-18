@@ -8,17 +8,42 @@ from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from supabase import Client
 
 from macronome.backend.api.dependencies import get_current_user, get_supabase
-from macronome.backend.api.schemas import (
-    PantryScanResponse,
-    DetectedItem,
-    PantryItemCreate,
-    PantryItemResponse,
-    PantryItemsResponse,
-)
+from macronome.backend.database.models import PantryItem
+from pydantic import BaseModel
+from typing import Optional, List, Dict
 from macronome.backend.services.pantry_scanner import PantryScannerService
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+# API-specific schemas for pantry operations
+class DetectedItem(BaseModel):
+    """Detected pantry item from ML scan"""
+    name: str
+    category: Optional[str] = None
+    confidence: float
+    bounding_box: Optional[Dict[str, int]] = None
+
+
+class PantryScanResponse(BaseModel):
+    """Response from pantry scan endpoint"""
+    items: List[DetectedItem]
+    num_items: int
+
+
+class PantryItemCreate(BaseModel):
+    """Create pantry item"""
+    name: str
+    category: Optional[str] = None
+    confirmed: bool = True
+    confidence: Optional[float] = None
+
+
+class PantryItemsResponse(BaseModel):
+    """List of pantry items"""
+    items: List[PantryItem]
+    total: int
 
 
 @router.post("/scan", tags=["ml", "pantry"], response_model=PantryScanResponse)
@@ -91,7 +116,7 @@ async def get_pantry_items(
         result = db.table("pantry_items").select("*").eq("user_id", user_id).execute()
         
         items = [
-            PantryItemResponse(**item)
+            PantryItem(**item)
             for item in result.data
         ]
         

@@ -8,18 +8,48 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client
 
 from macronome.backend.api.dependencies import get_current_user, get_supabase
-from macronome.backend.api.schemas import (
-    MealRecommendRequest,
-    MealRecommendResponse,
-    MealRecommendStatusResponse,
-    MealHistoryCreate,
-    MealHistoryResponse,
-    MealRatingUpdate,
-)
+from macronome.backend.database.models import MealRecommendation
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any, List
 from macronome.backend.services.meal_recommender import MealRecommenderService
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+# API-specific schemas for meal operations
+class MealRecommendRequest(BaseModel):
+    """Request meal recommendation"""
+    user_query: Optional[str] = "Recommend me a meal"
+    constraints: Optional[Dict[str, Any]] = None
+
+
+class MealRecommendResponse(BaseModel):
+    """Response with task_id for polling"""
+    task_id: str
+    message: str = "Meal recommendation in progress. Use task_id to check status."
+
+
+class MealRecommendStatusResponse(BaseModel):
+    """Status of meal recommendation task"""
+    status: str  # pending, started, success, failure
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+
+
+class MealHistoryCreate(BaseModel):
+    """Save meal to history"""
+    name: str
+    description: Optional[str] = None
+    ingredients: List[str] = []
+    reasoning: Optional[str] = None
+    meal_data: Dict[str, Any] = {}
+    accepted: bool = False
+
+
+class MealRatingUpdate(BaseModel):
+    """Update meal rating"""
+    rating: int = Field(..., ge=1, le=5)
 
 
 @router.post("/recommend", tags=["ml", "meals"], response_model=MealRecommendResponse)
@@ -125,7 +155,7 @@ async def get_recommendation_status(
         )
 
 
-@router.get("/history", tags=["meals"], response_model=List[MealHistoryResponse])
+@router.get("/history", tags=["meals"], response_model=List[MealRecommendation])
 async def get_meal_history(
     limit: int = 50,
     user_id: str = Depends(get_current_user),
@@ -142,7 +172,7 @@ async def get_meal_history(
         result = db.table("meal_recommendations").select("*").eq("user_id", user_id).order("created_at", desc=True).limit(limit).execute()
         
         meals = [
-            MealHistoryResponse(**meal)
+            MealRecommendation(**meal)
             for meal in result.data
         ]
         

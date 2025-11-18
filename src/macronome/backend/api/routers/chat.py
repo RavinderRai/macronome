@@ -5,18 +5,12 @@ ML chat workflow (streaming) and chat session CRUD
 import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import StreamingResponse
 from supabase import Client
-import json
 
 from macronome.backend.api.dependencies import get_current_user, get_supabase, get_supabase_admin
-from macronome.backend.api.schemas import (
-    ChatMessageRequest,
-    ChatMessageResponse,
-    ChatSessionResponse,
-    ChatSessionCreate,
-    ChatMessageHistoryResponse,
-)
+from macronome.backend.database.models import ChatSession, ChatMessage
+from macronome.ai.schemas.chat_schema import ChatResponse
+from pydantic import BaseModel
 from macronome.backend.services.chat import ChatService
 from macronome.backend.database.chat_helpers import (
     get_active_chat_session,
@@ -29,7 +23,19 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/message", tags=["ml", "chat"])
+# Minimal API request schema (different from ChatRequest workflow schema)
+class ChatMessageRequest(BaseModel):
+    """Send chat message - minimal API input"""
+    message: str
+    chat_session_id: Optional[str] = None  # Create new if not provided
+
+
+class ChatSessionCreate(BaseModel):
+    """Create new chat session"""
+    filters: Optional[dict] = None
+
+
+@router.post("/message", tags=["ml", "chat"], response_model=ChatResponse)
 async def send_chat_message(
     request: ChatMessageRequest,
     user_id: str = Depends(get_current_user),
@@ -106,7 +112,7 @@ async def send_chat_message(
         
         logger.info(f"✅ Chat message processed for user {user_id}")
         
-        return ChatMessageResponse(
+        return ChatResponse(
             response=response["response"],
             action=response.get("action"),
             task_id=response.get("task_id"),
@@ -129,7 +135,7 @@ async def send_chat_message(
 #     pass
 
 
-@router.get("/sessions", tags=["chat"], response_model=List[ChatSessionResponse])
+@router.get("/sessions", tags=["chat"], response_model=List[ChatSession])
 async def get_chat_sessions(
     limit: int = 50,
     user_id: str = Depends(get_current_user),
@@ -146,7 +152,7 @@ async def get_chat_sessions(
         result = db.table("chat_sessions").select("*").eq("user_id", user_id).order("created_at", desc=True).limit(limit).execute()
         
         sessions = [
-            ChatSessionResponse(**session)
+            ChatSession(**session)
             for session in result.data
         ]
         
@@ -162,7 +168,7 @@ async def get_chat_sessions(
         )
 
 
-@router.post("/sessions", tags=["chat"], status_code=status.HTTP_201_CREATED, response_model=ChatSessionResponse)
+@router.post("/sessions", tags=["chat"], status_code=status.HTTP_201_CREATED, response_model=ChatSession)
 async def create_chat_session(
     session_data: ChatSessionCreate,
     user_id: str = Depends(get_current_user),
@@ -181,7 +187,7 @@ async def create_chat_session(
         
         logger.info(f"✅ Created chat session {new_session['id']} for user {user_id}")
         
-        return ChatSessionResponse(**new_session)
+        return ChatSession(**new_session)
     
     except Exception as e:
         logger.error(f"❌ Failed to create chat session for user {user_id}: {e}")
@@ -191,7 +197,7 @@ async def create_chat_session(
         )
 
 
-@router.get("/sessions/{session_id}/messages", tags=["chat"], response_model=List[ChatMessageHistoryResponse])
+@router.get("/sessions/{session_id}/messages", tags=["chat"], response_model=List[ChatMessage])
 async def get_session_messages(
     session_id: str,
     limit: int = 100,
@@ -218,7 +224,7 @@ async def get_session_messages(
         messages_data = get_chat_messages(db, session_id, limit)
         
         messages = [
-            ChatMessageHistoryResponse(**msg)
+            ChatMessage(**msg)
             for msg in messages_data
         ]
         

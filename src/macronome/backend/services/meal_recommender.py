@@ -39,8 +39,10 @@ class MealRecommenderService:
                 - calories: Optional[int]
                 - macros: Optional[Dict] with carbs/protein/fat
                 - diet: Optional[str] (e.g., "vegan", "keto")
-                - excluded_ingredients: List[str]
-                - prep_time: Optional[str] ('quick' | 'medium' | 'long')
+                - excludedIngredients or allergies: List[str]
+                - prepTime or prep_time: Optional[int] (minutes)
+                - mealType or meal_type: Optional[str]
+                - custom_constraints: Optional[Dict[str, Any]]
             pantry_items: List of pantry items (optional)
             chat_history: Previous chat messages (optional)
         
@@ -124,8 +126,10 @@ class MealRecommenderService:
             calories=constraints.get("calories"),
             macros=constraints.get("macros"),
             diet=constraints.get("diet"),
-            excluded_ingredients=constraints.get("excluded_ingredients", []),
-            prep_time=constraints.get("prep_time")
+            allergies=constraints.get("excludedIngredients", constraints.get("allergies", [])),
+            prep_time=constraints.get("prepTime", constraints.get("prep_time")),
+            meal_type=constraints.get("mealType", constraints.get("meal_type")),
+            custom_constraints=constraints.get("custom_constraints", {})
         )
         
         # Convert pantry items to workflow schema

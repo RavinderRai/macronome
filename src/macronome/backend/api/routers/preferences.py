@@ -7,16 +7,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client
 
 from macronome.backend.api.dependencies import get_current_user, get_supabase
-from macronome.backend.api.schemas import (
-    UserPreferencesResponse,
-    UserPreferencesUpdate,
-)
+from macronome.backend.database.models import UserPreferences
+from macronome.ai.schemas.meal_recommender_constraints_schema import FilterConstraints
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/", tags=["preferences"], response_model=UserPreferencesResponse)
+@router.get("/", tags=["preferences"], response_model=UserPreferences)
 async def get_user_preferences(
     user_id: str = Depends(get_current_user),
     db: Client = Depends(get_supabase),
@@ -46,7 +44,7 @@ async def get_user_preferences(
                 detail="User preferences not found. Create preferences first."
             )
         
-        preferences = UserPreferencesResponse(**result.data[0])
+        preferences = UserPreferences(**result.data[0])
         
         logger.info(f"✅ Fetched preferences for user {user_id}")
         
@@ -62,9 +60,9 @@ async def get_user_preferences(
         )
 
 
-@router.put("/", tags=["preferences"], response_model=UserPreferencesResponse)
+@router.put("/", tags=["preferences"], response_model=UserPreferences)
 async def update_user_preferences(
-    preferences_update: UserPreferencesUpdate,
+    preferences_update: FilterConstraints,
     user_id: str = Depends(get_current_user),
     db: Client = Depends(get_supabase),
 ):
@@ -111,7 +109,7 @@ async def update_user_preferences(
             updated_prefs = result.data[0]
             logger.info(f"✅ Created preferences for user {user_id}")
         
-        return UserPreferencesResponse(**updated_prefs)
+        return UserPreferences(**updated_prefs)
     
     except HTTPException:
         raise

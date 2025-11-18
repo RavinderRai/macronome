@@ -50,7 +50,7 @@ class ChatService:
                 "response": str,
                 "action": ChatAction,
                 "task_id": str (if START_RECOMMENDATION),
-                "updated_constraints": ConstraintUpdate (if ADD_CONSTRAINT)
+                "updated_constraints": FilterConstraints (if ADD_CONSTRAINT)
             }
         """
         # Load chat history from DB (last 5 messages)

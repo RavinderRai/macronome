@@ -213,35 +213,35 @@ export default function FilterSection({
 						<View style={styles.chipsContainer}>
 							{getCaloriesLabel() && (
 								<View style={styles.chipWrapper}>
-									<FilterChip 
-										label={getCaloriesLabel()!}
-										onRemove={() => setCalories(undefined)}
-									/>
+								<FilterChip 
+									label={getCaloriesLabel()!}
+									onRemove={() => setCalories(undefined)}
+								/>
 								</View>
 							)}
 
 							{getMacrosLabel() && (
 								<View style={styles.chipWrapper}>
-									<FilterChip 
-										label={getMacrosLabel()!}
-										onRemove={() => setMacros(undefined)}
-									/>
+								<FilterChip 
+									label={getMacrosLabel()!}
+									onRemove={() => setMacros(undefined)}
+								/>
 								</View>
 							)}
 
 							{getDietLabel() && (
 								<View style={styles.chipWrapper}>
-									<FilterChip 
-										label={getDietLabel()!}
-										onRemove={() => setDiet(undefined)}
-									/>
+								<FilterChip 
+									label={getDietLabel()!}
+									onRemove={() => setDiet(undefined)}
+								/>
 								</View>
 							)}
 
 							{getPrepTimeLabel() && (
 								<View style={styles.chipWrapper}>
-									<FilterChip 
-										label={getPrepTimeLabel()!}
+								<FilterChip 
+									label={getPrepTimeLabel()!}
 										onRemove={() => setPrepTime(undefined)}
 									/>
 								</View>
@@ -252,17 +252,17 @@ export default function FilterSection({
 									<FilterChip 
 										label={getMealTypeLabel()!}
 										onRemove={() => setMealType(undefined)}
-									/>
+								/>
 								</View>
 							)}
 
 							{constraints.allergies.map((ingredient) => (
 								<View key={ingredient} style={styles.chipWrapper}>
-									<FilterChip 
-										label={`No ${ingredient}`}
-										onRemove={() => removeExcludedIngredient(ingredient)}
-										variant="accent"
-									/>
+								<FilterChip 
+									label={`No ${ingredient}`}
+									onRemove={() => removeExcludedIngredient(ingredient)}
+									variant="accent"
+								/>
 								</View>
 							))}
 						</View>
@@ -273,7 +273,7 @@ export default function FilterSection({
 						{/* Row 1: Calories | Macros */}
 						<View style={styles.filterRow}>
 							<View style={styles.filterColumn}>
-								<Text style={styles.filterLabel}>Calories:</Text>
+							<Text style={styles.filterLabel}>Calories:</Text>
 								<View style={styles.caloriesInput}>
 									<TextInput
 										style={styles.caloriesTextInput}
@@ -288,36 +288,36 @@ export default function FilterSection({
 										<Text style={styles.caloriesUnit}>kcal</Text>
 									)}
 								</View>
-							</View>
+						</View>
 
 							<View style={styles.filterColumn}>
-								<Text style={styles.filterLabel}>Macros:</Text>
-								<TouchableOpacity 
-									style={styles.filterValue}
-									onPress={handleMacrosPress}
-									activeOpacity={0.7}
-								>
-									<Text style={styles.filterValueText}>
-										{getMacrosLabel() || 'Any'}
-									</Text>
-								</TouchableOpacity>
+							<Text style={styles.filterLabel}>Macros:</Text>
+							<TouchableOpacity 
+								style={styles.filterValue}
+								onPress={handleMacrosPress}
+								activeOpacity={0.7}
+							>
+								<Text style={styles.filterValueText}>
+									{getMacrosLabel() || 'Any'}
+								</Text>
+							</TouchableOpacity>
 							</View>
 						</View>
 
 						{/* Row 2: Diet | Prep Time */}
 						<View style={styles.filterRow}>
 							<View style={styles.filterColumn}>
-								<Text style={styles.filterLabel}>Diet:</Text>
-								<TouchableOpacity 
-									style={styles.filterValue}
-									onPress={handleDietPress}
-									activeOpacity={0.7}
-								>
-									<Text style={styles.filterValueText}>
-										{constraints.diet || 'Any'}
-									</Text>
-								</TouchableOpacity>
-							</View>
+							<Text style={styles.filterLabel}>Diet:</Text>
+							<TouchableOpacity 
+								style={styles.filterValue}
+								onPress={handleDietPress}
+								activeOpacity={0.7}
+							>
+								<Text style={styles.filterValueText}>
+									{constraints.diet || 'Any'}
+								</Text>
+							</TouchableOpacity>
+						</View>
 
 							<View style={styles.filterColumn}>
 								<Text style={styles.filterLabel}>Prep Time:</Text>
@@ -363,21 +363,21 @@ export default function FilterSection({
 
 							<View style={styles.filterColumn}>
 								<Text style={styles.filterLabel}>Allergies:</Text>
-								<View style={styles.excludeInput}>
-									<TextInput
-										style={styles.textInput}
-										placeholder="Add ingredient..."
-										placeholderTextColor={colors.text.muted}
-										value={newIngredient}
-										onChangeText={setNewIngredient}
-										onSubmitEditing={handleAddIngredient}
-										returnKeyType="done"
-									/>
-									{newIngredient.trim() && (
-										<TouchableOpacity onPress={handleAddIngredient}>
-											<Text style={styles.addButton}>Add</Text>
-										</TouchableOpacity>
-									)}
+							<View style={styles.excludeInput}>
+								<TextInput
+									style={styles.textInput}
+									placeholder="Add ingredient..."
+									placeholderTextColor={colors.text.muted}
+									value={newIngredient}
+									onChangeText={setNewIngredient}
+									onSubmitEditing={handleAddIngredient}
+									returnKeyType="done"
+								/>
+								{newIngredient.trim() && (
+									<TouchableOpacity onPress={handleAddIngredient}>
+										<Text style={styles.addButton}>Add</Text>
+									</TouchableOpacity>
+								)}
 								</View>
 							</View>
 						</View>
