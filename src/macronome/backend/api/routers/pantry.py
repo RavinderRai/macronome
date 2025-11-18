@@ -74,7 +74,7 @@ async def scan_pantry(
         scanner = PantryScannerService()
         result = await scanner.scan_pantry(image_bytes)
         
-        # Format response
+        # Format response - result is already a list of item dicts
         detected_items = [
             DetectedItem(
                 name=item["name"],
@@ -82,7 +82,7 @@ async def scan_pantry(
                 confidence=item["confidence"],
                 bounding_box=item.get("bounding_box")
             )
-            for item in result["items"]
+            for item in result  # result is List[Dict], not a dict with "items" key
         ]
         
         logger.info(f"✅ Detected {len(detected_items)} items for user {user_id}")

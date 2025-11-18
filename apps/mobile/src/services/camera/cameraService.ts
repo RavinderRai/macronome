@@ -89,77 +89,31 @@ export async function processImageForML(imageUri: string, base64?: string): Prom
 
 /**
  * Send image to ML backend for pantry item detection
- * TODO: Replace with actual API call to your FastAPI backend
+ * Calls the pantry scanner workflow API endpoint
  */
 export async function detectPantryItems(imageUri: string, base64?: string): Promise<any[]> {
     try {
-        console.log('Sending image to ML backend for pantry item detection...', imageUri);
+        console.log('📸 Sending image to pantry scanner API...', imageUri);
+        console.log('📊 Base64 length:', base64?.length || 0);
 
-		// TODO: Implement actual API call to your FastAPI backend
-		// Example structure:
-		// const response = await fetch('YOUR_BACKEND_URL/api/pantry/detect', {
-		//   method: 'POST',
-		//   headers: {
-		//     'Content-Type': 'application/json',
-		//   },
-		//   body: JSON.stringify({
-		//     image: base64,  // Send base64 encoded image
-		//     // Or use FormData for multipart upload:
-		//     // image_uri: imageUri,
-		//   }),
-		// });
-		//
-		// const data = await response.json();
-		// 
-		// Expected response format from your ML pipeline:
-		// {
-		//   "items": [
-		//     {
-		//       "name": "Eggs",
-		//       "category": "Protein",
-		//       "confidence": 0.95,
-		//       "bounding_box": { "x": 100, "y": 200, "width": 50, "height": 60 }
-		//     }
-		//   ]
-		// }
-		//
-		// return data.items.map(item => ({
-		//   name: item.name,
-		//   category: item.category,
-		//   confidence: item.confidence,
-		//   confirmed: false,
-		//   boundingBox: item.bounding_box,
-		// }));
-
-		// Mock response for now (simulates ML detection results)
-		console.log('📊 Base64 length:', base64?.length || 0);
+		// Import the pantry API service
+		const { scanPantryImage } = await import('../api/pantry');
 		
-		return new Promise((resolve) => {
-			setTimeout(() => {
-				resolve([
-					{
-						name: 'Apple',
-						category: 'Fruits',
-						confidence: 0.92,
-						confirmed: false,
-					},
-					{
-						name: 'Orange Juice',
-						category: 'Beverages',
-						confidence: 0.87,
-						confirmed: false,
-					},
-					{
-						name: 'Yogurt',
-						category: 'Dairy',
-						confidence: 0.95,
-						confirmed: false,
-					},
-				]);
-			}, 2000); // Simulate network delay
-		});
+		// Call the API endpoint
+		const response = await scanPantryImage(imageUri);
+		
+		console.log('✅ Pantry scan complete:', response.num_items, 'items detected');
+		
+		// Transform API response to match expected format
+		return response.items.map(item => ({
+			name: item.name,
+			category: item.category,
+			confidence: item.confidence,
+			confirmed: false,
+			boundingBox: item.bounding_box,
+		}));
 	} catch (error) {
-		console.error('Error detecting pantry items:', error);
+		console.error('❌ Error detecting pantry items:', error);
 		throw error;
 	}
 }

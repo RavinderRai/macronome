@@ -197,22 +197,31 @@ export default function HomeScreen() {
 	};
 
 	// Handle review confirmation
-	const handleReviewConfirm = (confirmedItems: any[]) => {
-		addItems(confirmedItems);
-		setReviewSheetVisible(false);
-		setDetectedItems([]);
-		
-		// Open pantry drawer to show new items
-		setTimeout(() => {
-			setDrawerOpen(true);
-		}, 300);
+	const handleReviewConfirm = async (confirmedItems: any[]) => {
+		try {
+			await addItems(confirmedItems);
+			setReviewSheetVisible(false);
+			setDetectedItems([]);
+			
+			// Open pantry drawer to show new items
+			setTimeout(() => {
+				setDrawerOpen(true);
+			}, 300);
 
-		// Show success message
-		Alert.alert(
-			'Items Added',
-			`Added ${confirmedItems.length} ${confirmedItems.length === 1 ? 'item' : 'items'} to your pantry.`,
-			[{ text: 'OK' }]
-		);
+			// Show success message
+			Alert.alert(
+				'Items Added',
+				`Added ${confirmedItems.length} ${confirmedItems.length === 1 ? 'item' : 'items'} to your pantry.`,
+				[{ text: 'OK' }]
+			);
+		} catch (error) {
+			console.error('Failed to add items:', error);
+			Alert.alert(
+				'Error',
+				'Failed to add items. Please try again.',
+				[{ text: 'OK' }]
+			);
+		}
 	};
 
 	// Handle review close
