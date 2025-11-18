@@ -37,6 +37,12 @@ apiClient.interceptors.request.use(
       } else {
         console.warn('⚠️ No token available for request:', config.url);
       }
+      
+      // If sending FormData, remove Content-Type header to let axios set it automatically
+      // with the correct boundary for multipart/form-data
+      if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+      }
     } catch (error) {
       console.error('Failed to get auth token:', error);
     }

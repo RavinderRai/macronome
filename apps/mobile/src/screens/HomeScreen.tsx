@@ -62,34 +62,6 @@ export default function HomeScreen() {
 	const setDrawerOpen = useUIStore((state) => state.setDrawerOpen);
 	const setConstraintsFromBackend = useFilterStore((state) => state.setConstraintsFromBackend);
 
-  // TODO: Remove this mock data later
-	// Add some mock pantry items for testing (remove this later)
-	React.useEffect(() => {
-		// Only add mock items if pantry is empty
-		const currentItems = usePantryStore.getState().items;
-		if (currentItems.length === 0) {
-			addItems([
-				{
-					name: 'Eggs',
-					category: 'Protein',
-					confirmed: true,
-					confidence: 0.95,
-				},
-				{
-					name: 'Milk',
-					category: 'Dairy',
-					confirmed: true,
-					confidence: 0.92,
-				},
-				{
-					name: 'Tomatoes',
-					category: 'Vegetables',
-					confirmed: false,
-					confidence: 0.78,
-				},
-			]);
-		}
-	}, [addItems]);
 
   // Handle sending a message
   const handleSend = async () => {
@@ -206,21 +178,21 @@ export default function HomeScreen() {
 		try {
 			// Add items with image_id if available (addItems will sync to backend)
 			await addItems(confirmedItems, detectedImageId);
-			setReviewSheetVisible(false);
-			setDetectedItems([]);
+		setReviewSheetVisible(false);
+		setDetectedItems([]);
 			setDetectedImageId(undefined);
-			
-			// Open pantry drawer to show new items
-			setTimeout(() => {
-				setDrawerOpen(true);
-			}, 300);
+		
+		// Open pantry drawer to show new items
+		setTimeout(() => {
+			setDrawerOpen(true);
+		}, 300);
 
-			// Show success message
-			Alert.alert(
-				'Items Added',
-				`Added ${confirmedItems.length} ${confirmedItems.length === 1 ? 'item' : 'items'} to your pantry.`,
-				[{ text: 'OK' }]
-			);
+		// Show success message
+		Alert.alert(
+			'Items Added',
+			`Added ${confirmedItems.length} ${confirmedItems.length === 1 ? 'item' : 'items'} to your pantry.`,
+			[{ text: 'OK' }]
+		);
 		} catch (error) {
 			console.error('Failed to add items:', error);
 			Alert.alert(

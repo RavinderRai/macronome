@@ -54,6 +54,25 @@ export async function checkCameraPermissions(): Promise<boolean> {
 }
 
 /**
+ * Check current image picker permission status (without requesting)
+ */
+export async function checkImagePickerPermissions(): Promise<CameraPermissionStatus> {
+	try {
+		const { status, canAskAgain } = await ImagePicker.getMediaLibraryPermissionsAsync();
+		return {
+			granted: status === 'granted',
+			canAskAgain: canAskAgain ?? true,
+		};
+	} catch (error) {
+		console.error('Error checking image picker permissions:', error);
+		return {
+			granted: false,
+			canAskAgain: false,
+		};
+	}
+}
+
+/**
  * Request image picker permissions (for selecting from gallery)
  */
 export async function requestImagePickerPermissions(): Promise<CameraPermissionStatus> {
@@ -61,7 +80,7 @@ export async function requestImagePickerPermissions(): Promise<CameraPermissionS
 		const { status, canAskAgain } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 		return {
 			granted: status === 'granted',
-			canAskAgain,
+			canAskAgain: canAskAgain ?? true,
 		};
 	} catch (error) {
 		console.error('Error requesting image picker permissions:', error);
@@ -113,7 +132,7 @@ export async function detectPantryItems(imageUri: string, base64?: string): Prom
 			name: item.name,
 			category: item.category,
 			confidence: item.confidence,
-			confirmed: false,
+						confirmed: false,
 			boundingBox: item.bounding_box,
 		}));
 		

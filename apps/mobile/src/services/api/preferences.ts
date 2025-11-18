@@ -17,7 +17,7 @@ export interface UserPreferences {
   user_id: string;
   calories?: number;
   macros?: MacroConstraints;
-  diet?: string;
+    diet?: string;
   allergies: string[];
   prep_time?: number;
   meal_type?: string;

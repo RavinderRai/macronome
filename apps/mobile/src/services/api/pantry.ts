@@ -71,11 +71,9 @@ export async function scanPantryImage(imageUri: string): Promise<PantryScanRespo
     name: 'pantry-image.jpg',
   } as any);
 
-  const response = await apiClient.post<PantryScanResponse>('/api/pantry/scan', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  // Note: Don't set Content-Type header manually - axios will set it automatically
+  // with the correct boundary for multipart/form-data
+  const response = await apiClient.post<PantryScanResponse>('/api/pantry/scan', formData);
 
   return response.data;
 }

@@ -15,12 +15,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as Linking from 'expo-linking';
 import { colors, spacing } from '../theme';
 import { usePantryStore, useUIStore } from '../store';
 import {
 	detectPantryItems,
 	pickImageFromGallery,
 	requestImagePickerPermissions,
+	checkImagePickerPermissions,
 } from '../services/camera/cameraService';
 interface CameraScreenProps {
 	visible: boolean;
@@ -97,20 +99,8 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 		}
 	};
 
-	const handlePickFromGallery = async () => {
+	const processGalleryImage = async () => {
 		try {
-			// Request gallery permissions
-			const { granted } = await requestImagePickerPermissions();
-			
-			if (!granted) {
-				Alert.alert(
-					'Gallery Permission Required',
-					'Please enable photo library access in Settings.',
-					[{ text: 'OK' }]
-				);
-				return;
-			}
-
 			setIsProcessing(true);
 			const result = await pickImageFromGallery();
 
@@ -131,7 +121,69 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 						[{ text: 'OK' }]
 					);
 				}
+				setLoading(false);
 			}
+		} catch (error) {
+			console.error('Error processing gallery image:', error);
+			Alert.alert(
+				'Error',
+				'Failed to process image. Please try again.',
+				[{ text: 'OK' }]
+			);
+		} finally {
+			setIsProcessing(false);
+			setLoading(false);
+		}
+	};
+
+	const handlePickFromGallery = async () => {
+		try {
+			// Check current permission status first
+			let permissionStatus = await checkImagePickerPermissions();
+			
+			// If not granted, request permissions
+			if (!permissionStatus.granted) {
+				permissionStatus = await requestImagePickerPermissions();
+			}
+			
+			// If still not granted, show dialog with options
+			if (!permissionStatus.granted) {
+				const canAskAgain = permissionStatus.canAskAgain;
+				
+				Alert.alert(
+					'Photo Library Access Required',
+					'Macronome needs access to your photo library to scan pantry items from your photos.',
+					[
+						{ text: 'Cancel', style: 'cancel' },
+						...(canAskAgain
+							? [
+									{
+										text: 'Grant Permission',
+										onPress: async () => {
+											// Try requesting again
+											const retryStatus = await requestImagePickerPermissions();
+											if (retryStatus.granted) {
+												// Permission granted, proceed with gallery picker
+												await processGalleryImage();
+											}
+										},
+									},
+							  ]
+							: [
+									{
+										text: 'Open Settings',
+										onPress: () => {
+											Linking.openSettings();
+										},
+									},
+							  ]),
+					]
+				);
+				return;
+			}
+
+			// Permission granted, proceed with gallery picker
+			await processGalleryImage();
 		} catch (error) {
 			console.error('Error picking from gallery:', error);
 			Alert.alert('Error', 'Failed to process image. Please try again.');

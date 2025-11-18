@@ -102,7 +102,7 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
       const current = state.constraints.allergies || [];
       if (!current.includes(ingredient)) {
         const newConstraints = {
-          ...state.constraints,
+            ...state.constraints,
           allergies: [...current, ingredient],
         };
         syncConstraintsToBackend(newConstraints);
