@@ -47,7 +47,6 @@ class DataConfig:
 
 class BackendConfig:
     """Backend API configuration"""
-    
     # Server config
     HOST = os.getenv("BACKEND_HOST", "0.0.0.0")
     PORT = int(os.getenv("BACKEND_PORT", "8000"))
