@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, Modal } from 'react-native';
 import { colors } from '../../theme';
 import { spacing } from '../../theme';
 import { useFilterStore } from '../../store';
@@ -25,6 +25,10 @@ export default function FilterSection({
 	onEditDiet,
 }: FilterSectionProps) {
 	const [newIngredient, setNewIngredient] = React.useState('');
+	const [showMacrosModal, setShowMacrosModal] = React.useState(false);
+	const [macroCarbs, setMacroCarbs] = React.useState('');
+	const [macroProtein, setMacroProtein] = React.useState('');
+	const [macroFat, setMacroFat] = React.useState('');
 
 	// Get state from Zustand stores
 	const constraints = useFilterStore((state) => state.constraints);
@@ -98,18 +102,54 @@ export default function FilterSection({
 		}
 	};
 
-	// Quick presets for macros
+	// Handle macros modal
 	const handleMacrosPress = () => {
 		if (onEditMacros) {
 			onEditMacros();
 		} else {
-			// Placeholder - can be replaced with modal
-			Alert.alert(
-				'Set Macros',
-				'This will open a macro editor in a future update',
-				[{ text: 'OK' }]
-			);
+			// Initialize modal with current values
+			const currentMacros = constraints.macros;
+			setMacroCarbs(currentMacros?.carbs?.toString() || '');
+			setMacroProtein(currentMacros?.protein?.toString() || '');
+			setMacroFat(currentMacros?.fat?.toString() || '');
+			setShowMacrosModal(true);
 		}
+	};
+
+	// Handle macro input changes - only allow integers
+	const handleMacroChange = (
+		value: string,
+		setter: (value: string) => void
+	) => {
+		const numericValue = value.replace(/[^0-9]/g, '');
+		setter(numericValue);
+	};
+
+	// Save macros
+	const handleSaveMacros = () => {
+		const macros = {
+			carbs: macroCarbs ? parseInt(macroCarbs, 10) : undefined,
+			protein: macroProtein ? parseInt(macroProtein, 10) : undefined,
+			fat: macroFat ? parseInt(macroFat, 10) : undefined,
+		};
+
+		// Only set macros if at least one value is provided
+		if (macros.carbs || macros.protein || macros.fat) {
+			setMacros(macros);
+		} else {
+			setMacros(undefined);
+		}
+
+		setShowMacrosModal(false);
+	};
+
+	// Clear macros
+	const handleClearMacros = () => {
+		setMacros(undefined);
+		setMacroCarbs('');
+		setMacroProtein('');
+		setMacroFat('');
+		setShowMacrosModal(false);
 	};
 
 	// Quick presets for diet
@@ -344,6 +384,85 @@ export default function FilterSection({
 					</View>
 				</View>
 			)}
+
+			{/* Macros Editor Modal */}
+			<Modal
+				visible={showMacrosModal}
+				transparent={true}
+				animationType="fade"
+				onRequestClose={() => setShowMacrosModal(false)}
+			>
+				<View style={styles.modalOverlay}>
+					<View style={styles.modalContent}>
+						<Text style={styles.modalTitle}>Set Macros</Text>
+						<Text style={styles.modalSubtitle}>Enter target macros in grams</Text>
+
+						{/* Carbs Input */}
+						<View style={styles.macroInputContainer}>
+							<Text style={styles.macroLabel}>Carbs (g):</Text>
+							<TextInput
+								style={styles.macroInput}
+								placeholder="Any"
+								placeholderTextColor={colors.text.muted}
+								value={macroCarbs}
+								onChangeText={(text) => handleMacroChange(text, setMacroCarbs)}
+								keyboardType="number-pad"
+								returnKeyType="next"
+							/>
+						</View>
+
+						{/* Protein Input */}
+						<View style={styles.macroInputContainer}>
+							<Text style={styles.macroLabel}>Protein (g):</Text>
+							<TextInput
+								style={styles.macroInput}
+								placeholder="Any"
+								placeholderTextColor={colors.text.muted}
+								value={macroProtein}
+								onChangeText={(text) => handleMacroChange(text, setMacroProtein)}
+								keyboardType="number-pad"
+								returnKeyType="next"
+							/>
+						</View>
+
+						{/* Fat Input */}
+						<View style={styles.macroInputContainer}>
+							<Text style={styles.macroLabel}>Fat (g):</Text>
+							<TextInput
+								style={styles.macroInput}
+								placeholder="Any"
+								placeholderTextColor={colors.text.muted}
+								value={macroFat}
+								onChangeText={(text) => handleMacroChange(text, setMacroFat)}
+								keyboardType="number-pad"
+								returnKeyType="done"
+							/>
+						</View>
+
+						{/* Modal Buttons */}
+						<View style={styles.modalButtons}>
+							<TouchableOpacity
+								style={[styles.modalButton, styles.modalButtonCancel]}
+								onPress={() => setShowMacrosModal(false)}
+							>
+								<Text style={styles.modalButtonCancelText}>Cancel</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={[styles.modalButton, styles.modalButtonClear]}
+								onPress={handleClearMacros}
+							>
+								<Text style={styles.modalButtonClearText}>Clear</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								style={[styles.modalButton, styles.modalButtonSave]}
+								onPress={handleSaveMacros}
+							>
+								<Text style={styles.modalButtonSaveText}>Save</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</View>
+			</Modal>
 		</View>
 	);
 }
@@ -415,6 +534,7 @@ const styles = StyleSheet.create({
 	caloriesInput: {
 		flexDirection: 'row',
 		alignItems: 'center',
+		paddingVertical: spacing.sm,
 		paddingHorizontal: spacing.md,
 		backgroundColor: colors.primary.light,
 		borderRadius: 8,
@@ -425,12 +545,11 @@ const styles = StyleSheet.create({
 	},
 	caloriesTextInput: {
 		flex: 1,
-		minHeight: 44,
-		paddingVertical: spacing.md,
 		color: colors.text.primary,
 		fontSize: 16,
 		lineHeight: 20,
 		textAlign: 'left',
+		padding: 0,
 	},
 	caloriesUnit: {
 		fontSize: 14,
@@ -460,6 +579,95 @@ const styles = StyleSheet.create({
 		fontWeight: '600',
 		lineHeight: 20,
 		color: colors.accent.coral,
+	},
+	modalOverlay: {
+		flex: 1,
+		backgroundColor: 'rgba(0, 0, 0, 0.5)',
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	modalContent: {
+		backgroundColor: colors.background.primary,
+		borderRadius: 16,
+		padding: spacing.lg,
+		width: '85%',
+		maxWidth: 400,
+		borderWidth: 1,
+		borderColor: colors.border.light,
+	},
+	modalTitle: {
+		fontSize: 20,
+		fontWeight: '700',
+		color: colors.text.primary,
+		marginBottom: spacing.xs,
+		textAlign: 'center',
+	},
+	modalSubtitle: {
+		fontSize: 14,
+		color: colors.text.secondary,
+		marginBottom: spacing.lg,
+		textAlign: 'center',
+	},
+	macroInputContainer: {
+		marginBottom: spacing.md,
+	},
+	macroLabel: {
+		fontSize: 14,
+		fontWeight: '500',
+		color: colors.text.secondary,
+		marginBottom: spacing.xs,
+	},
+	macroInput: {
+		backgroundColor: colors.primary.light,
+		borderRadius: 8,
+		borderWidth: 1,
+		borderColor: colors.border.light,
+		paddingVertical: spacing.sm,
+		paddingHorizontal: spacing.md,
+		color: colors.text.primary,
+		fontSize: 16,
+		minHeight: 44,
+	},
+	modalButtons: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		marginTop: spacing.md,
+		gap: spacing.sm,
+	},
+	modalButton: {
+		flex: 1,
+		paddingVertical: spacing.md,
+		borderRadius: 8,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	modalButtonCancel: {
+		backgroundColor: colors.primary.light,
+		borderWidth: 1,
+		borderColor: colors.border.light,
+	},
+	modalButtonCancelText: {
+		color: colors.text.primary,
+		fontSize: 16,
+		fontWeight: '600',
+	},
+	modalButtonClear: {
+		backgroundColor: 'transparent',
+		borderWidth: 1,
+		borderColor: colors.border.light,
+	},
+	modalButtonClearText: {
+		color: colors.text.secondary,
+		fontSize: 16,
+		fontWeight: '600',
+	},
+	modalButtonSave: {
+		backgroundColor: colors.accent.coral,
+	},
+	modalButtonSaveText: {
+		color: '#FFFFFF',
+		fontSize: 16,
+		fontWeight: '600',
 	},
 });
 
