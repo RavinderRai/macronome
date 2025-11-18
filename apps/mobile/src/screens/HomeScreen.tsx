@@ -10,11 +10,15 @@ import {
 	FlatList, 
 	KeyboardAvoidingView, 
 	Platform,
-	Alert
+	Alert,
+	Modal,
+	TouchableOpacity,
+	Text
 } from 'react-native';
 import { colors } from '../theme';
 import { spacing } from '../theme';
-import { CHAT_CONSTANTS } from '../utils/constants';
+import { CHAT_CONSTANTS, APP_CONFIG } from '../utils/constants';
+import { useAuthContext } from '../contexts/AuthContext';
 
 // Import stores
 import { useChatStore, usePantryStore, useUIStore } from '../store';
@@ -40,9 +44,13 @@ export default function HomeScreen() {
 	const [detectedItems, setDetectedItems] = useState<any[]>([]);
 	const [reviewSheetVisible, setReviewSheetVisible] = useState(false);
 	const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined);
+	const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 	
 	// Ref for scrolling to bottom
 	const flatListRef = useRef<FlatList>(null);
+	
+	// Auth context
+	const { signOut } = useAuthContext();
 
   // Get state and actions from Zustand stores
   const messages = useChatStore((state) => state.messages);
@@ -213,8 +221,31 @@ export default function HomeScreen() {
 
   // Handle settings button press
   const handleSettingsPress = () => {
-    // TODO: Navigate to settings 
-    console.log('Settings pressed - will implement later')
+    setSettingsModalVisible(true);
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut();
+              setSettingsModalVisible(false);
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -289,6 +320,47 @@ export default function HomeScreen() {
 				onClose={handleReviewClose}
 				onConfirm={handleReviewConfirm}
 			/>
+
+			{/* Settings Modal */}
+			<Modal
+				visible={settingsModalVisible}
+				transparent={true}
+				animationType="fade"
+				onRequestClose={() => setSettingsModalVisible(false)}
+			>
+				<TouchableOpacity
+					style={styles.modalOverlay}
+					activeOpacity={1}
+					onPress={() => setSettingsModalVisible(false)}
+				>
+					<View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+						<Text style={styles.modalTitle}>{APP_CONFIG.name}</Text>
+						<Text style={styles.modalTagline}>{APP_CONFIG.tagline}</Text>
+						<Text style={styles.modalVersion}>Version {APP_CONFIG.version}</Text>
+						
+						<View style={styles.modalDivider} />
+						
+						<Text style={styles.modalAbout}>
+							Your AI-powered nutrition co-pilot. Get personalized meal recommendations 
+							that match your cravings, diet, and available ingredients.
+						</Text>
+						
+						<TouchableOpacity
+							style={styles.logoutButton}
+							onPress={handleLogout}
+						>
+							<Text style={styles.logoutButtonText}>Sign Out</Text>
+						</TouchableOpacity>
+						
+						<TouchableOpacity
+							style={styles.closeButton}
+							onPress={() => setSettingsModalVisible(false)}
+						>
+							<Text style={styles.closeButtonText}>Close</Text>
+						</TouchableOpacity>
+					</View>
+				</TouchableOpacity>
+			</Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -310,5 +382,73 @@ const styles = StyleSheet.create({
 		bottom: spacing.md,
 		left: spacing.md,
 		right: spacing.md,
+	},
+	modalOverlay: {
+		flex: 1,
+		backgroundColor: 'rgba(0, 0, 0, 0.5)',
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: spacing.lg,
+	},
+	modalContent: {
+		backgroundColor: colors.background.secondary,
+		borderRadius: 16,
+		padding: spacing.xl,
+		width: '100%',
+		maxWidth: 400,
+		alignItems: 'center',
+	},
+	modalTitle: {
+		fontSize: 28,
+		fontWeight: '700',
+		color: colors.text.primary,
+		marginBottom: spacing.xs,
+	},
+	modalTagline: {
+		fontSize: 14,
+		color: colors.text.muted,
+		fontStyle: 'italic',
+		marginBottom: spacing.sm,
+		textAlign: 'center',
+	},
+	modalVersion: {
+		fontSize: 12,
+		color: colors.text.muted,
+		marginBottom: spacing.md,
+	},
+	modalDivider: {
+		width: '100%',
+		height: 1,
+		backgroundColor: colors.border.light,
+		marginVertical: spacing.md,
+	},
+	modalAbout: {
+		fontSize: 14,
+		color: colors.text.secondary,
+		textAlign: 'center',
+		lineHeight: 20,
+		marginBottom: spacing.lg,
+	},
+	logoutButton: {
+		backgroundColor: colors.accent.coral,
+		paddingVertical: spacing.md,
+		paddingHorizontal: spacing.xl,
+		borderRadius: 8,
+		width: '100%',
+		marginBottom: spacing.sm,
+	},
+	logoutButtonText: {
+		color: colors.text.primary,
+		fontSize: 16,
+		fontWeight: '600',
+		textAlign: 'center',
+	},
+	closeButton: {
+		paddingVertical: spacing.sm,
+		paddingHorizontal: spacing.lg,
+	},
+	closeButtonText: {
+		color: colors.text.muted,
+		fontSize: 14,
 	},
 });
