@@ -128,12 +128,6 @@ class ClassificationNode(AgentNode):
         
         logger.info(f"   Classified {len(classified_items)} items")
         
-        # Print detected items for debugging
-        print(f"\n✅ Classification Results ({len(classified_items)} items):")
-        for i, classified_item in enumerate(classified_items, 1):
-            print(f"  {i}. {classified_item.classification} (confidence: {classified_item.confidence:.2f})")
-        print()
-        
         # Create final result
         result = PantryScanResult(
             items=classified_items,
