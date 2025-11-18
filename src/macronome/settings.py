@@ -52,6 +52,10 @@ class BackendConfig:
     HOST = os.getenv("BACKEND_HOST", "0.0.0.0")
     PORT = int(os.getenv("BACKEND_PORT", "8000"))
     DEBUG = ENV == "dev"
+    API_BASE_URL = os.getenv(
+        "API_BASE_URL",
+        f"http://{HOST}:{PORT}" if HOST != "0.0.0.0" else "http://localhost:8000"
+    )
     
     # CORS settings
     CORS_ORIGINS = os.getenv(

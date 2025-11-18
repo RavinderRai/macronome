@@ -1,6 +1,6 @@
-from ml.training.pantry_detector.config import TrainingConfig
-from ml.training.pantry_detector.train import train_detector
-from ml.training.pantry_detector.utils import count_dataset_files, print_dataset_summary
+from macronome.ai.models.pantry_detector.config import TrainingConfig
+from macronome.ai.models.pantry_detector.train import train_detector
+from macronome.ai.models.pantry_detector.utils import count_dataset_files, print_dataset_summary
 
 __all__ = [
     "TrainingConfig",

@@ -1,5 +1,10 @@
 """
-Crop detected pantry items from images using bounding boxes
+DEPRECATED: This file is old and deprecated.
+
+All cropping logic has been moved to:
+- macronome.ai.workflows.pantry_scanner_nodes.cropping_node
+
+This file should be deleted when ready.
 """
 from __future__ import annotations
 

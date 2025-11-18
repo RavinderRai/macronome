@@ -1,0 +1,5 @@
+{
+    "image_path": "data/processed/yolo_format/test/images/img_0000.jpg",
+    "conf_threshold": 0.25,
+    "crop_padding": 10
+}

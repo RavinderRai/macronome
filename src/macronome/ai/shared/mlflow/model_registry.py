@@ -15,7 +15,7 @@ def get_latest_model_path(
     Args:
         experiment_name: Name of the MLflow experiment
         tracking_dir: MLflow tracking directory. If None, assumes it's in 
-                     ml/training/{experiment_name}/mlruns relative to ml/shared
+                     ai/models/{experiment_name}/mlruns relative to ai/shared/mlflow
         artifact_path: Path pattern for artifacts within the run. 
                       {experiment_name} will be replaced.
     
@@ -27,10 +27,10 @@ def get_latest_model_path(
     """
     # Default tracking directory if not provided
     if tracking_dir is None:
-        # ml/shared -> ml -> training/{experiment_name}/mlruns
+        # ai/shared/mlflow -> ai/shared -> ai -> models/{experiment_name}/mlruns
         tracking_dir = (
             Path(__file__).resolve().parent.parent.parent 
-            / "training" 
+            / "models" 
             / experiment_name 
             / "mlruns"
         )

@@ -3,15 +3,17 @@ Pantry Router
 ML scanning and CRUD operations for pantry items
 """
 import logging
-from typing import List
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+import io
+from typing import List, Optional, Dict, Any
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, Query
 from supabase import Client
+from PIL import Image
 
 from macronome.backend.api.dependencies import get_current_user, get_supabase, get_supabase_admin
-from macronome.backend.database.models import PantryItem, PantryImage
+from macronome.backend.database.models import PantryItem
 from macronome.backend.storage import storage
+from macronome.backend.services.detection import DetectionService
 from pydantic import BaseModel
-from typing import Optional, List, Dict
 from macronome.backend.services.pantry_scanner import PantryScannerService
 from datetime import datetime
 
@@ -57,6 +59,74 @@ class PantryItemsResponse(BaseModel):
     """List of pantry items"""
     items: List[PantryItem]
     total: int
+
+
+class DetectionResponse(BaseModel):
+    """Response from detection endpoint"""
+    items: List[Dict[str, Any]]  # List of PantryItem dicts
+
+
+@router.post("/detect", tags=["ml", "pantry"], response_model=DetectionResponse)
+async def detect_items(
+    file: UploadFile = File(...),
+    conf_threshold: float = Query(0.25, ge=0.0, le=1.0, description="Confidence threshold for detection"),
+):
+    """
+    AI: Detect pantry items in image (inference-only endpoint)
+    
+    Low-level detection endpoint that uses YOLO model to detect items.
+    Used by workflows and can be called independently.
+    Does not save images or items to database - pure inference.
+    
+    Returns:
+        DetectionResponse with detected items (bounding boxes, confidence scores)
+    """
+    logger.info(f"🔍 Detection request (conf_threshold={conf_threshold})")
+    
+    # Validate file type
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be an image"
+        )
+    
+    try:
+        # Read image bytes
+        image_bytes = await file.read()
+        
+        # Convert to PIL Image
+        pil_image = Image.open(io.BytesIO(image_bytes))
+        if pil_image.mode != "RGB":
+            pil_image = pil_image.convert("RGB")
+        
+        # Call DetectionService
+        detected_items = await DetectionService.detect(pil_image, conf_threshold=conf_threshold)
+        
+        # Convert PantryItem objects to dicts for JSON serialization
+        items_dict = [
+            {
+                "id": item.id,
+                "bounding_box": {
+                    "x": item.bounding_box.x,
+                    "y": item.bounding_box.y,
+                    "width": item.bounding_box.width,
+                    "height": item.bounding_box.height,
+                },
+                "confidence": item.confidence,
+            }
+            for item in detected_items
+        ]
+        
+        logger.info(f"✅ Detected {len(items_dict)} items")
+        
+        return DetectionResponse(items=items_dict)
+    
+    except Exception as e:
+        logger.error(f"❌ Detection failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to detect items: {str(e)}"
+        )
 
 
 @router.post("/scan", tags=["ml", "pantry"], response_model=PantryScanResponse)
