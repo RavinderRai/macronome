@@ -168,6 +168,8 @@ class RetrievalNode(Node):
     
     def _semantic_search_qdrant(self, query: str, top_k: int) -> List[tuple]:
         """Perform Qdrant semantic search and build Recipe objects from payloads"""
+        logger.debug(f"Qdrant search: query='{query}', top_k={top_k}")
+        
         # Embed query
         query_embedding = self._embed_query(query)
         
@@ -179,17 +181,27 @@ class RetrievalNode(Node):
             limit=top_k,
             with_payload=True  # Ensure payloads are returned
         )
-        
+                
         # Build Recipe objects directly from Qdrant payloads (no S3 lookup needed!)
         results = []
-        for result in search_results:
+        for i, result in enumerate(search_results):
             payload = result.payload
+            
+            # Debug first result payload structure
+            if i == 0:
+                ingredients = payload.get("ingredients", [])
+                logger.debug(
+                    f"First result payload: recipe_id={payload.get('recipe_id')}, "
+                    f"title={payload.get('title', '')[:50]}, "
+                    f"ingredients_type={type(ingredients).__name__}, "
+                    f"ingredients_count={len(ingredients) if isinstance(ingredients, list) else 'N/A'}"
+                )
             
             # Build Recipe from payload metadata
             recipe = Recipe(
                 id=payload["recipe_id"],
                 title=payload.get("title", ""),
-                ingredients=payload.get("ingredients", []),
+                ingredients=payload.get("ingredients", []) if isinstance(payload.get("ingredients"), list) else [],
                 directions="",  # Not needed for SelectionAgent
                 ner=[],  # Not using NER filtering anymore
                 source="",
@@ -221,11 +233,10 @@ class RetrievalNode(Node):
         
         planning: PlanningOutput = planning_output.model_output
         logger.info(f"Retrieving recipes with query: '{planning.search_query}'")
-        logger.info(f"Top K: {planning.top_k}")
+        logger.debug(f"Search strategy: {planning.search_strategy}, Top K: {planning.top_k}")
         
         # Semantic search only - return top 10 for SelectionAgent to choose from
         candidates = self._semantic_search(planning.search_query, 10)
-        logger.info(f"Semantic search returned {len(candidates)} candidates")
         
         # Extract recipes (already sorted by score)
         top_recipes = [recipe for recipe, score in candidates]
