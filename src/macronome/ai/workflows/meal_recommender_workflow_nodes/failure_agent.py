@@ -74,11 +74,16 @@ class FailureAgent(AgentNode):
         
         normalized = normalize_output.model_output
         
+        # Convert normalized constraints to dict, converting sets to lists for JSON serialization
+        constraints_dict = normalized.model_dump()
+        if 'excluded_ingredients' in constraints_dict and isinstance(constraints_dict['excluded_ingredients'], set):
+            constraints_dict['excluded_ingredients'] = list(constraints_dict['excluded_ingredients'])
+        
         # Render the prompt
         prompt = PromptManager.get_prompt(
             "failure",
             user_query=request.user_query,
-            normalized_constraints=normalized.model_dump(),
+            normalized_constraints=constraints_dict,
             qc_issues=qc_issues,
         )
         

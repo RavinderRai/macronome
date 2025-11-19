@@ -56,12 +56,39 @@ class QCRouter(BaseRouter):
             Next node instance (lazy-loaded from task_context metadata)
         """
         # Get required data
-        modified: ModifiedRecipe = task_context.nodes.get("ModificationAgent")
-        nutrition: NutritionInfo = task_context.nodes.get("NutritionNode")
-        normalized: NormalizedConstraints = task_context.nodes.get("NormalizeNode")
+        # Get OutputType objects and extract model_output
+        modification_output = task_context.nodes.get("ModificationAgent")
+        if modification_output and hasattr(modification_output, 'model_output'):
+            modified: ModifiedRecipe = modification_output.model_output
+        else:
+            modified = modification_output  # Fallback if already ModifiedRecipe
         
-        # Get node classes from workflow
-        node_map = task_context.metadata.get("nodes", {})
+        nutrition: NutritionInfo = task_context.nodes.get("NutritionNode")
+        
+        normalize_output = task_context.nodes.get("NormalizeNode")
+        if normalize_output and hasattr(normalize_output, 'model_output'):
+            normalized: NormalizedConstraints = normalize_output.model_output
+        else:
+            normalized = normalize_output  # Fallback if already NormalizedConstraints
+        
+        # Get node classes from workflow (stored in task_context metadata by workflow)
+        # The workflow stores nodes as Dict[str, Type[Node]] with class names as keys
+        raw_nodes = task_context.metadata.get("nodes", {})
+        
+        # Build a name-to-class mapping (handle both formats: already string keys or class keys)
+        if not raw_nodes:
+            node_map = {}
+        elif raw_nodes and isinstance(next(iter(raw_nodes.keys())), str):
+            # Already in format {"NodeName": NodeClass}
+            node_map = raw_nodes
+        else:
+            # Convert from {NodeClass: ...} to {"NodeName": NodeClass}
+            node_map = {
+                node_class.__name__: node_class
+                for node_class in raw_nodes.keys()
+            }
+        
+        logger.debug(f"QC Router node_map keys: {list(node_map.keys())}")
         
         if not all([modified, nutrition, normalized]):
             logger.error("Missing required data for QC routing")
@@ -133,13 +160,16 @@ class QCRouter(BaseRouter):
             # Minor or no issues - proceed to explanation
             logger.info("QC passed: Recipe meets quality standards")
             next_node_class = node_map.get("ExplanationAgent")
+            if not next_node_class:
+                logger.error(f"ExplanationAgent not found in node_map. Available nodes: {list(node_map.keys())}")
+                raise ValueError(f"ExplanationAgent not found in workflow. Available nodes: {list(node_map.keys())}")
         else:
             # Significant issues - ModificationAgent already tried 3 iterations, fail gracefully
             logger.info(f"QC failed: {len(issues)} issues found after modification attempts, routing to failure")
             next_node_class = node_map.get("FailureAgent")
-        
-        if not next_node_class:
-            raise ValueError("Next node class not found in workflow")
+            if not next_node_class:
+                logger.error(f"FailureAgent not found in node_map. Available nodes: {list(node_map.keys())}")
+                raise ValueError(f"FailureAgent not found in workflow. Available nodes: {list(node_map.keys())}")
         
         return next_node_class(task_context)
 

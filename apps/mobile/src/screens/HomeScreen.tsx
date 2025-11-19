@@ -25,6 +25,7 @@ import { useChatStore, usePantryStore, useUIStore, useFilterStore } from '../sto
 
 // Import API services
 import { sendChatMessage, ChatMessageRequest } from '../services/api';
+import { recommendMeal, getRecommendationStatus, MealRecommendRequest } from '../services/api/meals';
 
 // Import components
 import Header from '../components/common/Header';
@@ -239,6 +240,101 @@ export default function HomeScreen() {
     );
   };
 
+  // Handle meal recommendation button press
+  const handleMealRecommendation = async () => {
+    if (isLoading) return;
+
+    setLoading(true);
+    
+    try {
+      // Get current filter constraints from store
+      const filterState = useFilterStore.getState();
+      const constraints = filterState.constraints;
+      
+      // Build request - map frontend constraints to backend format
+      const request: MealRecommendRequest = {
+        user_query: undefined, // Let the workflow decide based on constraints
+        constraints: {
+          calorie_range: constraints.calories ? [constraints.calories - 200, constraints.calories + 200] : undefined,
+          macros: constraints.macros,
+          prep_time: constraints.prepTime,
+          diet_type: constraints.diet,
+          allergies: constraints.allergies,
+          meal_type: constraints.mealType,
+        },
+      };
+
+      console.log('🍽️ Requesting meal recommendation...');
+      
+      // Request meal recommendation
+      const response = await recommendMeal(request);
+      
+      console.log('✅ Meal recommendation task queued:', response.task_id);
+      
+      // Add message to chat
+      addMessage({
+        text: response.message || "I'm working on a meal recommendation for you!",
+        type: 'assistant',
+      });
+
+      // Poll for status (simplified - could be improved with better polling)
+      const pollStatus = async () => {
+        try {
+          const status = await getRecommendationStatus(response.task_id);
+          
+          if (status.status === 'success' && status.result) {
+            const meal = status.result;
+            addMessage({
+              text: `Here's your meal recommendation:\n\n**${meal.name}**\n\n${meal.description}\n\n**Ingredients:**\n${meal.ingredients.join(', ')}\n\n**Instructions:**\n${meal.instructions.map((step, i) => `${i + 1}. ${step}`).join('\n')}`,
+              type: 'assistant',
+            });
+          } else if (status.status === 'failure') {
+            addMessage({
+              text: `Sorry, I couldn't generate a meal recommendation. ${status.error || 'Please try again.'}`,
+              type: 'assistant',
+            });
+          } else if (status.status === 'pending' || status.status === 'started') {
+            // Poll again after a delay
+            setTimeout(pollStatus, 2000);
+            return;
+          }
+        } catch (error) {
+          console.error('Error polling meal status:', error);
+          addMessage({
+            text: 'Sorry, there was an error getting your meal recommendation. Please try again.',
+            type: 'assistant',
+          });
+        }
+      };
+
+      // Start polling after a short delay
+      setTimeout(pollStatus, 2000);
+
+      // Scroll to bottom
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+
+    } catch (error: any) {
+      console.error('❌ Meal recommendation error:', error);
+      
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to request meal recommendation. Please try again.';
+      
+      addMessage({
+        text: `Error: ${errorMessage}`,
+        type: 'assistant',
+      });
+
+      Alert.alert(
+        'Error',
+        errorMessage,
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -292,6 +388,16 @@ export default function HomeScreen() {
         onSend={handleSend}
         onCameraPress={handleCameraPress}
         disabled={isLoading}
+        renderRightButton={() => (
+          <TouchableOpacity
+            style={styles.fab}
+            onPress={handleMealRecommendation}
+            disabled={isLoading}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.fabIcon}>🍽️</Text>
+          </TouchableOpacity>
+        )}
       />
 
       {/* Pantry Drawer - slides in from left */}
@@ -441,5 +547,25 @@ const styles = StyleSheet.create({
 	closeButtonText: {
 		color: colors.text.muted,
 		fontSize: 14,
+	},
+	fab: {
+		width: 36,
+		height: 36,
+		borderRadius: 18,
+		backgroundColor: colors.accent.coral,
+		justifyContent: 'center',
+		alignItems: 'center',
+		marginBottom: spacing.xs,
+		elevation: 2, // Android shadow
+		shadowColor: '#000', // iOS shadow
+		shadowOffset: {
+			width: 0,
+			height: 1,
+		},
+		shadowOpacity: 0.2,
+		shadowRadius: 2,
+	},
+	fabIcon: {
+		fontSize: 18,
 	},
 });

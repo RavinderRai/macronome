@@ -1,7 +1,7 @@
 {
     "user_query": "something quick and healthy for lunch",
     "constraints": {
-        "calories": 600,
+        "calories": 580,
         "macros": {
             "carbs": 60,
             "protein": 40,

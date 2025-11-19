@@ -16,6 +16,7 @@ interface ChatInputProps {
 	onCameraPress?: () => void;
 	placeholder?: string;
 	disabled?: boolean;
+	renderRightButton?: () => React.ReactNode;
 }
 
 export default function ChatInput({
@@ -25,6 +26,7 @@ export default function ChatInput({
 	onCameraPress,
 	placeholder = CHAT_CONSTANTS.placeholders.input,
 	disabled = false,
+	renderRightButton,
 }: ChatInputProps) {
 	// Handle send button press
 	const handleSend = () => {
@@ -47,32 +49,40 @@ export default function ChatInput({
 				</TouchableOpacity>
 			)}
 			
-			{/* Text input */}
-			<TextInput
-				style={styles.input}
-				value={value}
-				onChangeText={onChangeText}
-				placeholder={placeholder}
-				placeholderTextColor={colors.text.muted}
-				multiline
-				maxLength={500}
-				editable={!disabled}
-				returnKeyType="send"
-				onSubmitEditing={handleSend}
-			/>
+			{/* Text input with send button inside */}
+			<View style={[
+				styles.inputContainer,
+				renderRightButton && styles.inputContainerWithButton
+			]}>
+				<TextInput
+					style={styles.input}
+					value={value}
+					onChangeText={onChangeText}
+					placeholder={placeholder}
+					placeholderTextColor={colors.text.muted}
+					multiline
+					maxLength={500}
+					editable={!disabled}
+					returnKeyType="send"
+					onSubmitEditing={handleSend}
+				/>
+				
+				{/* Send button inside input */}
+				<TouchableOpacity 
+					style={[
+						styles.sendButton,
+						(!value.trim() || disabled) && styles.sendButtonDisabled
+					]}
+					onPress={handleSend}
+					disabled={!value.trim() || disabled}
+					activeOpacity={0.7}
+				>
+					<Text style={styles.sendIcon}>→</Text>
+				</TouchableOpacity>
+			</View>
 			
-			{/* Send button */}
-			<TouchableOpacity 
-				style={[
-					styles.sendButton,
-					(!value.trim() || disabled) && styles.sendButtonDisabled
-				]}
-				onPress={handleSend}
-				disabled={!value.trim() || disabled}
-				activeOpacity={0.7}
-			>
-				<Text style={styles.sendIcon}>→</Text>
-			</TouchableOpacity>
+			{/* Right button (e.g., meal recommendation FAB) */}
+			{renderRightButton && renderRightButton()}
 		</View>
 	);
 }
@@ -95,6 +105,18 @@ const styles = StyleSheet.create({
 	cameraIcon: {
 		fontSize: 24,
 	},
+	inputContainer: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'flex-end',
+		backgroundColor: colors.primary.light,
+		borderRadius: 20,
+		paddingRight: spacing.xs,
+		paddingBottom: spacing.xs,
+	},
+	inputContainerWithButton: {
+		marginRight: spacing.sm,
+	},
 	input: {
 		flex: 1,
 		minHeight: 44,
@@ -102,20 +124,20 @@ const styles = StyleSheet.create({
 		paddingHorizontal: spacing.md,
 		paddingTop: spacing.md,
 		paddingBottom: spacing.md,
-		backgroundColor: colors.primary.light,
+		backgroundColor: 'transparent',
 		borderRadius: 20,
 		color: colors.text.primary,
 		fontSize: 16,
 		lineHeight: 20,
 	},
 	sendButton: {
-		width: 40,
-		height: 40,
-		borderRadius: 20,
+		width: 36,
+		height: 36,
+		borderRadius: 18,
 		backgroundColor: colors.accent.coral,
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginLeft: spacing.sm,
+		marginLeft: spacing.xs,
 		marginBottom: spacing.xs,
 	},
 	sendButtonDisabled: {

@@ -19,28 +19,24 @@ logger = logging.getLogger(__name__)
 """
 Modification Agent Node
 
-The workhorse of the workflow. Uses 7 tools to modify recipes to meet ALL constraints.
-Handles both qualitative (diet, swaps) and quantitative (macros, calories) modifications.
+Agent with only ONE tool (calculate_nutrition).
+LLM does all recipe modification directly in output, then we verify with nutrition calculation.
 """
 
+MAX_ITERATIONS = 1
 
 class ModificationAgent(AgentNode):
     """
     Fifth node in meal recommendation workflow.
     
-    Uses LLM with 7 tools to modify recipe to meet ALL user constraints.
+    Simplified agent that outputs complete modified recipes directly.
+    Uses only calculate_nutrition tool to verify results.
     
     Input: Selected recipe from SelectionAgent
     Output: ModifiedRecipe saved to task_context.nodes["ModificationAgent"]
     
-    Tools:
-    1. estimate_macros - Quick macro estimation
-    2. scale_recipe - Scale all ingredients
-    3. swap_ingredient - Substitute ingredients
-    4. adjust_ingredient_amount - Fine-tune quantities
-    5. parse_ingredient - Parse ingredient strings
-    6. check_pantry - Check availability
-    7. suggest_substitutions - Get substitution ideas
+    Tool:
+    - calculate_nutrition: Verify nutrition meets constraints (USDA API)
     """
     
     class OutputType(AgentNode.OutputType):
@@ -50,34 +46,25 @@ class ModificationAgent(AgentNode):
     
     def __init__(self, task_context: TaskContext = None):
         super().__init__(task_context)
-        self._recipe_state = {}  # Track current state during modifications
         self._pantry_items = []
         self._constraints: NormalizedConstraints = None
         self._nutrition_calculator = NutritionCalculator()
         self._current_nutrition: NutritionInfo = None
-        self._max_iterations = 3
+        self._max_iterations = MAX_ITERATIONS
     
     def get_agent_config(self) -> AgentConfig:
         """
-        Configure the agent for recipe modification with all 7 tools.
+        Configure the agent with ONLY calculate_nutrition tool.
         
-        Uses gpt-4o for complex reasoning with tool use.
+        Uses gpt-4o for complex reasoning and structured output.
         """
         return AgentConfig(
             model_provider=ModelProvider.OPENAI,
             model_name="gpt-4o",
             output_type=ModifiedRecipe,
-            system_prompt="You are a recipe modification expert who adapts recipes to meet constraints.",
+            system_prompt="You are a recipe modification expert. Modify recipes to meet user constraints.",
             name="ModificationAgent",
-            tools=[
-                self.calculate_nutrition,
-                self.scale_recipe,
-                self.swap_ingredient,
-                self.adjust_ingredient_amount,
-                self.parse_ingredient,
-                self.check_pantry,
-                self.suggest_substitutions,
-            ],
+            tools=[self.calculate_nutrition],  # ONLY ONE TOOL
             retries=2,
         )
     
@@ -86,8 +73,8 @@ class ModificationAgent(AgentNode):
         """
         Calculate exact nutrition using USDA API (with caching).
         
+        Call this AFTER you've output your modified recipe to verify nutrition.
         Only makes API calls for ingredients not already in cache.
-        Use this after making ingredient swaps or adjustments to get updated nutrition.
         
         Args:
             ingredients: List of ingredient dicts with:
@@ -123,253 +110,8 @@ class ModificationAgent(AgentNode):
             "fat": nutrition.fat,
         }
     
-    # Tool 2: Scale Recipe
-    async def scale_recipe(self, recipe_id: str, scale_factor: float) -> Dict[str, Any]:
-        """
-        Scale all ingredients proportionally.
-        
-        Args:
-            recipe_id: ID of recipe to scale
-            scale_factor: Factor to scale by (e.g., 0.5 for half, 2.0 for double)
-            
-        Returns:
-            Updated ingredient list
-        """
-        logger.info(f"Scaling recipe {recipe_id} by {scale_factor}x")
-        
-        if recipe_id not in self._recipe_state:
-            return {"error": "Recipe not found in state"}
-        
-        recipe = self._recipe_state[recipe_id]
-        scaled_ingredients = []
-        
-        for ing in recipe["ingredients"]:
-            scaled_ing = ing.copy()
-            if "quantity" in scaled_ing:
-                scaled_ing["quantity"] = scaled_ing["quantity"] * scale_factor
-            scaled_ingredients.append(scaled_ing)
-        
-        recipe["ingredients"] = scaled_ingredients
-        return {"success": True, "new_ingredient_count": len(scaled_ingredients)}
-    
-    # Tool 3: Swap Ingredient
-    async def swap_ingredient(
-        self, recipe_id: str, old_ingredient: str, new_ingredient: str, reason: str
-    ) -> Dict[str, Any]:
-        """
-        Substitute one ingredient for another.
-        
-        Args:
-            recipe_id: ID of recipe
-            old_ingredient: Ingredient to replace
-            new_ingredient: Replacement ingredient
-            reason: Why this swap is being made
-            
-        Returns:
-            Swap confirmation
-        """
-        logger.info(f"Swapping '{old_ingredient}' -> '{new_ingredient}' ({reason})")
-        
-        if recipe_id not in self._recipe_state:
-            return {"error": "Recipe not found"}
-        
-        recipe = self._recipe_state[recipe_id]
-        swapped = False
-        
-        for ing in recipe["ingredients"]:
-            if old_ingredient.lower() in ing.get("ingredient", "").lower():
-                ing["ingredient"] = new_ingredient
-                swapped = True
-                break
-        
-        if swapped:
-            recipe["modifications"].append(f"Swapped {old_ingredient} for {new_ingredient}: {reason}")
-        
-        return {"success": swapped, "reason": reason}
-    
-    # Tool 4: Adjust Ingredient Amount
-    async def adjust_ingredient_amount(
-        self, recipe_id: str, ingredient: str, new_amount: str, reason: str
-    ) -> Dict[str, Any]:
-        """
-        Change the amount of a specific ingredient.
-        
-        Args:
-            recipe_id: ID of recipe
-            ingredient: Ingredient to adjust
-            new_amount: New amount (e.g., "2 cups", "150g")
-            reason: Why this adjustment is needed
-            
-        Returns:
-            Adjustment confirmation
-        """
-        logger.info(f"Adjusting {ingredient} to {new_amount} ({reason})")
-        
-        if recipe_id not in self._recipe_state:
-            return {"error": "Recipe not found"}
-        
-        recipe = self._recipe_state[recipe_id]
-        adjusted = False
-        
-        for ing in recipe["ingredients"]:
-            if ingredient.lower() in ing.get("ingredient", "").lower():
-                # Parse new amount (simplified)
-                parts = new_amount.split()
-                if len(parts) >= 2:
-                    ing["quantity"] = float(parts[0])
-                    ing["unit"] = " ".join(parts[1:])
-                adjusted = True
-                break
-        
-        if adjusted:
-            recipe["modifications"].append(f"Adjusted {ingredient} to {new_amount}: {reason}")
-        
-        return {"success": adjusted, "reason": reason}
-    
-    # Tool 5: Parse Ingredient
-    async def parse_ingredient(self, ingredient_str: str) -> Dict[str, Any]:
-        """
-        Parse ingredient string to structured format.
-        
-        Args:
-            ingredient_str: Raw ingredient string (e.g., "2 cups chopped onion")
-            
-        Returns:
-            Parsed ingredient with quantity, unit, name, modifier
-        """
-        logger.info(f"Parsing ingredient: '{ingredient_str}'")
-        
-        # Simple parsing (in production, use more sophisticated NLP)
-        parts = ingredient_str.split()
-        
-        result = {
-            "ingredient": "",
-            "quantity": 1.0,
-            "unit": "",
-            "modifier": None,
-        }
-        
-        # Try to extract quantity (first number)
-        for i, part in enumerate(parts):
-            try:
-                # Handle fractions like "1/2"
-                if "/" in part:
-                    num, den = part.split("/")
-                    result["quantity"] = float(num) / float(den)
-                else:
-                    result["quantity"] = float(part)
-                # Rest is likely unit + ingredient
-                remaining = parts[i+1:]
-                if remaining:
-                    # First word might be unit
-                    possible_units = ["cup", "cups", "tbsp", "tsp", "oz", "lb", "g", "kg", "ml", "l"]
-                    if remaining[0].lower() in possible_units:
-                        result["unit"] = remaining[0]
-                        result["ingredient"] = " ".join(remaining[1:])
-                    else:
-                        result["ingredient"] = " ".join(remaining)
-                break
-            except ValueError:
-                continue
-        
-        # If no quantity found, treat whole string as ingredient
-        if not result["ingredient"]:
-            result["ingredient"] = ingredient_str
-        
-        return result
-    
-    # Tool 6: Check Pantry
-    async def check_pantry(self, ingredient_names: List[str]) -> Dict[str, List[str]]:
-        """
-        Check which ingredients are available in user's pantry.
-        
-        Args:
-            ingredient_names: List of ingredient names to check
-            
-        Returns:
-            Dict with 'has' and 'missing' lists
-        """
-        logger.info(f"Checking pantry for {len(ingredient_names)} ingredients")
-        
-        pantry_names = set(item.lower() for item in self._pantry_items)
-        
-        has = []
-        missing = []
-        
-        for ing in ingredient_names:
-            ing_lower = ing.lower()
-            # Check if any pantry item matches
-            if any(pantry_item in ing_lower or ing_lower in pantry_item for pantry_item in pantry_names):
-                has.append(ing)
-            else:
-                missing.append(ing)
-        
-        return {"has": has, "missing": missing}
-    
-    # Tool 7: Suggest Substitutions
-    async def suggest_substitutions(
-        self, ingredient: str, constraints: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
-        """
-        Get valid substitution suggestions for an ingredient.
-        
-        Args:
-            ingredient: Ingredient to substitute
-            constraints: Diet/allergy constraints
-            
-        Returns:
-            List of substitution options with ratios and macro impacts
-        """
-        logger.info(f"Finding substitutions for '{ingredient}' with constraints: {constraints}")
-        
-        # Common substitutions database (simplified)
-        substitutions_db = {
-            "butter": [
-                {"substitute": "coconut oil", "ratio": "1:1", "macro_impact": "similar fat, no dairy"},
-                {"substitute": "olive oil", "ratio": "3:4", "macro_impact": "healthier fats"},
-            ],
-            "chicken": [
-                {"substitute": "tofu", "ratio": "1:1", "macro_impact": "lower protein, vegan"},
-                {"substitute": "turkey", "ratio": "1:1", "macro_impact": "similar protein, leaner"},
-            ],
-            "milk": [
-                {"substitute": "almond milk", "ratio": "1:1", "macro_impact": "lower calories, vegan"},
-                {"substitute": "oat milk", "ratio": "1:1", "macro_impact": "similar texture, vegan"},
-            ],
-            "rice": [
-                {"substitute": "cauliflower rice", "ratio": "1:1", "macro_impact": "much lower carbs"},
-                {"substitute": "quinoa", "ratio": "1:1", "macro_impact": "higher protein"},
-            ],
-        }
-        
-        ing_lower = ingredient.lower()
-        
-        # Find matching substitutions
-        suggestions = []
-        for key, subs in substitutions_db.items():
-            if key in ing_lower:
-                # Filter by constraints
-                diet = constraints.get("diet_type", "").lower()
-                if diet == "vegan":
-                    suggestions.extend([s for s in subs if "vegan" in s["macro_impact"]])
-                else:
-                    suggestions.extend(subs)
-        
-        if not suggestions:
-            # Generic fallback
-            suggestions = [
-                {"substitute": f"similar ingredient to {ingredient}", "ratio": "1:1", "macro_impact": "adjust as needed"}
-            ]
-        
-        return suggestions[:3]  # Return top 3
-    
     def _check_constraints_met(self, nutrition: NutritionInfo, constraints: NormalizedConstraints) -> Tuple[bool, List[str]]:
-        """
-        Check if current nutrition meets all constraints.
-        
-        Returns:
-            (is_met, issues_list)
-        """
+        """Check if current nutrition meets all constraints."""
         issues = []
         
         # Check calorie range
@@ -404,24 +146,84 @@ class ModificationAgent(AgentNode):
         
         return len(issues) == 0, issues
     
+    def _format_ingredients_for_prompt(self, ingredients: List[ParsedIngredient]) -> str:
+        """Format ingredients list for prompt display."""
+        return "\n".join([
+            f"- {ing.quantity} {ing.unit} {ing.ingredient}"
+            for ing in ingredients
+        ])
+    
+    def _build_specific_suggestions(self, nutrition: NutritionInfo, constraints: NormalizedConstraints) -> str:
+        """
+        Build specific suggestions for what to adjust based on gaps.
+        Handles flexible constraints - user may have only calories, only macros, or any combination.
+        """
+        suggestions = []
+        
+        # Check calorie range if specified
+        if constraints.calorie_range:
+            target_min, target_max = constraints.calorie_range
+            tolerance = 0.15
+            min_acceptable = target_min * (1 - tolerance)
+            max_acceptable = target_max * (1 + tolerance)
+            
+            if nutrition.calories < min_acceptable:
+                diff = target_min - nutrition.calories
+                suggestions.append(f"• Add ~{diff:.0f} calories (e.g., increase portion sizes, add healthy fats)")
+            elif nutrition.calories > max_acceptable:
+                diff = nutrition.calories - target_max
+                suggestions.append(f"• Reduce ~{diff:.0f} calories (e.g., scale down portions, reduce high-calorie ingredients)")
+        
+        # Check macro targets if specified
+        if constraints.macro_targets:
+            targets = constraints.macro_targets
+            
+            # Protein (if target exists)
+            if targets.protein is not None:
+                if nutrition.protein < targets.protein * 0.85:
+                    diff = targets.protein - nutrition.protein
+                    suggestions.append(f"• Add {diff:.0f}g more protein (e.g., increase chicken/fish, add beans/tofu)")
+                elif nutrition.protein > targets.protein * 1.15:
+                    diff = nutrition.protein - targets.protein
+                    suggestions.append(f"• Reduce protein by {diff:.0f}g (e.g., decrease meat portions)")
+            
+            # Carbs (if target exists)
+            if targets.carbs is not None:
+                if nutrition.carbs < targets.carbs * 0.85:
+                    diff = targets.carbs - nutrition.carbs
+                    suggestions.append(f"• Add {diff:.0f}g more carbs (e.g., add rice, pasta, or bread)")
+                elif nutrition.carbs > targets.carbs * 1.15:
+                    diff = nutrition.carbs - targets.carbs
+                    suggestions.append(f"• Reduce carbs by {diff:.0f}g (e.g., use cauliflower rice, reduce pasta/rice)")
+            
+            # Fat (if target exists)
+            if targets.fat is not None:
+                if nutrition.fat < targets.fat * 0.85:
+                    diff = targets.fat - nutrition.fat
+                    suggestions.append(f"• Add {diff:.0f}g more fat (e.g., increase olive oil, add avocado/nuts)")
+                elif nutrition.fat > targets.fat * 1.15:
+                    diff = nutrition.fat - targets.fat
+                    suggestions.append(f"• Reduce fat by {diff:.0f}g (e.g., decrease oil, remove cheese)")
+        
+        # Return suggestions or a generic message
+        if suggestions:
+            return "\n".join(suggestions)
+        else:
+            # If no specific targets or all are close, provide generic guidance
+            if not constraints.calorie_range and not constraints.macro_targets:
+                return "• No specific calorie or macro targets - focus on maintaining recipe quality"
+            else:
+                return "• All specified targets are close to goals"
+    
     async def process(self, task_context: TaskContext) -> TaskContext:
         """
-        Iteratively modify recipe to meet all user constraints.
-        
-        Loop structure:
+        Iterative modification:
         1. Calculate baseline nutrition
-        2. For each iteration (max 3):
-           a. Check if constraints already met → break
-           b. Use LLM + tools to modify recipe
-           c. Recalculate nutrition (uses cache, only new ingredients hit API)
-           d. Check constraints again
-        3. Return final modified recipe + nutrition
-        
-        Args:
-            task_context: Contains selected recipe and constraints
-            
-        Returns:
-            TaskContext with modified recipe and nutrition saved
+        2. For each iteration:
+           a. Show LLM: recipe + nutrition + constraints + pantry items
+           b. LLM outputs complete ModifiedRecipe directly
+           c. Call calculate_nutrition ONCE to verify
+           d. Check constraints → repeat if needed
         """
         # Get selected recipe
         selected_recipe: Recipe = task_context.nodes.get("selected_recipe")
@@ -433,15 +235,14 @@ class ModificationAgent(AgentNode):
         normalized = normalize_output.model_output
         request: MealRecommendationRequest = task_context.event
         
-        # Store for tool access
+        # Store pantry items and constraints
         self._pantry_items = [item.name for item in request.pantry_items if item.confirmed]
         self._constraints = normalized
         
         # Convert selected recipe ingredients to ParsedIngredient format
-        # (This is a simplified conversion - in production, you'd parse the raw ingredient strings)
         initial_ingredients = []
         for ing_str in selected_recipe.ingredients:
-            # Simple parsing - assume format like "2 cups flour" or just "flour"
+            # Simple parsing
             parts = ing_str.split(maxsplit=2)
             if len(parts) >= 2 and parts[0].replace('.', '').isdigit():
                 try:
@@ -472,100 +273,99 @@ class ModificationAgent(AgentNode):
         # Check if baseline already meets constraints
         constraints_met, issues = self._check_constraints_met(baseline_nutrition, normalized)
         if constraints_met:
-            logger.info("Baseline recipe already meets constraints, minimal modification needed")
+            logger.info("Baseline recipe already meets constraints")
         else:
             logger.info(f"Baseline nutrition: {baseline_nutrition.calories} cal, {baseline_nutrition.protein}g protein")
             logger.info(f"Constraints not met: {', '.join(issues)}")
         
-        # Initialize recipe state for modification
-        self._recipe_state[selected_recipe.id] = {
-            "ingredients": [
-                {
-                    "ingredient": ing.ingredient,
-                    "quantity": ing.quantity,
-                    "unit": ing.unit
-                }
-                for ing in initial_ingredients
-            ],
-            "directions": selected_recipe.directions,
-            "modifications": [],
-        }
-        
-        # Iterative modification loop
+        # Start with initial recipe
+        current_ingredients = initial_ingredients
         final_modified_recipe = None
         result = None
-        iteration = 0
+        
+        # Iterative modification loop
         for iteration in range(1, self._max_iterations + 1):
             logger.info(f"Modification iteration {iteration}/{self._max_iterations}")
             
             # Check if constraints are already met
             if constraints_met:
                 logger.info("Constraints met, breaking early")
+                # Create ModifiedRecipe from current state
+                final_modified_recipe = ModifiedRecipe(
+                    recipe_id=selected_recipe.id,
+                    title=selected_recipe.title,
+                    ingredients=current_ingredients,
+                    directions=selected_recipe.directions,
+                    modifications=[] if iteration == 1 else ["Recipe already met constraints"],
+                    reasoning="Recipe meets all constraints" if iteration == 1 else "Constraints met after modifications",
+                )
                 break
             
-            # Build prompt with current state
-            current_ingredients_str = "\n".join([
-                f"- {ing['quantity']} {ing['unit']} {ing['ingredient']}"
-                for ing in self._recipe_state[selected_recipe.id]["ingredients"]
-            ])
+            # Build comprehensive prompt with ALL context
+            current_ingredients_str = self._format_ingredients_for_prompt(current_ingredients)
             
             nutrition_feedback = (
-                f"Current nutrition: {self._current_nutrition.calories} cal, "
+                f"{self._current_nutrition.calories} cal, "
                 f"{self._current_nutrition.protein}g protein, "
                 f"{self._current_nutrition.carbs}g carbs, "
                 f"{self._current_nutrition.fat}g fat"
             )
             
-            if issues:
-                issues_feedback = f"Issues to fix: {', '.join(issues)}"
-            else:
-                issues_feedback = "All constraints met!"
+            issues_feedback = f"Issues to fix:\n{chr(10).join(f'• {issue}' for issue in issues)}" if issues else "✓ All constraints met!"
             
+            # Build constraints summary
+            constraints_summary = []
+            if normalized.calorie_range:
+                constraints_summary.append(f"Calories: {normalized.calorie_range[0]}-{normalized.calorie_range[1]}")
+            if normalized.macro_targets:
+                if normalized.macro_targets.protein:
+                    constraints_summary.append(f"Protein: {normalized.macro_targets.protein}g")
+                if normalized.macro_targets.carbs:
+                    constraints_summary.append(f"Carbs: {normalized.macro_targets.carbs}g")
+                if normalized.macro_targets.fat:
+                    constraints_summary.append(f"Fat: {normalized.macro_targets.fat}g")
+            if normalized.diet_type:
+                constraints_summary.append(f"Diet: {normalized.diet_type}")
+            if normalized.excluded_ingredients:
+                constraints_summary.append(f"Exclude: {', '.join(normalized.excluded_ingredients)}")
+            
+            # Get specific suggestions for this iteration
+            specific_suggestions = self._build_specific_suggestions(self._current_nutrition, normalized) if iteration > 1 else ""
+            
+            # Truncate directions if too long
+            directions = selected_recipe.directions[:500] + ("..." if len(selected_recipe.directions) > 500 else "")
+            
+            # Build excluded ingredients string
+            excluded_ingredients_str = ', '.join(normalized.excluded_ingredients) if normalized.excluded_ingredients else "none"
+            
+            # Load prompt from template
             prompt = PromptManager.get_prompt(
                 "modification",
-                constraints=normalized.model_dump(),
-                recipe={
-                    "title": selected_recipe.title,
-                    "ingredients": self._recipe_state[selected_recipe.id]["ingredients"],
-                    "directions": self._recipe_state[selected_recipe.id]["directions"],
-                },
+                recipe_title=selected_recipe.title,
+                current_ingredients_str=current_ingredients_str,
+                directions=directions,
+                nutrition_feedback=nutrition_feedback,
+                constraints_summary=constraints_summary,
                 pantry_items=self._pantry_items,
+                issues_feedback=issues_feedback,
+                specific_suggestions=specific_suggestions,
+                iteration=iteration,
+                max_iterations=self._max_iterations,
+                diet_type=normalized.diet_type or "none",
+                excluded_ingredients_str=excluded_ingredients_str,
             )
             
-            # Add iteration-specific context
-            iteration_prompt = f"""Iteration {iteration}/{self._max_iterations}
-
-{nutrition_feedback}
-{issues_feedback}
-
-Current ingredients:
-{current_ingredients_str}
-
-{prompt}
-
-IMPORTANT: After making modifications, call calculate_nutrition to get updated values.
-Then check if constraints are met. If not, continue modifying."""
-            
-            # Run the agent with tools
-            result = await self.agent.run(user_prompt=iteration_prompt)
+            # Run the agent (LLM outputs ModifiedRecipe directly)
+            result = await self.agent.run(user_prompt=prompt)
             
             # Get modified recipe from agent output
             modified_recipe: ModifiedRecipe = result.output
             final_modified_recipe = modified_recipe
+            current_ingredients = modified_recipe.ingredients
             
-            # Update recipe state from modified recipe
-            self._recipe_state[selected_recipe.id]["ingredients"] = [
-                {
-                    "ingredient": ing.ingredient,
-                    "quantity": ing.quantity,
-                    "unit": ing.unit
-                }
-                for ing in modified_recipe.ingredients
-            ]
-            self._recipe_state[selected_recipe.id]["modifications"] = modified_recipe.modifications
-            
-            # Recalculate nutrition after modification (uses cache, only new ingredients hit API)
-            logger.info("Recalculating nutrition after modification...")
+            # Verify nutrition matches (automatically called by agent via calculate_nutrition tool if needed)
+            # But we'll call it explicitly to ensure we have the final values
+            logger.info("Verifying nutrition after modification...")
             updated_nutrition = await self._nutrition_calculator.calculate(modified_recipe.ingredients)
             self._current_nutrition = updated_nutrition
             
@@ -573,30 +373,29 @@ Then check if constraints are met. If not, continue modifying."""
             constraints_met, issues = self._check_constraints_met(updated_nutrition, normalized)
             
             if constraints_met:
-                logger.info(f"Constraints met after iteration {iteration}!")
+                logger.info(f"✓ Constraints met after iteration {iteration}!")
                 break
             else:
                 logger.info(f"After iteration {iteration}: {updated_nutrition.calories} cal, {updated_nutrition.protein}g protein")
                 logger.info(f"Still need to fix: {', '.join(issues)}")
         
-        # Use final modified recipe (or create one if we broke early)
+        # Use final modified recipe (or create one if max iterations reached)
         if final_modified_recipe is None:
-            # Create ModifiedRecipe from current state
             final_modified_recipe = ModifiedRecipe(
                 recipe_id=selected_recipe.id,
                 title=selected_recipe.title,
-                ingredients=initial_ingredients,  # Use initial if no modifications
+                ingredients=current_ingredients,
                 directions=selected_recipe.directions,
-                modifications=[],
-                reasoning="Baseline recipe already met constraints",
+                modifications=["Max iterations reached, using best attempt"],
+                reasoning="Unable to meet all constraints within iteration limit",
             )
         
-        # Store output with message history (from last iteration)
+        # Store output
         history = to_jsonable_python(result.all_messages()) if result else []
         output = self.OutputType(model_output=final_modified_recipe, history=history)
         self.save_output(output)
         
-        # Also save nutrition to task context (for QC Router and Explanation Agent)
+        # Also save nutrition to task context
         task_context.nodes["NutritionNode"] = self._current_nutrition
         
         logger.info(f"Recipe modification complete after {iteration} iteration(s). "
