@@ -4,10 +4,7 @@ from pydantic_core import to_jsonable_python
 from macronome.ai.core.nodes.agent import AgentNode, AgentConfig, ModelProvider
 from macronome.ai.core.task import TaskContext
 from macronome.ai.prompts import PromptManager
-from macronome.ai.schemas.meal_recommender_constraints_schema import (
-    MealRecommendationRequest,
-    NormalizedConstraints,
-)
+from macronome.ai.schemas.meal_recommender_constraints_schema import MealRecommendationRequest
 from macronome.ai.schemas.workflow_schemas import PlanningOutput
 
 """
@@ -77,10 +74,15 @@ class PlanningAgent(AgentNode):
         normalized = normalize_output.model_output
         request: MealRecommendationRequest = task_context.event
         
+        # Convert normalized constraints to dict, converting sets to lists for JSON serialization
+        constraints_dict = normalized.model_dump()
+        if 'excluded_ingredients' in constraints_dict and isinstance(constraints_dict['excluded_ingredients'], set):
+            constraints_dict['excluded_ingredients'] = list(constraints_dict['excluded_ingredients'])
+        
         # Render the prompt with normalized constraints and pantry
         prompt = PromptManager.get_prompt(
             "planning",
-            normalized_constraints=normalized.model_dump(),
+            normalized_constraints=constraints_dict,
             pantry_items=[item.model_dump() for item in request.pantry_items],
         )
         
@@ -89,7 +91,7 @@ class PlanningAgent(AgentNode):
         
         # Store output with message history
         history = to_jsonable_python(result.all_messages())
-        output = self.OutputType(model_output=result.data, history=history)
+        output = self.OutputType(model_output=result.output, history=history)
         self.save_output(output)
         
         return task_context

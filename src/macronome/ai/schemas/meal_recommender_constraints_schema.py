@@ -1,5 +1,5 @@
-from typing import Optional, List, Dict, Tuple, Set, Any
-from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Set, Any
+from pydantic import BaseModel, Field, field_validator
 from macronome.backend.database.models import MacroConstraints
 
 class FilterConstraints(BaseModel):
@@ -41,10 +41,21 @@ class MealRecommendationRequest(BaseModel):
 
 class NormalizedConstraints(BaseModel):
     """Standardized constraints after parsing"""
-    calorie_range: Optional[Tuple[int, int]] = None  # e.g., (650, 750)
+    calorie_range: Optional[List[int]] = Field(
+        None,
+        description="Calorie range as [min, max] e.g., [650, 750]"
+    )
     macro_targets: Optional[MacroConstraints] = None
     diet_type: Optional[str] = None
     excluded_ingredients: Set[str] = set()
     prep_time_max: Optional[int] = None              # minutes (quick=30, medium=60, long=None)
     custom_constraints: Dict[str, Any] = {}          # Parsed from chat (cuisine, meal_type, etc.)
     semantic_query: str = ""                         # Processed search query
+    
+    @field_validator('calorie_range')
+    @classmethod
+    def validate_calorie_range(cls, v):
+        """Ensure calorie_range has exactly 2 items [min, max]"""
+        if v is not None and len(v) != 2:
+            raise ValueError("calorie_range must have exactly 2 items [min, max]")
+        return v

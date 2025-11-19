@@ -103,7 +103,7 @@ class ExplanationAgent(AgentNode):
         result = await self.agent.run(user_prompt=prompt)
         
         # Get the explanation output
-        explanation_data = result.data
+        explanation_data = result.output
         
         # Create final meal recommendation
         final_recommendation = MealRecommendation(

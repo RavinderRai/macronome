@@ -305,6 +305,43 @@ def setup_qdrant_collection(client, vector_dim, clear_existing=True):
         logger.info(f"Collection '{collection_name}' created successfully with INT8 quantization")
 
 
+def _parse_ingredients(ingredients):
+    """
+    Parse ingredients, handling both JSON strings and list formats.
+    
+    Args:
+        ingredients: Can be a list, JSON string, or None
+        
+    Returns:
+        List of ingredient strings
+    """
+    if ingredients is None:
+        return []
+    
+    # If already a list, return as-is
+    if isinstance(ingredients, list):
+        return ingredients
+    
+    # If it's a string, try to parse as JSON
+    if isinstance(ingredients, str):
+        try:
+            parsed = json.loads(ingredients)
+            # Ensure it's a list
+            if isinstance(parsed, list):
+                return parsed
+            else:
+                logger.warning(f"Parsed ingredients is not a list: {type(parsed)}, returning empty list")
+                return []
+        except (json.JSONDecodeError, TypeError):
+            # If JSON parsing fails, treat as single ingredient string
+            logger.debug(f"Failed to parse ingredients as JSON, treating as single string: {ingredients[:50]}...")
+            return [ingredients]
+    
+    # Fallback: convert to string and wrap in list
+    logger.warning(f"Unexpected ingredients type: {type(ingredients)}, converting to list")
+    return [str(ingredients)]
+
+
 def upload_to_qdrant_chunk(client, embeddings, recipes, id_offset=0):
     """
     Upload a chunk of embeddings to Qdrant
@@ -332,7 +369,8 @@ def upload_to_qdrant_chunk(client, embeddings, recipes, id_offset=0):
                 vector=vector.tolist(),
                 payload={
                     "recipe_id": recipe["id"],
-                    "title": recipe["title"],  # Keep title for quick display/filtering
+                    "title": recipe["title"],
+                    "ingredients": _parse_ingredients(recipe.get("ingredients")),  # Parse ingredients (handles JSON strings)
                 }
             )
             for j, (recipe, vector) in enumerate(zip(batch_recipes, batch_embeddings))

@@ -86,7 +86,7 @@ class FailureAgent(AgentNode):
         result = await self.agent.run(user_prompt=prompt)
         
         # Get failure response
-        failure_response: FailureResponse = result.data
+        failure_response: FailureResponse = result.output
         
         # Store output with message history
         history = to_jsonable_python(result.all_messages())

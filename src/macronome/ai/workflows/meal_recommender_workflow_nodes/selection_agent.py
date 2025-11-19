@@ -4,6 +4,7 @@ from pydantic_core import to_jsonable_python
 from macronome.ai.core.nodes.agent import AgentNode, AgentConfig, ModelProvider
 from macronome.ai.core.task import TaskContext
 from macronome.ai.prompts import PromptManager
+from macronome.ai.workflows.meal_recommender_workflow_nodes.normalize_node import NormalizeNode
 from macronome.ai.schemas.meal_recommender_constraints_schema import (
     MealRecommendationRequest,
 )
@@ -69,17 +70,21 @@ class SelectionAgent(AgentNode):
             raise ValueError("No candidate recipes found from RetrievalNode")
         
         # Get normalized constraints
-        from macronome.ai.workflows.meal_recommender_workflow_nodes.normalize_node import NormalizeNode
         normalize_output: NormalizeNode.OutputType = task_context.nodes.get("NormalizeNode")
         normalized = normalize_output.model_output
         
         # Get pantry items from request
         request: MealRecommendationRequest = task_context.event
         
+        # Convert normalized constraints to dict, converting sets to lists for JSON serialization
+        normalized_dict = normalized.model_dump()
+        if 'excluded_ingredients' in normalized_dict and isinstance(normalized_dict['excluded_ingredients'], set):
+            normalized_dict['excluded_ingredients'] = list(normalized_dict['excluded_ingredients'])
+        
         # Render the prompt
         prompt = PromptManager.get_prompt(
             "selection",
-            normalized_constraints=normalized.model_dump(),
+            normalized_constraints=normalized_dict,
             pantry_items=[item.model_dump() for item in request.pantry_items],
             candidates=[recipe.model_dump() for recipe in candidates],
         )
@@ -89,7 +94,7 @@ class SelectionAgent(AgentNode):
         
         # Store output with message history
         history = to_jsonable_python(result.all_messages())
-        output = self.OutputType(model_output=result.data, history=history)
+        output = self.OutputType(model_output=result.output, history=history)
         self.save_output(output)
         
         # Also save the actual selected recipe for easy access

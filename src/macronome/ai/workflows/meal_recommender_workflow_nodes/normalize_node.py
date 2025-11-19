@@ -80,7 +80,7 @@ class NormalizeNode(AgentNode):
         
         # Store output with message history
         history = to_jsonable_python(result.all_messages())
-        output = self.OutputType(model_output=result.data, history=history)
+        output = self.OutputType(model_output=result.output, history=history)
         self.save_output(output)
         
         return task_context

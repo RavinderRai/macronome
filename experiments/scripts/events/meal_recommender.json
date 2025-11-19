@@ -1,0 +1,38 @@
+{
+    "user_query": "something quick and healthy for lunch",
+    "constraints": {
+        "calories": 600,
+        "macros": {
+            "carbs": 60,
+            "protein": 40,
+            "fat": 20
+        },
+        "diet": null,
+        "allergies": ["nuts"],
+        "prep_time": 30,
+        "meal_type": "lunch",
+        "custom_constraints": {
+            "spicy": false,
+            "cuisine": "mediterranean"
+        }
+    },
+    "pantry_items": [
+        {
+            "name": "chicken breast",
+            "category": "protein",
+            "confirmed": true
+        },
+        {
+            "name": "tomatoes",
+            "category": "vegetable",
+            "confirmed": true
+        },
+        {
+            "name": "olive oil",
+            "category": "condiment",
+            "confirmed": true
+        }
+    ],
+    "chat_history": []
+}
+

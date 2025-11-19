@@ -113,7 +113,7 @@ class RefinementAgent(AgentNode):
         result = await self.agent.run(user_prompt=prompt)
         
         # Get decision
-        decision: RefinementDecision = result.data
+        decision: RefinementDecision = result.output
         
         # Update retry count if retrying
         if decision.action == "retry":

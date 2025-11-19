@@ -550,7 +550,7 @@ Then check if constraints are met. If not, continue modifying."""
             result = await self.agent.run(user_prompt=iteration_prompt)
             
             # Get modified recipe from agent output
-            modified_recipe: ModifiedRecipe = result.data
+            modified_recipe: ModifiedRecipe = result.output
             final_modified_recipe = modified_recipe
             
             # Update recipe state from modified recipe

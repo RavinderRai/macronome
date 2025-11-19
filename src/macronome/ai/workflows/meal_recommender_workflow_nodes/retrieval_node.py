@@ -2,13 +2,8 @@ import json
 import logging
 from typing import List
 import numpy as np
-from io import BytesIO
-
 
 import faiss
-import boto3
-import pandas as pd
-    
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 
@@ -16,12 +11,12 @@ from macronome.ai.core.nodes.base import Node
 from macronome.ai.core.task import TaskContext
 from macronome.ai.schemas.recipe_schema import Recipe
 from macronome.ai.schemas.workflow_schemas import PlanningOutput
+from macronome.ai.workflows.meal_recommender_workflow_nodes.planning_agent import PlanningAgent
 from macronome.data_engineering.config import (
     RECIPES_PROCESSED_DIR,
     EMBEDDINGS_FAISS,
     METADATA_JSON,
     EMBEDDING_MODEL,
-    RECIPES_PARQUET,
 )
 from macronome.settings import DataConfig
 
@@ -58,7 +53,6 @@ class RetrievalNode(Node):
         self._faiss_index = None
         self._qdrant_client = None
         self._recipes = None
-        self._recipes_by_id = None  # Dictionary mapping recipe_id -> Recipe (for Qdrant lookups)
         self._model = None
         self._use_qdrant = DataConfig.VECTOR_BACKEND == "qdrant"
     
@@ -118,7 +112,7 @@ class RetrievalNode(Node):
         logger.info(f"Loaded {len(self._recipes)} recipes")
     
     def _load_qdrant(self):
-        """Initialize Qdrant client and load recipe metadata from local file"""
+        """Initialize Qdrant client (no S3 loading needed - recipes built from payloads)"""
         if self._qdrant_client is not None:
             return
         
@@ -141,45 +135,6 @@ class RetrievalNode(Node):
                 f"Failed to connect to Qdrant collection '{collection_name}': {e}. "
                 f"Run generate_embeddings.py first."
             )
-        
-        # Load recipe metadata from S3 (for looking up full recipe details)
-        if self._recipes_by_id is None:
-            
-            if not DataConfig.S3_BUCKET:
-                raise ValueError("S3_BUCKET must be set in environment")
-            
-            s3_key = f"{DataConfig.S3_RECIPES_PREFIX}{RECIPES_PARQUET}"
-            logger.info(f"Loading recipe metadata from S3: s3://{DataConfig.S3_BUCKET}/{s3_key}")
-            
-            # Configure S3 client
-            s3_config = {}
-            if DataConfig.AWS_ACCESS_KEY_ID:
-                s3_config['aws_access_key_id'] = DataConfig.AWS_ACCESS_KEY_ID
-                s3_config['aws_secret_access_key'] = DataConfig.AWS_SECRET_ACCESS_KEY
-            
-            s3_client = boto3.client('s3', region_name=DataConfig.S3_REGION, **s3_config)
-            
-            # Download parquet file from S3
-            buffer = BytesIO()
-            try:
-                s3_client.download_fileobj(DataConfig.S3_BUCKET, s3_key, buffer)
-                buffer.seek(0)
-            except Exception as e:
-                raise FileNotFoundError(
-                    f"Failed to download recipes from S3: s3://{DataConfig.S3_BUCKET}/{s3_key}. "
-                    f"Error: {e}"
-                )
-            
-            # Load parquet and convert to recipes
-            df = pd.read_parquet(buffer)
-            recipes_data = df.to_dict('records')
-            
-            # Create dictionary mapping recipe_id -> Recipe for fast lookups
-            self._recipes_by_id = {
-                recipe["id"]: Recipe(**recipe) for recipe in recipes_data
-            }
-            
-            logger.info(f"Loaded {len(self._recipes_by_id)} recipes from S3 for lookup")
     
     def _embed_query(self, query: str) -> np.ndarray:
         """Embed search query using sentence-transformers"""
@@ -212,7 +167,7 @@ class RetrievalNode(Node):
         return results
     
     def _semantic_search_qdrant(self, query: str, top_k: int) -> List[tuple]:
-        """Perform Qdrant semantic search and look up full recipe details from local metadata"""
+        """Perform Qdrant semantic search and build Recipe objects from payloads"""
         # Embed query
         query_embedding = self._embed_query(query)
         
@@ -221,97 +176,34 @@ class RetrievalNode(Node):
         search_results = self._qdrant_client.search(
             collection_name=collection_name,
             query_vector=query_embedding[0].tolist(),
-            limit=top_k * 2  # Get more for filtering
+            limit=top_k,
+            with_payload=True  # Ensure payloads are returned
         )
         
-        # Convert to Recipe objects by looking up full details from local metadata
+        # Build Recipe objects directly from Qdrant payloads (no S3 lookup needed!)
         results = []
         for result in search_results:
             payload = result.payload
-            recipe_id = payload["recipe_id"]
             
-            # Look up full recipe details from local metadata
-            if recipe_id in self._recipes_by_id:
-                recipe = self._recipes_by_id[recipe_id]
-            else:
-                # Fallback: create minimal recipe from payload if not found in metadata
-                logger.warning(f"Recipe {recipe_id} not found in local metadata, using payload only")
-                recipe = Recipe(
-                    id=recipe_id,
-                    title=payload.get("title", ""),
-                    ingredients=[],
-                    directions="",
-                    ner=[],
-                    source="",
-                    link="",
-                )
+            # Build Recipe from payload metadata
+            recipe = Recipe(
+                id=payload["recipe_id"],
+                title=payload.get("title", ""),
+                ingredients=payload.get("ingredients", []),
+                directions="",  # Not needed for SelectionAgent
+                ner=[],  # Not using NER filtering anymore
+                source="",
+                link="",
+            )
             
             # Qdrant returns cosine similarity score (0-1)
             results.append((recipe, float(result.score)))
         
         return results
     
-    def _filter_by_diet(self, recipes: List[tuple], diet_type: str) -> List[tuple]:
-        """Filter recipes by diet type using NER (named entity recognition) field"""
-        if not diet_type:
-            return recipes
-        
-        filtered = []
-        
-        # Simple diet filtering (can be enhanced)
-        exclude_keywords = {
-            "vegan": ["beef", "chicken", "pork", "fish", "milk", "egg", "cheese", "butter", "meat"],
-            "vegetarian": ["beef", "chicken", "pork", "fish", "meat"],
-            "keto": ["rice", "pasta", "bread", "potato", "sugar"],
-            # Add more as needed
-        }
-        
-        keywords = exclude_keywords.get(diet_type.lower(), [])
-        
-        for recipe, score in recipes:
-            # Check if any excluded keywords appear in NER
-            recipe_ingredients = set(ing.lower() for ing in recipe.ner)
-            if not any(keyword in ing for keyword in keywords for ing in recipe_ingredients):
-                filtered.append((recipe, score))
-        
-        return filtered
-    
-    def _filter_by_excluded(self, recipes: List[tuple], must_exclude: List[str]) -> List[tuple]:
-        """Filter out recipes containing excluded ingredients"""
-        if not must_exclude:
-            return recipes
-        
-        excluded_set = set(item.lower() for item in must_exclude)
-        filtered = []
-        
-        for recipe, score in recipes:
-            recipe_ingredients = set(ing.lower() for ing in recipe.ner)
-            # Exclude if any excluded ingredient is found
-            if not any(excluded in ing for excluded in excluded_set for ing in recipe_ingredients):
-                filtered.append((recipe, score))
-        
-        return filtered
-    
-    def _score_pantry_match(self, recipe: Recipe, pantry_items: List[str]) -> float:
-        """Calculate pantry match score (0-1)"""
-        if not pantry_items:
-            return 0.0
-        
-        pantry_set = set(item.lower() for item in pantry_items)
-        recipe_ingredients = set(ing.lower() for ing in recipe.ner)
-        
-        # Count matches
-        matches = sum(
-            1 for pantry_item in pantry_set
-            if any(pantry_item in recipe_ing for recipe_ing in recipe_ingredients)
-        )
-        
-        # Score as percentage of pantry used
-        return matches / len(pantry_set)
-    
     async def process(self, task_context: TaskContext) -> TaskContext:
         """
-        Execute recipe retrieval based on planning output.
+        Execute recipe retrieval - pure semantic search, no filtering.
         
         Args:
             task_context: Contains PlanningOutput from PlanningAgent
@@ -319,48 +211,26 @@ class RetrievalNode(Node):
         Returns:
             TaskContext with candidate recipes saved
         """
-        # Load index and recipes (lazy)
+        # Load index and embedding model (lazy)
         self._load_index_and_recipes()
         
         # Get planning output
-        planning: PlanningOutput = task_context.nodes.get("PlanningAgent")
-        if planning is None:
+        planning_output = self.get_output(PlanningAgent)
+        if planning_output is None:
             raise ValueError("PlanningOutput not found in task context")
         
+        planning: PlanningOutput = planning_output.model_output
         logger.info(f"Retrieving recipes with query: '{planning.search_query}'")
-        logger.info(f"Strategy: {planning.search_strategy}, Top K: {planning.top_k}")
+        logger.info(f"Top K: {planning.top_k}")
         
-        # 1. Semantic search
-        candidates = self._semantic_search(planning.search_query, planning.top_k * 3)
+        # Semantic search only - return top 10 for SelectionAgent to choose from
+        candidates = self._semantic_search(planning.search_query, 10)
         logger.info(f"Semantic search returned {len(candidates)} candidates")
         
-        # 2. Filter by hard constraints
-        if planning.hard_filters.get("diet_type"):
-            candidates = self._filter_by_diet(candidates, planning.hard_filters["diet_type"])
-            logger.info(f"After diet filter: {len(candidates)} candidates")
+        # Extract recipes (already sorted by score)
+        top_recipes = [recipe for recipe, score in candidates]
         
-        if planning.must_exclude:
-            candidates = self._filter_by_excluded(candidates, planning.must_exclude)
-            logger.info(f"After exclude filter: {len(candidates)} candidates")
-        
-        # 3. Score by pantry match if strategy prioritizes it
-        if planning.search_strategy == "pantry_first" and planning.must_include:
-            # Re-score with pantry match
-            scored_candidates = []
-            for recipe, semantic_score in candidates:
-                pantry_score = self._score_pantry_match(recipe, planning.must_include)
-                # Weighted combination: 60% pantry, 40% semantic
-                combined_score = (pantry_score * 0.6) + (semantic_score * 0.4)
-                scored_candidates.append((recipe, combined_score))
-            
-            # Sort by combined score
-            scored_candidates.sort(key=lambda x: x[1], reverse=True)
-            candidates = scored_candidates
-        
-        # 4. Get top K recipes
-        top_recipes = [recipe for recipe, score in candidates[:planning.top_k]]
-        
-        logger.info(f"Final selection: {len(top_recipes)} recipes")
+        logger.info(f"Returning {len(top_recipes)} recipes to SelectionAgent")
         
         # Save to task context
         self.save_output(top_recipes)
