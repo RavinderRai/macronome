@@ -549,13 +549,13 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 	},
 	fab: {
-		width: 36,
-		height: 36,
-		borderRadius: 18,
+		width: 44,
+		height: 44,
+		borderRadius: 22,
 		backgroundColor: colors.accent.coral,
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginBottom: spacing.xs,
+		marginBottom: 0,
 		elevation: 2, // Android shadow
 		shadowColor: '#000', // iOS shadow
 		shadowOffset: {
@@ -566,6 +566,6 @@ const styles = StyleSheet.create({
 		shadowRadius: 2,
 	},
 	fabIcon: {
-		fontSize: 18,
+		fontSize: 22,
 	},
 });

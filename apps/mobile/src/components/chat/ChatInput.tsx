@@ -92,18 +92,32 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'flex-end',
 		paddingHorizontal: spacing.md,
-		paddingVertical: spacing.sm,
+		paddingTop: spacing.md,
+		paddingBottom: spacing.md,
 		backgroundColor: colors.background.primary,
 		borderTopWidth: 1,
 		borderTopColor: colors.border.light,
 	},
 	cameraButton: {
-		padding: spacing.sm,
+		width: 44,
+		height: 44,
+		borderRadius: 22,
+		backgroundColor: colors.primary.light,
+		justifyContent: 'center',
+		alignItems: 'center',
 		marginRight: spacing.xs,
-		marginBottom: spacing.xs,
+		marginBottom: 0,
+		elevation: 2, // Android shadow
+		shadowColor: '#000', // iOS shadow
+		shadowOffset: {
+			width: 0,
+			height: 1,
+		},
+		shadowOpacity: 0.2,
+		shadowRadius: 2,
 	},
 	cameraIcon: {
-		fontSize: 24,
+		fontSize: 30,
 	},
 	inputContainer: {
 		flex: 1,
