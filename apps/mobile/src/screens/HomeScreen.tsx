@@ -3,7 +3,7 @@
  * Main chat interface screen
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
 	View, 
 	StyleSheet, 
@@ -47,9 +47,11 @@ export default function HomeScreen() {
 	const [reviewSheetVisible, setReviewSheetVisible] = useState(false);
 	const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined);
 	const [settingsModalVisible, setSettingsModalVisible] = useState(false);
+	const [mealLoading, setMealLoading] = useState(false);
 	
 	// Ref for scrolling to bottom
 	const flatListRef = useRef<FlatList>(null);
+	const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 	
 	// Auth context
 	const { signOut } = useAuthContext();
@@ -63,6 +65,14 @@ export default function HomeScreen() {
 	const setDrawerOpen = useUIStore((state) => state.setDrawerOpen);
 	const setConstraintsFromBackend = useFilterStore((state) => state.setConstraintsFromBackend);
 
+	// Cleanup polling timeout on unmount
+	useEffect(() => {
+		return () => {
+			if (pollTimeoutRef.current) {
+				clearTimeout(pollTimeoutRef.current);
+			}
+		};
+	}, []);
 
   // Handle sending a message
   const handleSend = async () => {
@@ -242,9 +252,9 @@ export default function HomeScreen() {
 
   // Handle meal recommendation button press
   const handleMealRecommendation = async () => {
-    if (isLoading) return;
+    if (isLoading || mealLoading) return;
 
-    setLoading(true);
+    setMealLoading(true);
     
     try {
       // Get current filter constraints from store
@@ -270,36 +280,97 @@ export default function HomeScreen() {
       const response = await recommendMeal(request);
       
       console.log('✅ Meal recommendation task queued:', response.task_id);
-      
-      // Add message to chat
-      addMessage({
-        text: response.message || "I'm working on a meal recommendation for you!",
-        type: 'assistant',
-      });
 
-      // Poll for status (simplified - could be improved with better polling)
-      const pollStatus = async () => {
+      // Poll for status with timeout
+      const MAX_POLLS = 150; // 5 minutes max (150 * 2 seconds)
+      const POLL_INTERVAL = 2000; // 2 seconds
+      let pollCount = 0;
+
+      const pollStatus = async (): Promise<void> => {
+        if (pollCount >= MAX_POLLS) {
+          setMealLoading(false);
+          addMessage({
+            text: 'Sorry, the meal recommendation is taking longer than expected. Please try again.',
+            type: 'assistant',
+          });
+          return;
+        }
+
         try {
           const status = await getRecommendationStatus(response.task_id);
-          
+          pollCount++;
+
           if (status.status === 'success' && status.result) {
-            const meal = status.result;
-            addMessage({
-              text: `Here's your meal recommendation:\n\n**${meal.name}**\n\n${meal.description}\n\n**Ingredients:**\n${meal.ingredients.join(', ')}\n\n**Instructions:**\n${meal.instructions.map((step, i) => `${i + 1}. ${step}`).join('\n')}`,
-              type: 'assistant',
-            });
+            // Celery task succeeded, check workflow result
+            // Backend returns: { status: "success", result: { success: bool, recommendation: {...} or error_message: ... } }
+            
+            if (status.result.success === true && status.result.recommendation) {
+              // Workflow succeeded
+              setMealLoading(false);
+              
+              const recommendation = status.result.recommendation;
+              const recipe = recommendation.recipe;
+              
+              // Format ingredients (they're already strings from backend)
+              const ingredientsList = Array.isArray(recipe.ingredients) 
+                ? recipe.ingredients 
+                : [];
+              
+              // Parse recipe instructions (markdown) or use directions
+              const instructions = recommendation.recipe_instructions 
+                || recipe.directions 
+                || 'No instructions available';
+              
+              // Build formatted message
+              const messageText = `Here's your meal recommendation!\n\n**${recipe.name}**\n\n${recommendation.why_it_fits}\n\n**Nutrition:** ${recipe.nutrition.calories} cal, ${recipe.nutrition.protein}g protein, ${recipe.nutrition.carbs}g carbs, ${recipe.nutrition.fat}g fat\n\n**Ingredients:**\n${ingredientsList.map(ing => `• ${ing}`).join('\n')}\n\n**Instructions:**\n${instructions}`;
+              
+              addMessage({
+                text: messageText,
+                type: 'assistant',
+              });
+              
+              // Scroll to bottom
+              setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: true });
+              }, 100);
+              
+            } else if (status.result.success === false) {
+              // Workflow failed (e.g., couldn't find suitable recipe)
+              setMealLoading(false);
+              const errorMsg = status.result.error_message || 'Could not generate a meal recommendation.';
+              const suggestions = status.result.suggestions || [];
+              
+              let messageText = `Sorry, ${errorMsg}`;
+              if (suggestions.length > 0) {
+                messageText += `\n\nSuggestions:\n${suggestions.map(s => `• ${s}`).join('\n')}`;
+              }
+              
+              addMessage({
+                text: messageText,
+                type: 'assistant',
+              });
+            } else {
+              // Unexpected result structure
+              setMealLoading(false);
+              addMessage({
+                text: 'Sorry, received an unexpected response. Please try again.',
+                type: 'assistant',
+              });
+            }
           } else if (status.status === 'failure') {
+            // Celery task failed
+            setMealLoading(false);
             addMessage({
-              text: `Sorry, I couldn't generate a meal recommendation. ${status.error || 'Please try again.'}`,
+              text: `Sorry, the meal recommendation task failed. ${status.error || 'Please try again.'}`,
               type: 'assistant',
             });
           } else if (status.status === 'pending' || status.status === 'started') {
-            // Poll again after a delay
-            setTimeout(pollStatus, 2000);
-            return;
+            // Continue polling
+            pollTimeoutRef.current = setTimeout(pollStatus, POLL_INTERVAL);
           }
         } catch (error) {
           console.error('Error polling meal status:', error);
+          setMealLoading(false);
           addMessage({
             text: 'Sorry, there was an error getting your meal recommendation. Please try again.',
             type: 'assistant',
@@ -308,15 +379,11 @@ export default function HomeScreen() {
       };
 
       // Start polling after a short delay
-      setTimeout(pollStatus, 2000);
-
-      // Scroll to bottom
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      pollTimeoutRef.current = setTimeout(pollStatus, POLL_INTERVAL);
 
     } catch (error: any) {
       console.error('❌ Meal recommendation error:', error);
+      setMealLoading(false);
       
       const errorMessage = error.response?.data?.detail || error.message || 'Failed to request meal recommendation. Please try again.';
       
@@ -330,8 +397,6 @@ export default function HomeScreen() {
         errorMessage,
         [{ text: 'OK' }]
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -392,7 +457,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.fab}
             onPress={handleMealRecommendation}
-            disabled={isLoading}
+            disabled={isLoading || mealLoading}
             activeOpacity={0.8}
           >
             <Text style={styles.fabIcon}>🍽️</Text>
@@ -417,6 +482,21 @@ export default function HomeScreen() {
 				onClose={handleReviewClose}
 				onConfirm={handleReviewConfirm}
 			/>
+
+			{/* Full-screen loading overlay for meal recommendations */}
+			{mealLoading && (
+				<Modal
+					visible={mealLoading}
+					transparent={true}
+					animationType="fade"
+				>
+					<View style={styles.loadingOverlay}>
+						<View style={styles.loadingContent}>
+							<LoadingSpinner message="Creating your perfect meal..." />
+						</View>
+					</View>
+				</Modal>
+			)}
 
 			{/* Settings Modal */}
 			<Modal
@@ -543,6 +623,17 @@ const styles = StyleSheet.create({
 	closeButton: {
 		paddingVertical: spacing.sm,
 		paddingHorizontal: spacing.lg,
+	},
+	loadingOverlay: {
+		flex: 1,
+		backgroundColor: 'rgba(0, 0, 0, 0.7)',
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	loadingContent: {
+		backgroundColor: colors.background.card,
+		borderRadius: 16,
+		padding: spacing.xl,
 	},
 	closeButtonText: {
 		color: colors.text.muted,

@@ -20,12 +20,29 @@ export type TaskStatus = 'pending' | 'started' | 'success' | 'failure';
 export interface MealRecommendStatusResponse {
   status: TaskStatus;
   result?: {
-    name: string;
-    description: string;
-    ingredients: string[];
-    instructions: string[];
-    reasoning: string;
-    meal_data: Record<string, any>;
+    success: boolean;
+    recommendation?: {
+      recipe: {
+        id: string;
+        name: string;
+        ingredients: string[];
+        directions: string;
+        nutrition: {
+          calories: number;
+          protein: number;
+          carbs: number;
+          fat: number;
+        };
+        prep_time?: number;
+        semantic_score?: number;
+      };
+      why_it_fits: string;
+      ingredient_swaps: string[];
+      pantry_utilization: string[];
+      recipe_instructions: string;
+    };
+    error_message?: string;
+    suggestions?: string[];
   };
   error?: string;
 }

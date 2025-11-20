@@ -70,7 +70,7 @@ def recommend_meal_async(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
                 "recommendation": {
                     "recipe": {
                         "id": recommendation.recipe.id,
-                        "name": recommendation.recipe.name,
+                        "name": recommendation.recipe.title,
                         "ingredients": recommendation.recipe.ingredients,
                         "directions": recommendation.recipe.directions,
                         "nutrition": {
@@ -88,7 +88,7 @@ def recommend_meal_async(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
                     "recipe_instructions": recommendation.recipe_instructions
                 }
             }
-            logger.info(f"✅ Meal recommendation task {self.request.id} succeeded: {recommendation.recipe.name}")
+            logger.info(f"✅ Meal recommendation task {self.request.id} succeeded: {recommendation.recipe.title}")
             return result
         
         elif failure_output:

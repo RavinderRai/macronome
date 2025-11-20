@@ -20,6 +20,8 @@ def get_celery_config():
         'result_serializer': 'json',
         'enable_utc': True,
         'broker_connection_retry_on_startup': True,
+        # Use solo pool to avoid fork issues with ML libraries
+        'worker_pool': 'solo',  # Single-threaded, no forking
     }
 
 celery_app = Celery("tasks")

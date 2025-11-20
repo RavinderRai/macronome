@@ -9,7 +9,7 @@ from macronome.ai.schemas.meal_recommender_constraints_schema import (
 )
 from macronome.ai.workflows.meal_recommender_workflow_nodes.modification_agent import ModificationAgent
 from macronome.ai.workflows.meal_recommender_workflow_nodes.normalize_node import NormalizeNode
-from macronome.ai.schemas.recipe_schema import NutritionInfo, EnrichedRecipe
+from macronome.ai.schemas.recipe_schema import NutritionInfo, EnrichedRecipe, ParsedIngredient
 from macronome.ai.schemas.workflow_schemas import MealRecommendation, ExplanationOutput
 
 """
@@ -78,11 +78,16 @@ class ExplanationAgent(AgentNode):
         modified = modification_output.model_output
         normalized = normalize_output.model_output
         
+        # Convert set to list for JSON serialization
+        normalized_dict = normalized.model_dump()
+        if 'excluded_ingredients' in normalized_dict and isinstance(normalized_dict['excluded_ingredients'], set):
+            normalized_dict['excluded_ingredients'] = list(normalized_dict['excluded_ingredients'])
+        
         # Create EnrichedRecipe (combines modified recipe with nutrition)
         enriched_recipe = EnrichedRecipe(
             id=modified.recipe_id,
             title=modified.title,
-            ingredients=modified.ingredients,
+            ingredients=[self._format_ingredient(ing) for ing in modified.ingredients],  # Convert to strings
             directions=modified.directions,
             ner=[ing.ingredient for ing in modified.ingredients],
             parsed_ingredients=modified.ingredients,
@@ -93,7 +98,7 @@ class ExplanationAgent(AgentNode):
         prompt = PromptManager.get_prompt(
             "explanation",
             user_query=request.user_query,
-            normalized_constraints=normalized.model_dump(),
+            normalized_constraints=normalized_dict,
             recipe=modified.model_dump(),
             nutrition=nutrition.model_dump(),
             pantry_items=[item.model_dump() for item in request.pantry_items if item.confirmed],
@@ -124,3 +129,18 @@ class ExplanationAgent(AgentNode):
         
         return task_context
 
+    # Convert ParsedIngredient objects to strings for EnrichedRecipe
+    def _format_ingredient(self, ing: ParsedIngredient) -> str:
+        """Convert ParsedIngredient to string format like '1 cup brown sugar'"""
+        parts = []
+        if ing.quantity and ing.quantity != 0:
+            # Format quantity (remove .0 if whole number)
+            qty_str = str(int(ing.quantity)) if ing.quantity == int(ing.quantity) else str(ing.quantity)
+            parts.append(qty_str)
+        if ing.unit:
+            parts.append(ing.unit)
+        if ing.ingredient:
+            parts.append(ing.ingredient)
+        if ing.modifier:
+            parts.append(f"({ing.modifier})")
+        return " ".join(parts)
