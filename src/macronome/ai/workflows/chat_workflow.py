@@ -9,8 +9,10 @@ from macronome.ai.core.schema import WorkflowSchema, NodeConfig
 from macronome.ai.schemas.chat_schema import ChatRequest
 from macronome.ai.workflows.chat_workflow_nodes.chat_router import ChatRouter
 from macronome.ai.workflows.chat_workflow_nodes.constraint_parser import ConstraintParser
+from macronome.ai.workflows.chat_workflow_nodes.meal_recommendation_trigger import MealRecommendationTrigger
 from macronome.ai.workflows.chat_workflow_nodes.response_generator import ResponseGenerator
 
+# TODO: Need to be able to handle adding constraints and starting recommendations in the same message, a planning step might be needed in this chat workflow.
 
 class ChatWorkflow(Workflow):
     """
@@ -36,19 +38,26 @@ class ChatWorkflow(Workflow):
             # Node 1: Route user message (router node with LLM classification)
             NodeConfig(
                 node=ChatRouter,
-                connections=[ConstraintParser, ResponseGenerator],
+                connections=[MealRecommendationTrigger, ConstraintParser, ResponseGenerator],
                 description="Classify user intent and route to appropriate action",
                 is_router=True  # Enables automatic routing via node's route() method
             ),
             
-            # Node 2: Parse constraints (conditional - only if ADD_CONSTRAINT)
+            # Node 2: Trigger meal recommendation (conditional - only if START_RECOMMENDATION)
+            NodeConfig(
+                node=MealRecommendationTrigger,
+                connections=[ResponseGenerator],
+                description="Queue meal recommendation task and store task_id"
+            ),
+            
+            # Node 3: Parse constraints (conditional - only if ADD_CONSTRAINT)
             NodeConfig(
                 node=ConstraintParser,
                 connections=[ResponseGenerator],
                 description="Parse and update user constraints from message"
             ),
             
-            # Node 3: Generate response (always runs - terminal node)
+            # Node 4: Generate response (always runs - terminal node)
             NodeConfig(
                 node=ResponseGenerator,
                 connections=[],

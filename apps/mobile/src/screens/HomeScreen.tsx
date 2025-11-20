@@ -123,15 +123,110 @@ export default function HomeScreen() {
 
       // Handle meal recommendation if task_id is present
       if (response.task_id) {
-        console.log('🍽️ Meal recommendation task queued:', response.task_id);
-        // TODO: Implement meal recommendation polling
-        // For now, just show a message
+        const taskId = response.task_id; // Store for use in closure
+        console.log('🍽️ Meal recommendation task queued:', taskId);
+        
+        // Show meal loading spinner (same as button)
+        setMealLoading(true);
+        
+        // Poll for status with timeout
+        const MAX_POLLS = 150; // 5 minutes max (150 * 2 seconds)
+        const POLL_INTERVAL = 2000; // 2 seconds
+        let pollCount = 0;
+
+        const pollStatus = async (): Promise<void> => {
+          if (pollCount >= MAX_POLLS) {
+            setMealLoading(false);
+            addMessage({
+              text: 'Sorry, the meal recommendation is taking longer than expected. Please try again.',
+              type: 'assistant',
+            });
+            return;
+          }
+
+          try {
+            const status = await getRecommendationStatus(taskId);
+            pollCount++;
+
+            if (status.status === 'success' && status.result) {
+              // Celery task succeeded, check workflow result
+              
+              if (status.result.success === true && status.result.recommendation) {
+                // Workflow succeeded
+                setMealLoading(false);
+                
+                const recommendation = status.result.recommendation;
+                const recipe = recommendation.recipe;
+                
+                // Format ingredients (they're already strings from backend)
+                const ingredientsList = Array.isArray(recipe.ingredients) 
+                  ? recipe.ingredients 
+                  : [];
+                
+                // Parse recipe instructions (markdown) or use directions
+                const instructions = recommendation.recipe_instructions 
+                  || recipe.directions 
+                  || 'No instructions available';
+                
+                // Build formatted message
+                const messageText = `Here's your meal recommendation!\n\n**${recipe.name}**\n\n${recommendation.why_it_fits}\n\n**Nutrition:** ${recipe.nutrition.calories} cal, ${recipe.nutrition.protein}g protein, ${recipe.nutrition.carbs}g carbs, ${recipe.nutrition.fat}g fat\n\n**Ingredients:**\n${ingredientsList.map((ing: string) => `• ${ing}`).join('\n')}\n\n**Instructions:**\n${instructions}`;
+                
+                addMessage({
+                  text: messageText,
+                  type: 'assistant',
+                });
+                
+                // Scroll to bottom
         setTimeout(() => {
+                  flatListRef.current?.scrollToEnd({ animated: true });
+                }, 100);
+                
+              } else if (status.result.success === false) {
+                // Workflow failed (e.g., couldn't find suitable recipe)
+                setMealLoading(false);
+                const errorMsg = status.result.error_message || 'Could not generate a meal recommendation.';
+                const suggestions = status.result.suggestions || [];
+                
+                let messageText = `Sorry, ${errorMsg}`;
+                if (suggestions.length > 0) {
+                  messageText += `\n\nSuggestions:\n${suggestions.map((s: string) => `• ${s}`).join('\n')}`;
+                }
+                
+                addMessage({
+                  text: messageText,
+                  type: 'assistant',
+                });
+              } else {
+                // Unexpected result structure
+                setMealLoading(false);
+                addMessage({
+                  text: 'Sorry, received an unexpected response. Please try again.',
+                  type: 'assistant',
+                });
+              }
+            } else if (status.status === 'failure') {
+              // Celery task failed
+              setMealLoading(false);
+              addMessage({
+                text: `Sorry, the meal recommendation task failed. ${status.error || 'Please try again.'}`,
+                type: 'assistant',
+              });
+            } else if (status.status === 'pending' || status.status === 'started') {
+              // Continue polling
+              pollTimeoutRef.current = setTimeout(pollStatus, POLL_INTERVAL);
+            }
+          } catch (error) {
+            console.error('Error polling meal status:', error);
+            setMealLoading(false);
           addMessage({
-            text: `I'm working on a meal recommendation for you! Task ID: ${response.task_id}`,
+              text: 'Sorry, there was an error getting your meal recommendation. Please try again.',
             type: 'assistant',
           });
-        }, 500);
+          }
+        };
+
+        // Start polling after a short delay
+        pollTimeoutRef.current = setTimeout(pollStatus, POLL_INTERVAL);
       }
 
       // Handle constraint updates from chat

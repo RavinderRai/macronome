@@ -9,7 +9,6 @@ from macronome.backend.database.session import get_db
 from macronome.backend.database.chat_helpers import get_chat_messages
 from macronome.ai.workflows.chat_workflow import ChatWorkflow
 from macronome.ai.schemas.chat_schema import ChatRequest, ChatAction
-from macronome.backend.services.meal_recommender import MealRecommenderService
 
 logger = logging.getLogger(__name__)
 
@@ -77,42 +76,9 @@ class ChatService:
         
         logger.info(f"💬 Processing chat message for user {user_id}: '{message[:50]}...'")
         
-        # Handle START_RECOMMENDATION action - queue meal recommendation task
-        # This is done BEFORE running workflow to get task_id for response
-        router_result = await self._quick_route(message)
-        
-        task_id = None
-        if router_result["action"] == ChatAction.START_RECOMMENDATION:
-            # Queue meal recommendation task
-            recommender = MealRecommenderService()
-            
-            # Build constraints from user_preferences (flat structure)
-            constraints = {
-                "calories": user_preferences.get("calories"),
-                "macros": user_preferences.get("macros"),
-                "diet": user_preferences.get("diet"),
-                "excludedIngredients": user_preferences.get("allergies", []),
-                "prepTime": user_preferences.get("prep_time"),
-            }
-            # Remove None values
-            constraints = {k: v for k, v in constraints.items() if v is not None}
-            
-            task_id = recommender.queue_recommendation(
-                user_query=message,
-                constraints=constraints,
-                pantry_items=pantry_items or [],
-                chat_history=chat_history  # Pass loaded chat history
-            )
-            
-            logger.info(f"✅ Queued meal recommendation task: {task_id}")
-        
         # Run workflow - convert Pydantic model to dict for workflow
         request_dict = request.model_dump() if hasattr(request, 'model_dump') else request.model_dump()
         result_context = await self._workflow.run_async(request_dict)
-        
-        # Store task_id in result context metadata for ResponseGenerator to access
-        if task_id:
-            result_context.metadata["meal_recommendation_task_id"] = task_id
         
         # Extract response from ResponseGenerator
         response_output = result_context.nodes.get("ResponseGenerator")
@@ -144,30 +110,4 @@ class ChatService:
         logger.info(f"✅ Chat message processed successfully: {action}")
         
         return response_dict
-    
-    async def _quick_route(self, message: str) -> Dict[str, Any]:
-        """
-        Quick routing to detect START_RECOMMENDATION before full workflow.
-        
-        This allows us to queue the meal recommendation task and get task_id
-        before generating the response.
-        
-        Args:
-            message: User's message
-            
-        Returns:
-            Dict with action classification
-        """
-        # Simple heuristic check for meal recommendation keywords
-        recommendation_keywords = [
-            "recommend", "suggestion", "meal", "recipe", "cook", "find me",
-            "what should i", "give me", "show me"
-        ]
-        
-        message_lower = message.lower()
-        for keyword in recommendation_keywords:
-            if keyword in message_lower:
-                return {"action": ChatAction.START_RECOMMENDATION}
-        
-        return {"action": ChatAction.GENERAL_CHAT}
 

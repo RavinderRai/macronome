@@ -115,8 +115,11 @@ class ChatRouter(BaseRouter):
         if action == ChatAction.ADD_CONSTRAINT:
             next_node_class = node_map.get("ConstraintParser")
             print("[ChatRouter] Routing to ConstraintParser")
+        elif action == ChatAction.START_RECOMMENDATION:
+            next_node_class = node_map.get("MealRecommendationTrigger")
+            print("[ChatRouter] Routing to MealRecommendationTrigger")
         else:
-            # START_RECOMMENDATION or GENERAL_CHAT go straight to response
+            # GENERAL_CHAT goes straight to response
             next_node_class = node_map.get("ResponseGenerator")
             print("[ChatRouter] Routing to ResponseGenerator")
         
