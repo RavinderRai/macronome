@@ -3,7 +3,6 @@ import logging
 from typing import List
 import numpy as np
 
-import faiss
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 
@@ -78,6 +77,9 @@ class RetrievalNode(Node):
         """Load FAISS index and local metadata"""
         if self._faiss_index is not None:
             return
+        
+        # Lazy import - only import FAISS when actually needed (not in prod when using Qdrant)
+        import faiss
         
         # Load FAISS index
         index_path = RECIPES_PROCESSED_DIR / EMBEDDINGS_FAISS
