@@ -10,7 +10,7 @@ from macronome.ai.schemas.meal_recommender_constraints_schema import (
     NormalizedConstraints,
 )
 from macronome.ai.workflows.meal_recommender_workflow_nodes.normalize_node import NormalizeNode
-from macronome.ai.workflows.meal_recommender_workflow_nodes.nutrition_calculator import NutritionCalculator
+from macronome.ai.utils.nutrition_calculator import NutritionCalculator
 from macronome.ai.schemas.recipe_schema import Recipe, ParsedIngredient, NutritionInfo
 from macronome.ai.schemas.workflow_schemas import ModifiedRecipe
 

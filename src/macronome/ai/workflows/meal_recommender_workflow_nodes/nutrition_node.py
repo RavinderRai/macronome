@@ -2,7 +2,7 @@ import logging
 from macronome.ai.core.nodes.base import Node
 from macronome.ai.core.task import TaskContext
 from macronome.ai.schemas.recipe_schema import NutritionInfo, ParsedIngredient
-from macronome.ai.workflows.meal_recommender_workflow_nodes.nutrition_calculator import NutritionCalculator
+from macronome.ai.utils.nutrition_calculator import NutritionCalculator
 
 logger = logging.getLogger(__name__)
 
