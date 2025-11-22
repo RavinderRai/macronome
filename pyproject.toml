@@ -17,6 +17,8 @@ dependencies = [
     "litellm>=1.79.0",
     "marimo>=0.17.2",
     "mlflow>=3.1.4",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
     "pillow>=11.3.0",
     "pyarrow>=21.0.0",
     "pydantic-ai>=1.14.1",
@@ -29,4 +31,5 @@ dependencies = [
     "torchaudio>=2.9.0",
     "torchvision>=0.24.0",
     "ultralytics>=8.3.221",
+    "xgboost>=3.1.2",
 ]

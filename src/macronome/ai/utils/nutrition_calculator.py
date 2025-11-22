@@ -13,8 +13,6 @@ from macronome.ai.schemas.recipe_schema import NutritionInfo, ParsedIngredient
 
 logger = logging.getLogger(__name__)
 
-# TODO: Move this to a utils file or something
-
 class NutritionCalculator:
     """
     Utility class for calculating nutrition with USDA API and caching.
@@ -22,8 +20,7 @@ class NutritionCalculator:
     Features:
     - USDA FoodData Central API integration
     - In-memory caching to avoid redundant API calls
-    - Fallback heuristics when API unavailable
-    - Unit conversion (cups, tbsp, etc. to grams)
+    - Simple matching (first prefix match)
     """
     
     def __init__(self):
@@ -31,9 +28,45 @@ class NutritionCalculator:
         self._cache: Dict[str, Dict] = {}  # Cache: ingredient_name -> nutrition per 100g
         self._client = httpx.AsyncClient(timeout=10.0)
     
+    def _clean_ingredient_name(self, ingredient_name: str) -> str:
+        """
+        Clean ingredient name to avoid USDA API errors.
+        
+        Removes problematic characters that cause 500 errors:
+        - Percentage signs (%)
+        - Special characters that break URL encoding
+        - Extra whitespace
+        
+        Args:
+            ingredient_name: Raw ingredient name
+            
+        Returns:
+            Cleaned ingredient name safe for API queries
+        """
+        if not ingredient_name:
+            return ""
+        
+        # Remove percentage signs and replace with "percent"
+        cleaned = ingredient_name.replace("%", " percent")
+        cleaned = cleaned.replace("percent", "percent")  # Normalize
+        
+        # Remove other problematic characters
+        # Keep basic punctuation like commas, but remove quotes and slashes that cause issues
+        cleaned = cleaned.replace('"', "")
+        cleaned = cleaned.replace("'", "")
+        cleaned = cleaned.replace("/", " ")
+        cleaned = cleaned.replace("\\", " ")
+        
+        # Remove multiple spaces and strip
+        cleaned = " ".join(cleaned.split())
+        
+        return cleaned.strip()
+    
     async def _lookup_usda(self, ingredient_name: str) -> Optional[Dict]:
         """
         Look up ingredient nutrition in USDA FoodData Central API.
+        
+        Uses simple matching: first result that starts with ingredient name.
         
         Args:
             ingredient_name: Name of ingredient to look up
@@ -48,17 +81,20 @@ class NutritionCalculator:
             return self._cache[cache_key]
         
         if not self._api_key:
-            logger.warning("USDA_API_KEY not set, using fallback heuristics")
+            logger.warning("USDA_API_KEY not set, skipping nutrition lookup")
             return None
         
         try:
+            # Clean ingredient name to avoid API errors
+            cleaned_name = self._clean_ingredient_name(ingredient_name)
+            
             # Search for ingredient
             search_url = "https://api.nal.usda.gov/fdc/v1/foods/search"
             params = {
                 "api_key": self._api_key,
-                "query": ingredient_name,
-                "pageSize": 1,
-                "dataType": ["SR Legacy"],  # Standard Reference
+                "query": cleaned_name,
+                "pageSize": 10,  # Get more results for better matching
+                "dataType": ["SR Legacy"],
             }
             
             response = await self._client.get(search_url, params=params)
@@ -69,26 +105,43 @@ class NutritionCalculator:
                 logger.warning(f"No USDA data found for: {ingredient_name}")
                 return None
             
-            food = data["foods"][0]
-            nutrients = {}
+            # Simple matching: first result that starts with ingredient name
+            # Use cleaned name for matching, but original for logging
+            ingredient_lower = cleaned_name.lower().strip()
+            food = None
             
-            # Extract key nutrients (per 100g)
+            for candidate in data["foods"]:
+                desc_lower = candidate.get("description", "").lower()
+                if desc_lower.startswith(ingredient_lower):
+                    # Check word boundary
+                    if len(desc_lower) == len(ingredient_lower) or desc_lower[len(ingredient_lower)] in [',', ' ']:
+                        food = candidate
+                        break
+            
+            # Fallback to first result if no prefix match
+            if food is None:
+                food = data["foods"][0]
+                logger.debug(f"No prefix match for '{ingredient_name}', using first result: {food.get('description')}")
+            
+            # Extract nutrition (per 100g)
+            nutrients = {}
             for nutrient in food.get("foodNutrients", []):
-                name = nutrient.get("nutrientName", "").lower()
+                nutrient_id = nutrient.get("nutrientId")
                 value = nutrient.get("value", 0)
                 
-                if "energy" in name or "calorie" in name:
+                # Use nutrient IDs for reliable matching
+                if nutrient_id == 1008:  # Energy (calories)
                     nutrients["calories"] = value
-                elif "protein" in name:
+                elif nutrient_id == 1003:  # Protein
                     nutrients["protein"] = value
-                elif "carbohydrate" in name:
+                elif nutrient_id == 1005:  # Carbohydrates
                     nutrients["carbs"] = value
-                elif "total lipid" in name or "fat" in name:
+                elif nutrient_id == 1004:  # Total fat
                     nutrients["fat"] = value
             
             # Cache the result
             self._cache[cache_key] = nutrients
-            logger.debug(f"Cached USDA data for: {ingredient_name}")
+            logger.debug(f"Cached USDA data for '{ingredient_name}': {food.get('description')}")
             
             return nutrients
             
@@ -96,106 +149,12 @@ class NutritionCalculator:
             logger.error(f"USDA API error for '{ingredient_name}': {e}")
             return None
     
-    def _estimate_nutrition_fallback(self, ingredient_name: str, quantity_grams: float) -> Dict:
-        """
-        Fallback heuristic-based nutrition estimation.
-        
-        Args:
-            ingredient_name: Ingredient name
-            quantity_grams: Amount in grams
-            
-        Returns:
-            Estimated nutrition: {calories, protein, carbs, fat}
-        """
-        name_lower = ingredient_name.lower()
-        
-        # Simple heuristics (per 100g)
-        if any(word in name_lower for word in ["chicken", "turkey"]):
-            return {
-                "calories": int(1.65 * quantity_grams / 100),
-                "protein": int(31 * quantity_grams / 100),
-                "carbs": 0,
-                "fat": int(3.6 * quantity_grams / 100),
-            }
-        elif any(word in name_lower for word in ["beef", "pork"]):
-            return {
-                "calories": int(2.5 * quantity_grams / 100),
-                "protein": int(26 * quantity_grams / 100),
-                "carbs": 0,
-                "fat": int(17 * quantity_grams / 100),
-            }
-        elif any(word in name_lower for word in ["rice", "pasta"]):
-            return {
-                "calories": int(1.3 * quantity_grams / 100),
-                "protein": int(2.7 * quantity_grams / 100),
-                "carbs": int(28 * quantity_grams / 100),
-                "fat": int(0.3 * quantity_grams / 100),
-            }
-        elif any(word in name_lower for word in ["cheese", "butter"]):
-            return {
-                "calories": int(3.5 * quantity_grams / 100),
-                "protein": int(25 * quantity_grams / 100),
-                "carbs": int(1.3 * quantity_grams / 100),
-                "fat": int(33 * quantity_grams / 100),
-            }
-        elif any(word in name_lower for word in ["vegetable", "lettuce", "spinach", "broccoli"]):
-            return {
-                "calories": int(0.25 * quantity_grams / 100),
-                "protein": int(2 * quantity_grams / 100),
-                "carbs": int(5 * quantity_grams / 100),
-                "fat": int(0.3 * quantity_grams / 100),
-            }
-        else:
-            # Generic fallback
-            return {
-                "calories": int(1.0 * quantity_grams / 100),
-                "protein": int(3 * quantity_grams / 100),
-                "carbs": int(10 * quantity_grams / 100),
-                "fat": int(2 * quantity_grams / 100),
-            }
-    
-    def _convert_to_grams(self, quantity: float, unit: str, ingredient: str) -> float:
-        """
-        Convert quantity to grams (rough conversion).
-        
-        Args:
-            quantity: Amount
-            unit: Unit (cup, tbsp, oz, etc.)
-            ingredient: Ingredient name (for density estimates)
-            
-        Returns:
-            Estimated grams
-        """
-        unit_lower = unit.lower()
-        
-        # Common conversions
-        conversions = {
-            "g": 1.0,
-            "gram": 1.0,
-            "kg": 1000.0,
-            "oz": 28.35,
-            "lb": 453.59,
-            "cup": 240.0,  # Assumes liquid/granular
-            "tbsp": 15.0,
-            "tablespoon": 15.0,
-            "tsp": 5.0,
-            "teaspoon": 5.0,
-            "ml": 1.0,  # Assumes water density
-            "l": 1000.0,
-        }
-        
-        for key, factor in conversions.items():
-            if key in unit_lower:
-                return quantity * factor
-        
-        # Default: assume 100g per unit
-        return quantity * 100.0
-    
     async def calculate(self, ingredients: List[ParsedIngredient]) -> NutritionInfo:
         """
         Calculate total nutrition for a list of ingredients.
         
-        Uses USDA API with caching - only makes API calls for ingredients not in cache.
+        Uses USDA API with caching. Assumes quantities are already in reasonable units.
+        For grams, scales per 100g. For other units, uses quantity as multiplier.
         
         Args:
             ingredients: List of parsed ingredients with quantities and units
@@ -205,36 +164,36 @@ class NutritionCalculator:
         """
         logger.info(f"Calculating nutrition for {len(ingredients)} ingredients")
         
-        total_calories = 0
-        total_protein = 0
-        total_carbs = 0
-        total_fat = 0
+        total_calories = 0.0
+        total_protein = 0.0
+        total_carbs = 0.0
+        total_fat = 0.0
         
         for ing in ingredients:
-            # Convert to grams
-            quantity_grams = self._convert_to_grams(
-                ing.quantity,
-                ing.unit,
-                ing.ingredient
-            )
-            
-            # Try USDA lookup first (uses cache internally)
+            # Look up nutrition per 100g
             usda_data = await self._lookup_usda(ing.ingredient)
             
-            if usda_data:
-                # Use USDA data (per 100g, scale to actual quantity)
-                scale = quantity_grams / 100.0
-                total_calories += usda_data.get("calories", 0) * scale
-                total_protein += usda_data.get("protein", 0) * scale
-                total_carbs += usda_data.get("carbs", 0) * scale
-                total_fat += usda_data.get("fat", 0) * scale
+            if not usda_data:
+                logger.warning(f"No nutrition data for: {ing.ingredient}")
+                continue
+            
+            # Simple scaling: if unit is grams, scale directly
+            # Otherwise, assume quantity is already in reasonable serving units
+            unit_lower = ing.unit.lower() if ing.unit else ""
+            
+            if "g" in unit_lower or "gram" in unit_lower:
+                # Quantity is in grams, scale per 100g
+                scale = ing.quantity / 100.0
             else:
-                # Use fallback heuristics
-                fallback = self._estimate_nutrition_fallback(ing.ingredient, quantity_grams)
-                total_calories += fallback["calories"]
-                total_protein += fallback["protein"]
-                total_carbs += fallback["carbs"]
-                total_fat += fallback["fat"]
+                # Assume quantity is in servings/units, use as multiplier
+                # This is a simplification - assumes 1 unit ≈ 100g equivalent
+                scale = ing.quantity
+            
+            # Add to totals
+            total_calories += usda_data.get("calories", 0) * scale
+            total_protein += usda_data.get("protein", 0) * scale
+            total_carbs += usda_data.get("carbs", 0) * scale
+            total_fat += usda_data.get("fat", 0) * scale
         
         nutrition = NutritionInfo(
             calories=int(total_calories),
@@ -243,7 +202,8 @@ class NutritionCalculator:
             fat=int(total_fat),
         )
         
-        logger.info(f"Nutrition calculated: {nutrition.calories} cal, {nutrition.protein}g protein")
+        logger.info(f"Nutrition calculated: {nutrition.calories} cal, "
+                   f"{nutrition.protein}g protein, {nutrition.carbs}g carbs, {nutrition.fat}g fat")
         
         return nutrition
     
