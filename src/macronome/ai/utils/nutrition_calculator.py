@@ -178,16 +178,17 @@ class NutritionCalculator:
                 continue
             
             # Simple scaling: if unit is grams, scale directly
-            # Otherwise, assume quantity is already in reasonable serving units
+            # For other units, use fixed scale (1.0) to avoid blowing up values
             unit_lower = ing.unit.lower() if ing.unit else ""
             
             if "g" in unit_lower or "gram" in unit_lower:
                 # Quantity is in grams, scale per 100g
                 scale = ing.quantity / 100.0
             else:
-                # Assume quantity is in servings/units, use as multiplier
-                # This is a simplification - assumes 1 unit ≈ 100g equivalent
-                scale = ing.quantity
+                # For non-gram units, use fixed scale of 1.0
+                # This assumes 1 serving ≈ 100g equivalent (conservative estimate)
+                # This prevents multiplying by quantity which was causing inflated values
+                scale = 1.0
             
             # Add to totals
             total_calories += usda_data.get("calories", 0) * scale
