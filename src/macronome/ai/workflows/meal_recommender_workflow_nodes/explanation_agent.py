@@ -44,11 +44,11 @@ class ExplanationAgent(AgentNode):
         """
         Configure the agent for generating meal explanation.
         
-        Uses gpt-4o-mini for creative, conversational output.
+        Uses gpt-4o for creative, conversational output.
         """
         return AgentConfig(
             model_provider=ModelProvider.OPENAI,
-            model_name="gpt-4o-mini",
+            model_name="gpt-4o",
             output_type=ExplanationOutput,
             system_prompt="You are a friendly meal recommendation expert who explains food choices warmly.",
             name="ExplanationAgent",

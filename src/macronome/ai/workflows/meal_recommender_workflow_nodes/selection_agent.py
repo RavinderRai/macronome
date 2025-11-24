@@ -43,11 +43,11 @@ class SelectionAgent(AgentNode):
         """
         Configure the agent for recipe selection.
         
-        Uses gpt-4o-mini for fast reasoning with structured output.
+        Uses gpt-4o for fast reasoning with structured output.
         """
         return AgentConfig(
             model_provider=ModelProvider.OPENAI,
-            model_name="gpt-4o-mini",
+            model_name="gpt-4o",
             output_type=SelectionOutput,
             system_prompt="You are a recipe selection expert who picks recipes requiring minimal modification.",
             name="SelectionAgent",

@@ -44,11 +44,11 @@ class PlanningAgent(AgentNode):
         """
         Configure the agent for search strategy planning.
         
-        Uses gpt-4o-mini for fast reasoning with structured output.
+        Uses gpt-4o for fast reasoning with structured output.
         """
         return AgentConfig(
             model_provider=ModelProvider.OPENAI,
-            model_name="gpt-4o-mini",
+            model_name="gpt-4o",
             output_type=PlanningOutput,
             system_prompt="You are a meal planning strategist who determines optimal recipe search strategies.",
             name="PlanningAgent",

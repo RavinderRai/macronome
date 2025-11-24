@@ -29,35 +29,23 @@ Create an optimized search strategy to find the best recipe candidates.
 ### 1. Search Query
 Build a descriptive semantic search query that matches how recipes are embedded (title + ingredients).
 Your query should be natural and descriptive (10-20 words), not just keywords:
-- Start with dish type/cuisine (e.g., "Italian pasta dish", "Asian stir fry", "American breakfast")
+- Start with dish name (e.g., "Chicken Parmesan", "Spaghetti Carbonara", "Chicken Alfredo")
 - Include key ingredients if relevant (e.g., "with chicken and vegetables", "using tomatoes and basil")
+- Add units and quantities if relevant (e.g., "1 cup of tomatoes", "2 tablespoons of olive oil")
 - Add cooking style/method hints if important (e.g., "baked", "grilled", "one-pot", "quick")
-- Consider diet type, meal type, and macro hints from constraints
+- Write the query in a concatenated manner, i.e.: title: units of ingredient 1, units of ingredient 2, etc.
 
-Examples of good queries:
-- "Italian pasta dish with tomatoes basil and mozzarella cheese, baked"
-- "High protein chicken meal with vegetables and rice, grilled"
-- "Vegan curry with coconut milk lentils and vegetables"
-- "Quick breakfast with eggs cheese and vegetables"
-
-### 2. Hard Filters
-Identify non-negotiable filters to apply AFTER semantic search:
-- **meal_type**: breakfast/lunch/dinner/snack (from custom_constraints)
-- **cuisine**: italian/mexican/etc (from custom_constraints)
-- **max_prep_time**: minutes (from prep_time_max)
-
-### 3. Must Include (Pantry Priority)
-List pantry items that should be prioritized in recipe matching:
+### 2. Must Include (Pantry Priority)
+List pantry items that should be prioritized in recipe matching based on the user's query:
 - Focus on confirmed pantry items
 - Prioritize items that are more unique/specific
-- Limit to top 5 most important items
 
-### 4. Must Exclude (Allergies)
+### 3. Must Exclude (Allergies)
 List ingredients that MUST NOT appear in recipes:
 - Use excluded_ingredients from constraints
 - These are hard constraints (allergies/dislikes)
 
-### 5. Search Strategy
+### 4. Search Strategy
 Choose ONE strategy based on the situation:
 
 **"pantry_first"** - Use when:

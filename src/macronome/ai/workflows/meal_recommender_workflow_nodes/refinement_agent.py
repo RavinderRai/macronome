@@ -42,11 +42,11 @@ class RefinementAgent(AgentNode):
         """
         Configure the agent for refinement decision making.
         
-        Uses gpt-4o-mini for quick decision making.
+        Uses gpt-4o for quick decision making.
         """
         return AgentConfig(
             model_provider=ModelProvider.OPENAI,
-            model_name="gpt-4o-mini",
+            model_name="gpt-4o",
             output_type=RefinementDecision,
             system_prompt="You are a problem-solving expert who decides retry vs escalation strategies.",
             name="RefinementAgent",

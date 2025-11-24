@@ -1,0 +1,48 @@
+{
+    "user_query": "recommend a large meal for me, don't worry about my pantry items",
+    "constraints": {
+        "calories": 1000,
+        "diet": "vegan",
+        "prep_time": 30,
+        "meal_type": "dinner"
+    },
+    "pantry_items": [
+        {
+            "name": "vegan chicken",
+            "category": "protein",
+            "confirmed": true
+        },
+        {
+            "name": "veggie ground round",
+            "category": "protein",
+            "confirmed": true
+        },
+        {
+            "name": "olive oil",
+            "category": "oil",
+            "confirmed": true
+        },
+        {
+            "name": "garlic",
+            "category": "spice",
+            "confirmed": true
+        },
+        {
+            "name": "keto bread",
+            "category": "grain",
+            "confirmed": true
+        },
+        {
+            "name": "lentil pasta",
+            "category": "pasta",
+            "confirmed": true
+        },
+        {
+            "name": "dairy free cheese",
+            "category": "dairy replacement",
+            "confirmed": true
+        }
+    ],
+    "chat_history": []
+}
+

@@ -1,19 +1,19 @@
 {
-    "user_query": "something quick and healthy for lunch",
+    "user_query": "recommend a meal for me, ideally include chicken so i can finish it before it gets old",
     "constraints": {
-        "calories": 580,
+        "calories": 800,
         "macros": {
-            "carbs": 60,
-            "protein": 40,
+            "carbs": 100,
+            "protein": 55,
             "fat": 20
         },
         "diet": null,
         "allergies": ["nuts"],
-        "prep_time": 30,
+        "prep_time": 15,
         "meal_type": "lunch",
         "custom_constraints": {
             "spicy": false,
-            "cuisine": "mediterranean"
+            "cuisine": "italian"
         }
     },
     "pantry_items": [
@@ -29,7 +29,17 @@
         },
         {
             "name": "olive oil",
-            "category": "condiment",
+            "category": "oil",
+            "confirmed": true
+        },
+        {
+            "name": "garlic",
+            "category": "spice",
+            "confirmed": true
+        },
+        {
+            "name": "whole wheat bread",
+            "category": "grain",
             "confirmed": true
         }
     ],
