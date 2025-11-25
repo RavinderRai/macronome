@@ -726,9 +726,11 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	loadingContent: {
-		backgroundColor: colors.background.card,
+		backgroundColor: colors.primary.light, // Dark slate instead of white
 		borderRadius: 16,
 		padding: spacing.xl,
+		borderWidth: 1,
+		borderColor: colors.border.light, // Subtle border for definition
 	},
 	closeButtonText: {
 		color: colors.text.muted,

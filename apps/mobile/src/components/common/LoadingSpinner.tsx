@@ -12,7 +12,7 @@ interface LoadingSpinnerProps {
 
 export default function LoadingSpinner({
     size = 'large',
-    color = colors.accent.coral,
+    color = colors.accent.coral, // Warm orange spinner
     message,
     fullScreen = false,
 }: LoadingSpinnerProps) {
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     message: {
         fontSize: 16,
         lineHeight: 24,
-        color: colors.text.secondary,
+        color: colors.text.primary, // White text for better contrast on dark backgrounds
         marginTop: spacing.md,
         textAlign: 'center',
     },
