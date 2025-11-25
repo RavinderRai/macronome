@@ -8,6 +8,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../../theme';
 import { spacing } from '../../theme';
 import type { Message } from '../../types/chat';
+import MealRecommendationCard from './MealRecommendationCard';
+import ErrorCard from './ErrorCard';
 
 interface ChatMessageProps {
     message: Message;
@@ -25,6 +27,28 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         });
     };
 
+	// Render structured component if specified
+	if (message.component && message.data) {
+		return (
+			<View style={[
+				styles.container,
+				styles.assistantContainer // Always assistant for structured components
+			]}>
+				{message.component === 'MealRecommendationCard' && (
+					<MealRecommendationCard data={message.data} />
+				)}
+				{message.component === 'ErrorCard' && (
+					<ErrorCard data={message.data} />
+				)}
+				{/* Timestamp below component */}
+				<Text style={[styles.timestamp, styles.componentTimestamp]}>
+					{formatTime(message.timestamp)}
+				</Text>
+			</View>
+		);
+	}
+
+	// Default text message bubble
 	return (
 		<View style={[
 			styles.container,
@@ -103,5 +127,13 @@ const styles = StyleSheet.create({
 	assistantTimestamp: {
 		color: colors.text.secondary,
 		textAlign: 'left',
+	},
+	componentTimestamp: {
+		fontSize: 12,
+		lineHeight: 16,
+		color: colors.text.muted,
+		textAlign: 'left',
+		marginTop: spacing.xs,
+		marginLeft: spacing.md,
 	},
 });

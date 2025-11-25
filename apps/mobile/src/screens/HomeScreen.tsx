@@ -152,49 +152,33 @@ export default function HomeScreen() {
               // Celery task succeeded, check workflow result
               
               if (status.result.success === true && status.result.recommendation) {
-                // Workflow succeeded
+                // Workflow succeeded - use structured component
                 setMealLoading(false);
                 
-                const recommendation = status.result.recommendation;
-                const recipe = recommendation.recipe;
-                
-                // Format ingredients (they're already strings from backend)
-                const ingredientsList = Array.isArray(recipe.ingredients) 
-                  ? recipe.ingredients 
-                  : [];
-                
-                // Parse recipe instructions (markdown) or use directions
-                const instructions = recommendation.recipe_instructions 
-                  || recipe.directions 
-                  || 'No instructions available';
-                
-                // Build formatted message
-                const messageText = `Here's your meal recommendation!\n\n**${recipe.name}**\n\n${recommendation.why_it_fits}\n\n**Nutrition:** ${recipe.nutrition.calories} cal, ${recipe.nutrition.protein}g protein, ${recipe.nutrition.carbs}g carbs, ${recipe.nutrition.fat}g fat\n\n**Ingredients:**\n${ingredientsList.map((ing: string) => `• ${ing}`).join('\n')}\n\n**Instructions:**\n${instructions}`;
-                
                 addMessage({
-                  text: messageText,
+                  text: '', // Empty text, using component instead
                   type: 'assistant',
+                  component: 'MealRecommendationCard',
+                  data: status.result.recommendation,
                 });
                 
                 // Scroll to bottom
-        setTimeout(() => {
+                setTimeout(() => {
                   flatListRef.current?.scrollToEnd({ animated: true });
                 }, 100);
                 
               } else if (status.result.success === false) {
-                // Workflow failed (e.g., couldn't find suitable recipe)
+                // Workflow failed - use error component
                 setMealLoading(false);
-                const errorMsg = status.result.error_message || 'Could not generate a meal recommendation.';
-                const suggestions = status.result.suggestions || [];
-                
-                let messageText = `Sorry, ${errorMsg}`;
-                if (suggestions.length > 0) {
-                  messageText += `\n\nSuggestions:\n${suggestions.map((s: string) => `• ${s}`).join('\n')}`;
-                }
                 
                 addMessage({
-                  text: messageText,
+                  text: '', // Empty text, using component instead
                   type: 'assistant',
+                  component: 'ErrorCard',
+                  data: {
+                    error_message: status.result.error_message || 'Could not generate a meal recommendation.',
+                    suggestions: status.result.suggestions || [],
+                  },
                 });
               } else {
                 // Unexpected result structure
@@ -400,28 +384,14 @@ export default function HomeScreen() {
             // Backend returns: { status: "success", result: { success: bool, recommendation: {...} or error_message: ... } }
             
             if (status.result.success === true && status.result.recommendation) {
-              // Workflow succeeded
+              // Workflow succeeded - use structured component
               setMealLoading(false);
               
-              const recommendation = status.result.recommendation;
-              const recipe = recommendation.recipe;
-              
-              // Format ingredients (they're already strings from backend)
-              const ingredientsList = Array.isArray(recipe.ingredients) 
-                ? recipe.ingredients 
-                : [];
-              
-              // Parse recipe instructions (markdown) or use directions
-              const instructions = recommendation.recipe_instructions 
-                || recipe.directions 
-                || 'No instructions available';
-              
-              // Build formatted message
-              const messageText = `Here's your meal recommendation!\n\n**${recipe.name}**\n\n${recommendation.why_it_fits}\n\n**Nutrition:** ${recipe.nutrition.calories} cal, ${recipe.nutrition.protein}g protein, ${recipe.nutrition.carbs}g carbs, ${recipe.nutrition.fat}g fat\n\n**Ingredients:**\n${ingredientsList.map(ing => `• ${ing}`).join('\n')}\n\n**Instructions:**\n${instructions}`;
-              
               addMessage({
-                text: messageText,
+                text: '', // Empty text, using component instead
                 type: 'assistant',
+                component: 'MealRecommendationCard',
+                data: status.result.recommendation,
               });
               
               // Scroll to bottom
@@ -430,19 +400,17 @@ export default function HomeScreen() {
               }, 100);
               
             } else if (status.result.success === false) {
-              // Workflow failed (e.g., couldn't find suitable recipe)
+              // Workflow failed - use error component
               setMealLoading(false);
-              const errorMsg = status.result.error_message || 'Could not generate a meal recommendation.';
-              const suggestions = status.result.suggestions || [];
-              
-              let messageText = `Sorry, ${errorMsg}`;
-              if (suggestions.length > 0) {
-                messageText += `\n\nSuggestions:\n${suggestions.map(s => `• ${s}`).join('\n')}`;
-              }
               
               addMessage({
-                text: messageText,
+                text: '', // Empty text, using component instead
                 type: 'assistant',
+                component: 'ErrorCard',
+                data: {
+                  error_message: status.result.error_message || 'Could not generate a meal recommendation.',
+                  suggestions: status.result.suggestions || [],
+                },
               });
             } else {
               // Unexpected result structure

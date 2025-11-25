@@ -5,6 +5,8 @@ export interface Message {
     text: string;
     type: MessageType;
     timestamp: Date;
+    component?: 'MealRecommendationCard' | 'ErrorCard'; // Component type for structured rendering
+    data?: any; // Structured data for component rendering
 }
 
 export interface Meal {
