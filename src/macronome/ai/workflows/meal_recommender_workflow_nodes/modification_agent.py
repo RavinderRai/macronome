@@ -11,6 +11,7 @@ from macronome.ai.schemas.meal_recommender_constraints_schema import (
 )
 from macronome.ai.workflows.meal_recommender_workflow_nodes.normalize_node import NormalizeNode
 from macronome.ai.utils.nutrition_calculator import NutritionCalculator
+from macronome.ai.utils.ingredient_parser import parse_ingredient
 from macronome.ai.schemas.recipe_schema import Recipe, ParsedIngredient, NutritionInfo
 from macronome.ai.schemas.workflow_schemas import ModifiedRecipe
 
@@ -23,7 +24,7 @@ Agent with only ONE tool (calculate_nutrition).
 LLM does all recipe modification directly in output, then we verify with nutrition calculation.
 """
 
-MAX_ITERATIONS = 1
+MAX_ITERATIONS = 5
 
 class ModificationAgent(AgentNode):
     """
@@ -169,10 +170,15 @@ class ModificationAgent(AgentNode):
             
             if nutrition.calories < min_acceptable:
                 diff = target_min - nutrition.calories
+                scale_factor = target_min / nutrition.calories if nutrition.calories > 0 else 1.2
                 suggestions.append(f"• Add ~{diff:.0f} calories (e.g., increase portion sizes, add healthy fats)")
+                suggestions.append(f"  → SCALING: Multiply all ingredients by {scale_factor:.2f}x to reach target")
             elif nutrition.calories > max_acceptable:
                 diff = nutrition.calories - target_max
+                target_avg = (target_min + target_max) / 2
+                scale_factor = target_avg / nutrition.calories if nutrition.calories > 0 else 0.7
                 suggestions.append(f"• Reduce ~{diff:.0f} calories (e.g., scale down portions, reduce high-calorie ingredients)")
+                suggestions.append(f"  → SCALING: Multiply all ingredients by {scale_factor:.2f}x to reach target (reduce by {100*(1-scale_factor):.0f}%)")
         
         # Check macro targets if specified
         if constraints.macro_targets:
@@ -185,7 +191,9 @@ class ModificationAgent(AgentNode):
                     suggestions.append(f"• Add {diff:.0f}g more protein (e.g., increase chicken/fish, add beans/tofu)")
                 elif nutrition.protein > targets.protein * 1.15:
                     diff = nutrition.protein - targets.protein
+                    scale_factor = targets.protein / nutrition.protein if nutrition.protein > 0 else 0.8
                     suggestions.append(f"• Reduce protein by {diff:.0f}g (e.g., decrease meat portions)")
+                    suggestions.append(f"  → SCALING: Reduce protein sources by {100*(1-scale_factor):.0f}% (multiply by {scale_factor:.2f}x)")
             
             # Carbs (if target exists)
             if targets.carbs is not None:
@@ -194,7 +202,9 @@ class ModificationAgent(AgentNode):
                     suggestions.append(f"• Add {diff:.0f}g more carbs (e.g., add rice, pasta, or bread)")
                 elif nutrition.carbs > targets.carbs * 1.15:
                     diff = nutrition.carbs - targets.carbs
+                    scale_factor = targets.carbs / nutrition.carbs if nutrition.carbs > 0 else 0.7
                     suggestions.append(f"• Reduce carbs by {diff:.0f}g (e.g., use cauliflower rice, reduce pasta/rice)")
+                    suggestions.append(f"  → SCALING: Reduce carb sources by {100*(1-scale_factor):.0f}% (multiply by {scale_factor:.2f}x)")
             
             # Fat (if target exists)
             if targets.fat is not None:
@@ -203,7 +213,9 @@ class ModificationAgent(AgentNode):
                     suggestions.append(f"• Add {diff:.0f}g more fat (e.g., increase olive oil, add avocado/nuts)")
                 elif nutrition.fat > targets.fat * 1.15:
                     diff = nutrition.fat - targets.fat
+                    scale_factor = targets.fat / nutrition.fat if nutrition.fat > 0 else 0.6
                     suggestions.append(f"• Reduce fat by {diff:.0f}g (e.g., decrease oil, remove cheese)")
+                    suggestions.append(f"  → SCALING: Reduce fat sources by {100*(1-scale_factor):.0f}% (multiply by {scale_factor:.2f}x)")
         
         # Return suggestions or a generic message
         if suggestions:
@@ -242,28 +254,8 @@ class ModificationAgent(AgentNode):
         # Convert selected recipe ingredients to ParsedIngredient format
         initial_ingredients = []
         for ing_str in selected_recipe.ingredients:
-            # Simple parsing
-            parts = ing_str.split(maxsplit=2)
-            if len(parts) >= 2 and parts[0].replace('.', '').isdigit():
-                try:
-                    quantity = float(parts[0])
-                    unit = parts[1] if len(parts) > 2 else "serving"
-                    ingredient = parts[2] if len(parts) > 2 else parts[1]
-                except ValueError:
-                    quantity = 1.0
-                    unit = "serving"
-                    ingredient = ing_str
-            else:
-                quantity = 1.0
-                unit = "serving"
-                ingredient = ing_str
-            
-            initial_ingredients.append(ParsedIngredient(
-                ingredient=ingredient,
-                quantity=quantity,
-                unit=unit,
-                modifier=None,
-            ))
+            parsed = parse_ingredient(ing_str)
+            initial_ingredients.append(parsed)
         
         # Calculate baseline nutrition
         logger.info(f"Calculating baseline nutrition for: {selected_recipe.title}")

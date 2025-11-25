@@ -1,8 +1,10 @@
 import logging
 from macronome.ai.core.nodes.base import Node
 from macronome.ai.core.task import TaskContext
-from macronome.ai.schemas.recipe_schema import NutritionInfo, ParsedIngredient
+from macronome.ai.schemas.recipe_schema import NutritionInfo
 from macronome.ai.utils.nutrition_calculator import NutritionCalculator
+from macronome.ai.utils.ingredient_parser import parse_ingredient
+from macronome.ai.schemas.recipe_schema import Recipe
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +46,6 @@ class InitialNutritionNode(Node):
             TaskContext with baseline nutrition info saved
         """
         # Get selected recipe
-        from macronome.ai.schemas.recipe_schema import Recipe
         selected_recipe: Recipe = task_context.nodes.get("selected_recipe")
         if not selected_recipe:
             raise ValueError("Selected recipe not found in task context")
@@ -52,31 +53,10 @@ class InitialNutritionNode(Node):
         logger.info(f"Calculating baseline nutrition for: {selected_recipe.title}")
         
         # Convert recipe ingredients to ParsedIngredient format
-        # (Simplified parsing - in production, use proper ingredient parser)
         ingredients = []
         for ing_str in selected_recipe.ingredients:
-            # Simple parsing - assume format like "2 cups flour" or just "flour"
-            parts = ing_str.split(maxsplit=2)
-            if len(parts) >= 2 and parts[0].replace('.', '').isdigit():
-                try:
-                    quantity = float(parts[0])
-                    unit = parts[1] if len(parts) > 2 else "serving"
-                    ingredient = parts[2] if len(parts) > 2 else parts[1]
-                except ValueError:
-                    quantity = 1.0
-                    unit = "serving"
-                    ingredient = ing_str
-            else:
-                quantity = 1.0
-                unit = "serving"
-                ingredient = ing_str
-            
-            ingredients.append(ParsedIngredient(
-                ingredient=ingredient,
-                quantity=quantity,
-                unit=unit,
-                modifier=None,
-            ))
+            parsed = parse_ingredient(ing_str)
+            ingredients.append(parsed)
         
         # Calculate using shared nutrition calculator
         nutrition = await self._nutrition_calculator.calculate(ingredients)

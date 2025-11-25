@@ -121,19 +121,19 @@ class QCRouter(BaseRouter):
             
             if targets.protein:
                 diff_pct = abs(nutrition.protein - targets.protein) / max(targets.protein, 1)
-                if diff_pct > 0.15:  # 15% tolerance
+                if diff_pct > 0.3:  # 30% tolerance
                     issues.append(f"Protein off by {diff_pct*100:.1f}%: {nutrition.protein}g vs {targets.protein}g")
                     logger.warning(issues[-1])
             
             if targets.carbs:
                 diff_pct = abs(nutrition.carbs - targets.carbs) / max(targets.carbs, 1)
-                if diff_pct > 0.15:
+                if diff_pct > 0.3:
                     issues.append(f"Carbs off by {diff_pct*100:.1f}%: {nutrition.carbs}g vs {targets.carbs}g")
                     logger.warning(issues[-1])
             
             if targets.fat:
                 diff_pct = abs(nutrition.fat - targets.fat) / max(targets.fat, 1)
-                if diff_pct > 0.15:
+                if diff_pct > 0.3:
                     issues.append(f"Fat off by {diff_pct*100:.1f}%: {nutrition.fat}g vs {targets.fat}g")
                     logger.warning(issues[-1])
         

@@ -5,8 +5,11 @@ author: Macronome AI
 
 Modify this recipe to meet ALL user constraints, or leave it as is if it already meets constraints.
 
-## Current Recipe
-**Title:** {{ recipe_title }}
+---
+
+## CURRENT STATE
+
+### Recipe: {{ recipe_title }}
 
 **Ingredients:**
 {{ current_ingredients_str }}
@@ -14,15 +17,18 @@ Modify this recipe to meet ALL user constraints, or leave it as is if it already
 **Directions:**
 {{ directions }}
 
-## Current Nutrition
+**Current Nutrition:**
 {{ nutrition_feedback }}
 
-## Target Constraints
+---
+
+## TARGET CONSTRAINTS
+
 {% for constraint in constraints_summary %}
 • {{ constraint }}
 {% endfor %}
 
-## Pantry Items Available
+**Available Pantry Items:**
 {% if pantry_items %}
 {% for item in pantry_items %}
 • {{ item }}
@@ -31,25 +37,132 @@ Modify this recipe to meet ALL user constraints, or leave it as is if it already
 • None
 {% endif %}
 
-## {{ issues_feedback }}
+**Must Avoid:** {{ excluded_ingredients_str }}
+**Diet Type:** {{ diet_type or "none" }}
+
+---
+
+## NUTRITION GAP ANALYSIS
+
+{{ issues_feedback }}
 {% if specific_suggestions %}
 
-## Specific Suggestions
+### Recommended Adjustments:
 {{ specific_suggestions }}
 {% endif %}
 
-## Your Task (Iteration {{ iteration }}/{{ max_iterations }})
-Output a COMPLETE modified recipe that meets ALL constraints:
+---
 
-1. **Use pantry items** when possible (preferred but not required)
-2. **Meet calorie range** exactly
-3. **Meet macro targets** (protein, carbs, fat)
-4. **Respect diet type** ({{ diet_type or "none" }})
-5. **Avoid excluded ingredients** ({{ excluded_ingredients_str }})
+## YOUR TASK (Iteration {{ iteration }}/{{ max_iterations }})
 
-**Important:**
-- Output the COMPLETE recipe with ALL ingredients in structured format
-- Each ingredient must have: quantity (float), unit (string), ingredient (string)
-- Be precise with quantities to hit targets
-- If recipe is 3x too large (e.g., 2000 cal target 600), scale everything by ~0.3x
-- Document what you changed and why in the modifications list
+Transform the current recipe to meet ALL target constraints using the strategy below.
+
+### Step 1: Calculate Scaling Factor
+
+**For overall recipe size (if calories are off):**
+- Current calories: [extract from nutrition above]
+- Target calories: [from constraints]
+- Scaling factor = Target / Current
+- Example: 800 target ÷ 1064 current = 0.75x (reduce by 25%)
+
+**Apply this factor to ALL ingredients as your baseline adjustment.**
+
+### Step 2: Fine-Tune Individual Macros
+
+After scaling, if specific macros are still off-target:
+
+- **Carbs too high?** Further reduce bread/pasta/rice/flour by 20-40%
+- **Carbs too low?** Add or increase carb sources by 20-40%
+- **Fat too high?** Further reduce oils/butter/cheese/nuts by 30-50%
+- **Fat too low?** Increase healthy fats (olive oil, avocado) by 20-30%
+- **Protein too high?** Reduce meat/eggs/dairy by 15-30%
+- **Protein too low?** Increase lean protein sources by 20-40%
+
+### Step 3: Output Modified Recipe
+
+Use pantry items when possible, maintain recipe quality, and ensure all quantities are in grams.
+
+---
+
+## OUTPUT FORMAT REQUIREMENTS
+
+### Ingredient Structure
+
+Each ingredient MUST use this exact format:
+
+```json
+{
+  "ingredient": "ingredient name",
+  "quantity": <number>,
+  "unit": "g",
+  "modifier": "optional description"
+}
+```
+
+### Unit Conversion Reference
+
+**ALL quantities must be in grams (g).** Use these conversions:
+
+**Volume to Grams:**
+- Liquids/oils: 1 cup = 240g, 1 tbsp = 14g, 1 tsp = 5g
+- Chopped vegetables: 1 cup = 150g
+- Leafy greens (packed): 1 cup = 40g
+- Flour: 1 cup = 120g
+- Rice (cooked): 1 cup = 195g
+- Pasta (cooked): 1 cup = 140g
+- Cheese (shredded): 1 cup = 113g
+
+**Weight to Grams:**
+- 1 pound = 453.6g (so 0.5 lb = 227g)
+- 1 ounce = 28.35g
+
+### Correct Examples
+
+```json
+{"ingredient": "chicken breast", "quantity": 227, "unit": "g"}
+{"ingredient": "olive oil", "quantity": 14, "unit": "g"}
+{"ingredient": "tomato", "quantity": 225, "unit": "g", "modifier": "chopped"}
+{"ingredient": "whole wheat bread", "quantity": 60, "unit": "g"}
+{"ingredient": "salt", "quantity": 5, "unit": "g"}
+```
+
+### Common Mistakes to Avoid
+
+❌ **WRONG:** `{"ingredient": "chicken", "quantity": 0.5, "unit": "pound"}`
+✅ **RIGHT:** `{"ingredient": "chicken", "quantity": 227, "unit": "g"}`
+
+❌ **WRONG:** `{"ingredient": "oil", "quantity": 2, "unit": "tablespoon"}`
+✅ **RIGHT:** `{"ingredient": "oil", "quantity": 28, "unit": "g"}`
+
+❌ **WRONG:** `{"ingredient": "salt to taste"}`
+✅ **RIGHT:** `{"ingredient": "salt", "quantity": 5, "unit": "g"}`
+
+---
+
+## STRATEGY REMINDERS
+
+1. **Be aggressive with scaling** - If you're 33% over target, reduce by at least 30%, not 10%
+2. **Calculate explicitly** - Don't guess; do the math for scaling factors
+3. **Apply systematically** - Scale everything proportionally, then fine-tune problem areas
+4. **Think step-by-step** - Calculate → Apply → Verify mentally before outputting
+5. **Use grams only** - Convert everything to grams before calculating quantities
+6. **Document changes** - Explain what you changed and why in the modifications list
+
+---
+
+## FINAL CHECKLIST
+
+Before submitting your modified recipe, verify:
+
+- [ ] All ingredient quantities are in **grams (g)** only
+- [ ] Scaling factor was calculated and applied correctly
+- [ ] Recipe will meet calorie target (within 15%)
+- [ ] Recipe will meet macro targets (within 15%)
+- [ ] All pantry items considered
+- [ ] Excluded ingredients avoided
+- [ ] Recipe includes ALL ingredients (not just changed ones)
+- [ ] Modifications list documents what changed and why
+
+---
+
+Output your complete modified recipe now.

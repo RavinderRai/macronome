@@ -22,8 +22,8 @@ You are a recipe selection expert. Analyze the candidate recipes and pick the be
 **Candidate Recipes ({{ candidates | length }}):**
 {% for recipe in candidates %}
 
-### Recipe {{loop.index}}: {{ recipe.title }}
-- **ID:** {{ recipe.id }}
+### Candidate {{loop.index}}: {{ recipe.title }}
+- **RECIPE_ID: `{{ recipe.id }}`** ← USE THIS EXACT ID IN YOUR RESPONSE
 - **Ingredients ({{ recipe.ingredients | length }}):**
 {% for ing in recipe.ingredients[:10] %}
   - {{ ing }}
@@ -88,14 +88,21 @@ Estimate modification effort as:
 Return a JSON object:
 ```json
 {
-  "selected_recipe_id": "recipe_id_here",
+  "selected_recipe_id": "COPY THE EXACT RECIPE_ID FROM ABOVE (e.g., 'recipe_1663165')",
   "reasoning": "Why this recipe is the best choice. Explain: diet fit, macro potential, pantry match, modification ease.",
   "estimated_modification_effort": "low | medium | high"
 }
 ```
 
+**CRITICAL: Recipe ID Requirements**
+- ❌ WRONG: `"selected_recipe_id": "recipe_8"` (using the candidate number)
+- ✅ CORRECT: `"selected_recipe_id": "recipe_1663165"` (using the actual RECIPE_ID)
+- **You MUST copy the exact `RECIPE_ID` value from the candidate list above**
+- The ID will be in format `recipe_XXXXXXX` where X is a digit
+
 **Important:**
 - Pick the recipe requiring LEAST modification
 - Explain your reasoning clearly
 - Be realistic about modification effort
+- **Use the EXACT recipe ID from the candidate list, NOT the candidate number**
 

@@ -149,12 +149,115 @@ class NutritionCalculator:
             logger.error(f"USDA API error for '{ingredient_name}': {e}")
             return None
     
+    def _convert_to_grams(self, quantity: float, unit: str, ingredient_name: str = "") -> float:
+        """
+        Convert ingredient quantity to grams based on unit.
+        
+        Uses standard conversions and density estimates for different ingredient types.
+        
+        Args:
+            quantity: Amount of ingredient
+            unit: Unit of measurement
+            ingredient_name: Name of ingredient (for density estimation)
+            
+        Returns:
+            Approximate weight in grams
+        """
+        unit_lower = unit.lower() if unit else ""
+        
+        # Weight units - direct conversion
+        if "g" in unit_lower or "gram" in unit_lower:
+            return quantity
+        elif "kg" in unit_lower or "kilogram" in unit_lower:
+            return quantity * 1000
+        elif "oz" in unit_lower or "ounce" in unit_lower:
+            return quantity * 28.35
+        elif "lb" in unit_lower or "pound" in unit_lower:
+            return quantity * 453.6
+        
+        # Volume units - convert based on typical ingredient density
+        # Average densities used (varies by ingredient)
+        
+        # Cup conversions (240ml = 1 cup)
+        if "cup" in unit_lower:
+            # Different ingredients have different cup weights
+            ing_lower = ingredient_name.lower()
+            if any(x in ing_lower for x in ["flour", "sugar", "powder"]):
+                # Flour, sugar: ~120-200g per cup
+                return quantity * 120
+            elif any(x in ing_lower for x in ["butter", "oil", "shortening"]):
+                # Fats: ~225g per cup
+                return quantity * 225
+            elif any(x in ing_lower for x in ["water", "milk", "liquid", "juice"]):
+                # Liquids: ~240g per cup
+                return quantity * 240
+            elif any(x in ing_lower for x in ["rice", "grain"]):
+                # Grains: ~185g per cup
+                return quantity * 185
+            else:
+                # Default: average density
+                return quantity * 150
+        
+        # Tablespoon (15ml)
+        if "tablespoon" in unit_lower or "tbsp" in unit_lower:
+            return quantity * 15
+        
+        # Teaspoon (5ml)
+        if "teaspoon" in unit_lower or "tsp" in unit_lower:
+            return quantity * 5
+        
+        # Quart (946ml)
+        if "quart" in unit_lower or "qt" in unit_lower:
+            return quantity * 946
+        
+        # Pint (473ml)
+        if "pint" in unit_lower or "pt" in unit_lower:
+            return quantity * 473
+        
+        # Container units - rough estimates
+        if "can" in unit_lower:
+            # Standard can: ~400g
+            return quantity * 400
+        elif "jar" in unit_lower:
+            # Standard jar: ~350g
+            return quantity * 350
+        elif "box" in unit_lower or "pkg" in unit_lower or "package" in unit_lower:
+            # Standard box/package: ~300g
+            return quantity * 300
+        elif "carton" in unit_lower:
+            # Standard carton: ~500g
+            return quantity * 500
+        elif "bottle" in unit_lower:
+            # Standard bottle: ~500ml = 500g
+            return quantity * 500
+        
+        # Size descriptors
+        if "small" in unit_lower:
+            return quantity * 150
+        elif "medium" in unit_lower:
+            return quantity * 250
+        elif "large" in unit_lower:
+            return quantity * 350
+        
+        # Bread/loaf units
+        if "loaf" in unit_lower:
+            # Average Italian/French bread loaf: ~600g
+            return quantity * 600
+        
+        # Piece-based units (estimate)
+        if any(x in unit_lower for x in ["slice", "piece", "clove", "serving"]):
+            return quantity * 50  # Conservative estimate
+        
+        # Fallback: treat as ~100g per unit
+        logger.debug(f"Unknown unit '{unit}', using default conversion: {quantity} * 100g")
+        return quantity * 100
+    
     async def calculate(self, ingredients: List[ParsedIngredient]) -> NutritionInfo:
         """
         Calculate total nutrition for a list of ingredients.
         
-        Uses USDA API with caching. Assumes quantities are already in reasonable units.
-        For grams, scales per 100g. For other units, uses quantity as multiplier.
+        Uses USDA API with caching and improved unit conversions.
+        Converts all quantities to grams before scaling nutrition data.
         
         Args:
             ingredients: List of parsed ingredients with quantities and units
@@ -177,24 +280,36 @@ class NutritionCalculator:
                 logger.warning(f"No nutrition data for: {ing.ingredient}")
                 continue
             
-            # Simple scaling: if unit is grams, scale directly
-            # For other units, use fixed scale (1.0) to avoid blowing up values
+            # USDA returns nutrition per 100g
+            # All quantities should be in grams for accurate calculation
+            # Formula: N = (V × W) / 100, where V = value per 100g, W = weight in grams
             unit_lower = ing.unit.lower() if ing.unit else ""
             
-            if "g" in unit_lower or "gram" in unit_lower:
-                # Quantity is in grams, scale per 100g
+            # Only accept grams for accurate nutrition calculation
+            if unit_lower in ["g", "gram", "grams"]:
+                # Quantity is in grams, scale using formula: W / 100
+                grams = ing.quantity
                 scale = ing.quantity / 100.0
             else:
-                # For non-gram units, use fixed scale of 1.0
-                # This assumes 1 serving ≈ 100g equivalent (conservative estimate)
-                # This prevents multiplying by quantity which was causing inflated values
-                scale = 1.0
+                # Warn about non-gram units
+                # For baseline nutrition from original recipes, this is expected
+                # For modified recipes, ModificationAgent should output grams only
+                logger.warning(
+                    f"Non-gram unit '{ing.unit}' for {ing.ingredient}. "
+                    f"Attempting unit conversion for baseline calculation."
+                )
+                # For non-gram units, attempt conversion
+                grams = self._convert_to_grams(ing.quantity, ing.unit, ing.ingredient)
+                scale = grams / 100.0
             
             # Add to totals
             total_calories += usda_data.get("calories", 0) * scale
             total_protein += usda_data.get("protein", 0) * scale
             total_carbs += usda_data.get("carbs", 0) * scale
             total_fat += usda_data.get("fat", 0) * scale
+            
+            logger.debug(f"  {ing.quantity} {ing.unit} {ing.ingredient} = {grams:.1f}g "
+                        f"(+{usda_data.get('calories', 0) * scale:.0f} cal)")
         
         nutrition = NutritionInfo(
             calories=int(total_calories),

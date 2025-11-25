@@ -89,21 +89,50 @@ class SelectionAgent(AgentNode):
             candidates=[recipe.model_dump() for recipe in candidates],
         )
         
-        # Run the agent
-        result = await self.agent.run(user_prompt=prompt)
+        # Run the agent with validation retry logic
+        max_validation_retries = 3
+        for attempt in range(max_validation_retries):
+            # Run the agent
+            result = await self.agent.run(user_prompt=prompt)
+            
+            # Validate that the selected recipe ID exists in candidates
+            selected_recipe = next(
+                (r for r in candidates if r.id == result.output.selected_recipe_id),
+                None
+            )
+            
+            if selected_recipe:
+                # Success - valid recipe ID selected
+                break
+            else:
+                # Invalid ID - prepare retry with more explicit guidance
+                available_ids = [r.id for r in candidates]
+                if attempt < max_validation_retries - 1:
+                    # Log warning and retry with enhanced prompt
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(
+                        f"SelectionAgent returned invalid recipe ID '{result.output.selected_recipe_id}' "
+                        f"(attempt {attempt + 1}/{max_validation_retries}). Retrying with explicit ID list."
+                    )
+                    
+                    # Add explicit ID reminder to the prompt
+                    id_list = "\n".join([f"- {rid}" for rid in available_ids])
+                    prompt = prompt + f"\n\n**RETRY REMINDER:** Your previous attempt used an invalid ID. You MUST select one of these exact IDs:\n{id_list}"
+                else:
+                    # Final attempt failed - raise error
+                    raise ValueError(
+                        f"Selected recipe ID '{result.output.selected_recipe_id}' not found in candidates after {max_validation_retries} attempts. "
+                        f"Available IDs: {available_ids}"
+                    )
         
         # Store output with message history
         history = to_jsonable_python(result.all_messages())
         output = self.OutputType(model_output=result.output, history=history)
         self.save_output(output)
         
-        # Also save the actual selected recipe for easy access
-        selected_recipe = next(
-            (r for r in candidates if r.id == output.model_output.selected_recipe_id),
-            None
-        )
-        if selected_recipe:
-            task_context.nodes["selected_recipe"] = selected_recipe
+        # Save the validated selected recipe
+        task_context.nodes["selected_recipe"] = selected_recipe
         
         return task_context
 
