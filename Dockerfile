@@ -43,5 +43,6 @@ USER appuser
 EXPOSE 8000
 
 # Default command (can be overridden in docker-compose)
-CMD ["python", "-m", "macronome.backend.app"]
+# Run Celery worker in background and FastAPI as main process
+CMD sh -c "celery -A macronome.backend.worker.config.celery_app worker --loglevel=info --pool=solo & uvicorn macronome.backend.app:app --host 0.0.0.0 --port ${PORT:-8000}"
 

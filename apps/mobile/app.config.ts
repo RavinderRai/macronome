@@ -39,6 +39,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     // Expose env vars to app via expo-constants
     extra: {
+      eas: {
+        projectId: "4565829b-a252-42f8-8836-02e5cc8e4038",
+      },
       clerkPublishableKey,
       apiBaseUrl,
       isDev,
