@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/ravirai/GitHub/macronome/ml/training/pantry_detector/mlruns/715079953786113272/0f8024468ea147799be54ecfeebe91d2/artifacts
+end_time: 1761948860688
+entry_point_name: ''
+experiment_id: '715079953786113272'
+lifecycle_stage: active
+run_id: 0f8024468ea147799be54ecfeebe91d2
+run_name: luxuriant-bat-151
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1761948439408
+status: 3
+tags: []
+user_id: ravirai

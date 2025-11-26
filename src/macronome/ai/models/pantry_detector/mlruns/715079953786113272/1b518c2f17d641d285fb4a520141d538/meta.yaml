@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/ravirai/GitHub/macronome/ml/training/pantry_detector/mlruns/715079953786113272/1b518c2f17d641d285fb4a520141d538/artifacts
+end_time: 1761878748541
+entry_point_name: ''
+experiment_id: '715079953786113272'
+lifecycle_stage: active
+run_id: 1b518c2f17d641d285fb4a520141d538
+run_name: blushing-hog-765
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1761878724313
+status: 3
+tags: []
+user_id: ravirai

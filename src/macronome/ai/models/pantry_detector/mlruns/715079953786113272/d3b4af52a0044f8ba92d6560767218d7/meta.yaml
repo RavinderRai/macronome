@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/ravirai/GitHub/macronome/ml/training/pantry_detector/mlruns/715079953786113272/d3b4af52a0044f8ba92d6560767218d7/artifacts
+end_time: 1761878820233
+entry_point_name: ''
+experiment_id: '715079953786113272'
+lifecycle_stage: active
+run_id: d3b4af52a0044f8ba92d6560767218d7
+run_name: lyrical-skink-188
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1761878769345
+status: 3
+tags: []
+user_id: ravirai
