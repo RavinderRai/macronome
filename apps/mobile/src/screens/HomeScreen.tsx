@@ -130,12 +130,17 @@ export default function HomeScreen() {
         setMealLoading(true);
         
         // Poll for status with timeout
-        const MAX_POLLS = 150; // 5 minutes max (150 * 2 seconds)
+        const MAX_POLLS = 210; // 7 minutes max (210 * 2 seconds)
         const POLL_INTERVAL = 2000; // 2 seconds
         let pollCount = 0;
 
         const pollStatus = async (): Promise<void> => {
           if (pollCount >= MAX_POLLS) {
+            console.log('⏱️ Polling timeout reached');
+            if (pollTimeoutRef.current) {
+              clearTimeout(pollTimeoutRef.current);
+              pollTimeoutRef.current = null;
+            }
             setMealLoading(false);
             addMessage({
               text: 'Sorry, the meal recommendation is taking longer than expected. Please try again.',
@@ -147,9 +152,14 @@ export default function HomeScreen() {
           try {
             const status = await getRecommendationStatus(taskId);
             pollCount++;
+            console.log(`🔄 Poll ${pollCount}/${MAX_POLLS}: status=${status.status}`);
 
             if (status.status === 'success' && status.result) {
               // Celery task succeeded, check workflow result
+              if (pollTimeoutRef.current) {
+                clearTimeout(pollTimeoutRef.current);
+                pollTimeoutRef.current = null;
+              }
               
               if (status.result.success === true && status.result.recommendation) {
                 // Workflow succeeded - use structured component
@@ -190,6 +200,10 @@ export default function HomeScreen() {
               }
             } else if (status.status === 'failure') {
               // Celery task failed
+              if (pollTimeoutRef.current) {
+                clearTimeout(pollTimeoutRef.current);
+                pollTimeoutRef.current = null;
+              }
               setMealLoading(false);
               addMessage({
                 text: `Sorry, the meal recommendation task failed. ${status.error || 'Please try again.'}`,
@@ -198,9 +212,25 @@ export default function HomeScreen() {
             } else if (status.status === 'pending' || status.status === 'started') {
               // Continue polling
               pollTimeoutRef.current = setTimeout(pollStatus, POLL_INTERVAL);
+            } else {
+              // Unexpected status - stop polling
+              console.error('Unexpected status:', status.status);
+              if (pollTimeoutRef.current) {
+                clearTimeout(pollTimeoutRef.current);
+                pollTimeoutRef.current = null;
+              }
+              setMealLoading(false);
+              addMessage({
+                text: `Unexpected status: ${status.status}. Please try again.`,
+                type: 'assistant',
+              });
             }
           } catch (error) {
             console.error('Error polling meal status:', error);
+            if (pollTimeoutRef.current) {
+              clearTimeout(pollTimeoutRef.current);
+              pollTimeoutRef.current = null;
+            }
             setMealLoading(false);
           addMessage({
               text: 'Sorry, there was an error getting your meal recommendation. Please try again.',
@@ -361,12 +391,17 @@ export default function HomeScreen() {
       console.log('✅ Meal recommendation task queued:', response.task_id);
 
       // Poll for status with timeout
-      const MAX_POLLS = 150; // 5 minutes max (150 * 2 seconds)
+      const MAX_POLLS = 210; // 7 minutes max (210 * 2 seconds)
       const POLL_INTERVAL = 2000; // 2 seconds
       let pollCount = 0;
 
       const pollStatus = async (): Promise<void> => {
         if (pollCount >= MAX_POLLS) {
+          console.log('⏱️ Polling timeout reached');
+          if (pollTimeoutRef.current) {
+            clearTimeout(pollTimeoutRef.current);
+            pollTimeoutRef.current = null;
+          }
           setMealLoading(false);
           addMessage({
             text: 'Sorry, the meal recommendation is taking longer than expected. Please try again.',
@@ -378,10 +413,15 @@ export default function HomeScreen() {
         try {
           const status = await getRecommendationStatus(response.task_id);
           pollCount++;
+          console.log(`🔄 Poll ${pollCount}/${MAX_POLLS}: status=${status.status}`);
 
           if (status.status === 'success' && status.result) {
             // Celery task succeeded, check workflow result
             // Backend returns: { status: "success", result: { success: bool, recommendation: {...} or error_message: ... } }
+            if (pollTimeoutRef.current) {
+              clearTimeout(pollTimeoutRef.current);
+              pollTimeoutRef.current = null;
+            }
             
             if (status.result.success === true && status.result.recommendation) {
               // Workflow succeeded - use structured component
@@ -422,6 +462,10 @@ export default function HomeScreen() {
             }
           } else if (status.status === 'failure') {
             // Celery task failed
+            if (pollTimeoutRef.current) {
+              clearTimeout(pollTimeoutRef.current);
+              pollTimeoutRef.current = null;
+            }
             setMealLoading(false);
             addMessage({
               text: `Sorry, the meal recommendation task failed. ${status.error || 'Please try again.'}`,
@@ -430,9 +474,25 @@ export default function HomeScreen() {
           } else if (status.status === 'pending' || status.status === 'started') {
             // Continue polling
             pollTimeoutRef.current = setTimeout(pollStatus, POLL_INTERVAL);
+          } else {
+            // Unexpected status - stop polling
+            console.error('Unexpected status:', status.status);
+            if (pollTimeoutRef.current) {
+              clearTimeout(pollTimeoutRef.current);
+              pollTimeoutRef.current = null;
+            }
+            setMealLoading(false);
+            addMessage({
+              text: `Unexpected status: ${status.status}. Please try again.`,
+              type: 'assistant',
+            });
           }
         } catch (error) {
           console.error('Error polling meal status:', error);
+          if (pollTimeoutRef.current) {
+            clearTimeout(pollTimeoutRef.current);
+            pollTimeoutRef.current = null;
+          }
           setMealLoading(false);
           addMessage({
             text: 'Sorry, there was an error getting your meal recommendation. Please try again.',

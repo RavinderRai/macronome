@@ -83,20 +83,25 @@ class MealRecommenderService:
         """
         task_result = AsyncResult(task_id)
         
+        logger.info(f"🔍 Task {task_id} state: {task_result.state}, ready: {task_result.ready()}")
+        
         if task_result.ready():
             # Task completed
             if task_result.successful():
+                logger.info(f"✅ Task {task_id} succeeded, result type: {type(task_result.result)}")
                 return {
                     "status": "success",
                     "result": task_result.result
                 }
             else:
+                logger.warning(f"❌ Task {task_id} failed: {task_result.info}")
                 return {
                     "status": "failure",
                     "error": str(task_result.info)
                 }
         else:
             # Task still processing
+            logger.info(f"⏳ Task {task_id} still processing, state: {task_result.state}")
             return {
                 "status": task_result.state.lower(),  # "pending" or "started"
                 "result": None

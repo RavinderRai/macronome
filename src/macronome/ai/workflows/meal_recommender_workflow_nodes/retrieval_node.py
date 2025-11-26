@@ -175,14 +175,15 @@ class RetrievalNode(Node):
         # Embed query
         query_embedding = self._embed_query(query)
         
-        # Search Qdrant
+        # Search Qdrant using query_points (replaces deprecated search method)
         collection_name = DataConfig.QDRANT_COLLECTION_NAME
-        search_results = self._qdrant_client.search(
+        query_response = self._qdrant_client.query_points(
             collection_name=collection_name,
-            query_vector=query_embedding[0].tolist(),
+            query=query_embedding[0].tolist(),
             limit=top_k,
             with_payload=True  # Ensure payloads are returned
         )
+        search_results = query_response.points
                 
         # Build Recipe objects directly from Qdrant payloads (no S3 lookup needed!)
         results = []
