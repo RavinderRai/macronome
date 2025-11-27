@@ -1,0 +1,57 @@
+# Large directories at root level only
+/data/
+/experiments/
+/artifacts/
+/infra/
+/scripts/
+/tests/
+/src/
+/.venv/
+/.git/
+
+# iOS folder in mobile app (not needed for Android builds)
+apps/mobile/ios/
+
+# Build artifacts
+apps/mobile/android/.gradle/
+apps/mobile/android/app/build/
+apps/mobile/android/build/
+
+# Dependencies (installed fresh during build)
+apps/mobile/node_modules/
+
+# Development files
+apps/mobile/.expo/
+apps/mobile/dist/
+apps/mobile/web-build/
+
+# Large files
+*.zip
+*.tar.gz
+*.parquet
+*.faiss
+*.pt
+*.pth
+*.onnx
+
+# Python files (not needed for mobile build)
+*.pyc
+*.py
+
+# Config files at root
+/Dockerfile
+/docker-compose.yml
+/uv.lock
+/pyproject.toml
+
+# Environment
+.env
+.env.*
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+
+# Markdown docs
+*.md

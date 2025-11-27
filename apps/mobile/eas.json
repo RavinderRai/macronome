@@ -12,7 +12,12 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+        "NODE_ENV": "production",
+        "API_BASE_URL": "http://localhost:8000"
+      }
     }
   },
   "submit": {

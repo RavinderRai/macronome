@@ -1,0 +1,33 @@
+# iOS directory (not needed for Android builds)
+ios/
+
+# Android build artifacts  
+android/.gradle/
+android/app/build/
+android/build/
+android/.idea/
+
+# Dependencies (will be installed fresh)
+node_modules/
+
+# Development files
+.expo/
+dist/
+web-build/
+
+# Environment files
+.env
+.env.local
+
+# Git
+.git/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Lock files
+package-lock.json
