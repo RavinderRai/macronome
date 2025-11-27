@@ -1,0 +1,60 @@
+{
+  "family": "macronome-worker",
+  "networkMode": "awsvpc",
+  "executionRoleArn": "arn:aws:iam::590184030535:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "macronome-worker",
+      "image": "590184030535.dkr.ecr.us-east-2.amazonaws.com/macronome-api:latest",
+      "cpu": 0,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 8000,
+          "protocol": "tcp",
+          "name": "macronome-api-port",
+          "appProtocol": "http"
+        }
+      ],
+      "essential": true,
+      "environment": [],
+      "environmentFiles": [
+        {
+          "value": "arn:aws:s3:::macronome-recipes/.env",
+          "type": "s3"
+        }
+      ],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "ulimits": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/macronome-worker",
+          "awslogs-create-group": "true",
+          "awslogs-region": "us-east-2",
+          "awslogs-stream-prefix": "ecs"
+        },
+        "secretOptions": []
+      },
+      "systemControls": [],
+      "command": [
+        "celery",
+        "-A",
+        "macronome.backend.worker.config.celery_app",
+        "worker",
+        "--loglevel=info",
+        "--pool=solo"
+      ]
+    }
+  ],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "2048",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  }
+}
