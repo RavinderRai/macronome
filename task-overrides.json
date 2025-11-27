@@ -1,0 +1,15 @@
+{
+  "containerOverrides": [
+    {
+      "name": "macronome-api",
+      "command": [
+        "celery",
+        "-A",
+        "macronome.backend.worker.config.celery_app",
+        "worker",
+        "--loglevel=info",
+        "--pool=solo"
+      ]
+    }
+  ]
+}
