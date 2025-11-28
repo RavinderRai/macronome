@@ -73,8 +73,8 @@ We may update this Privacy Policy from time to time. We will notify you of any c
 ## Contact Us
 
 If you have any questions about this Privacy Policy, please contact us at:
-- Email: [Your contact email]
-- GitHub: https://github.com/ravirai/macronome
+- Email: ravi@ravinderrai.com
+- GitHub: https://github.com/ravinderrai/macronome
 
 ## Permissions Used
 
