@@ -9,14 +9,21 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+        "NODE_ENV": "production",
+        "API_BASE_URL": "http://macronome.ravinderrai.com:8000",
+        "CLERK_PUBLISHABLE_KEY": "${CLERK_PUBLISHABLE_KEY}"
+      }
     },
     "production": {
       "autoIncrement": true,
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
         "NODE_ENV": "production",
-        "API_BASE_URL": "https://ravinderrai.com/macronome"
+        "API_BASE_URL": "http://macronome.ravinderrai.com:8000",
+        "CLERK_PUBLISHABLE_KEY": "${CLERK_PUBLISHABLE_KEY}"
       }
     }
   },
