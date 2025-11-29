@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, Modal, TouchableWithoutFeedback } from 'react-native';
 import { colors } from '../../theme';
 import { spacing } from '../../theme';
 import { useFilterStore } from '../../store';
@@ -436,76 +436,73 @@ export default function FilterSection({
 				animationType="fade"
 				onRequestClose={() => setShowDietModal(false)}
 			>
-				<View style={styles.modalOverlay}>
-					<View style={styles.modalContent}>
-						<Text style={styles.modalTitle}>Set Diet</Text>
-						<Text style={styles.modalSubtitle}>Choose a diet type:</Text>
+				<TouchableWithoutFeedback onPress={() => setShowDietModal(false)}>
+					<View style={styles.modalOverlay}>
+						<TouchableWithoutFeedback onPress={() => {}}>
+							<View style={styles.modalContent}>
+								<Text style={styles.modalTitle}>Set Diet</Text>
+								<Text style={styles.modalSubtitle}>Choose a diet type:</Text>
 
-						<View style={styles.optionsList}>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setDiet(undefined);
-									setShowDietModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>ANY</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setDiet('vegan');
-									setShowDietModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>VEGAN</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setDiet('vegetarian');
-									setShowDietModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>VEGETARIAN</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setDiet('keto');
-									setShowDietModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>KETO</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setDiet('paleo');
-									setShowDietModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>PALEO</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setDiet('high_protein');
-									setShowDietModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>HIGH PROTEIN</Text>
-							</TouchableOpacity>
-						</View>
-
-						<TouchableOpacity
-							style={[styles.modalButton, styles.modalButtonCancel, { marginTop: spacing.md }]}
-							onPress={() => setShowDietModal(false)}
-						>
-							<Text style={styles.modalButtonCancelText}>Cancel</Text>
-						</TouchableOpacity>
+								<View style={styles.optionsList}>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setDiet(undefined);
+											setShowDietModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>ANY</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setDiet('vegan');
+											setShowDietModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>VEGAN</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setDiet('vegetarian');
+											setShowDietModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>VEGETARIAN</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setDiet('keto');
+											setShowDietModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>KETO</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setDiet('paleo');
+											setShowDietModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>PALEO</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setDiet('high_protein');
+											setShowDietModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>HIGH PROTEIN</Text>
+									</TouchableOpacity>
+								</View>
+							</View>
+						</TouchableWithoutFeedback>
 					</View>
-				</View>
+				</TouchableWithoutFeedback>
 			</Modal>
 
 			{/* Prep Time Modal */}
@@ -515,67 +512,64 @@ export default function FilterSection({
 				animationType="fade"
 				onRequestClose={() => setShowPrepTimeModal(false)}
 			>
-				<View style={styles.modalOverlay}>
-					<View style={styles.modalContent}>
-						<Text style={styles.modalTitle}>Set Prep Time</Text>
-						<Text style={styles.modalSubtitle}>Choose maximum prep time:</Text>
+				<TouchableWithoutFeedback onPress={() => setShowPrepTimeModal(false)}>
+					<View style={styles.modalOverlay}>
+						<TouchableWithoutFeedback onPress={() => {}}>
+							<View style={styles.modalContent}>
+								<Text style={styles.modalTitle}>Set Prep Time</Text>
+								<Text style={styles.modalSubtitle}>Choose maximum prep time:</Text>
 
-						<View style={styles.optionsList}>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setPrepTime(undefined);
-									setShowPrepTimeModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>ANY</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setPrepTime(15);
-									setShowPrepTimeModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>15 MIN</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setPrepTime(30);
-									setShowPrepTimeModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>30 MIN</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setPrepTime(45);
-									setShowPrepTimeModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>45 MIN</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setPrepTime(60);
-									setShowPrepTimeModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>60 MIN</Text>
-							</TouchableOpacity>
-						</View>
-
-						<TouchableOpacity
-							style={[styles.modalButton, styles.modalButtonCancel, { marginTop: spacing.md }]}
-							onPress={() => setShowPrepTimeModal(false)}
-						>
-							<Text style={styles.modalButtonCancelText}>Cancel</Text>
-						</TouchableOpacity>
+								<View style={styles.optionsList}>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setPrepTime(undefined);
+											setShowPrepTimeModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>ANY</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setPrepTime(15);
+											setShowPrepTimeModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>15 MIN</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setPrepTime(30);
+											setShowPrepTimeModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>30 MIN</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setPrepTime(45);
+											setShowPrepTimeModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>45 MIN</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setPrepTime(60);
+											setShowPrepTimeModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>60 MIN</Text>
+									</TouchableOpacity>
+								</View>
+							</View>
+						</TouchableWithoutFeedback>
 					</View>
-				</View>
+				</TouchableWithoutFeedback>
 			</Modal>
 
 			{/* Meal Type Modal */}
@@ -585,76 +579,73 @@ export default function FilterSection({
 				animationType="fade"
 				onRequestClose={() => setShowMealTypeModal(false)}
 			>
-				<View style={styles.modalOverlay}>
-					<View style={styles.modalContent}>
-						<Text style={styles.modalTitle}>Set Meal Type</Text>
-						<Text style={styles.modalSubtitle}>Choose a meal type:</Text>
+				<TouchableWithoutFeedback onPress={() => setShowMealTypeModal(false)}>
+					<View style={styles.modalOverlay}>
+						<TouchableWithoutFeedback onPress={() => {}}>
+							<View style={styles.modalContent}>
+								<Text style={styles.modalTitle}>Set Meal Type</Text>
+								<Text style={styles.modalSubtitle}>Choose a meal type:</Text>
 
-						<View style={styles.optionsList}>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setMealType(undefined);
-									setShowMealTypeModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>ANY</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setMealType('breakfast');
-									setShowMealTypeModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>BREAKFAST</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setMealType('lunch');
-									setShowMealTypeModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>LUNCH</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setMealType('snack');
-									setShowMealTypeModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>SNACK</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setMealType('dinner');
-									setShowMealTypeModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>DINNER</Text>
-							</TouchableOpacity>
-							<TouchableOpacity
-								style={styles.optionButton}
-								onPress={() => {
-									setMealType('dessert');
-									setShowMealTypeModal(false);
-								}}
-							>
-								<Text style={styles.optionButtonText}>DESSERT</Text>
-							</TouchableOpacity>
-						</View>
-
-						<TouchableOpacity
-							style={[styles.modalButton, styles.modalButtonCancel, { marginTop: spacing.md }]}
-							onPress={() => setShowMealTypeModal(false)}
-						>
-							<Text style={styles.modalButtonCancelText}>Cancel</Text>
-						</TouchableOpacity>
+								<View style={styles.optionsList}>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setMealType(undefined);
+											setShowMealTypeModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>ANY</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setMealType('breakfast');
+											setShowMealTypeModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>BREAKFAST</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setMealType('lunch');
+											setShowMealTypeModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>LUNCH</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setMealType('snack');
+											setShowMealTypeModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>SNACK</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setMealType('dinner');
+											setShowMealTypeModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>DINNER</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										style={styles.optionButton}
+										onPress={() => {
+											setMealType('dessert');
+											setShowMealTypeModal(false);
+										}}
+									>
+										<Text style={styles.optionButtonText}>DESSERT</Text>
+									</TouchableOpacity>
+								</View>
+							</View>
+						</TouchableWithoutFeedback>
 					</View>
-				</View>
+				</TouchableWithoutFeedback>
 			</Modal>
 		</View>
 	);
