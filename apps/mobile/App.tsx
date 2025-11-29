@@ -3,6 +3,7 @@ import 'react-native-gesture-handler';
 import React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ClerkProvider } from '@clerk/clerk-expo';
 import { AuthProvider, useAuthContext } from './src/contexts/AuthContext';
 import { ENV } from './src/utils/env';
@@ -39,15 +40,17 @@ function AppContent() {
  */
 export default function App() {
   return (
-    <ClerkProvider publishableKey={ENV.clerkPublishableKey}>
-      <AuthProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <BottomSheetModalProvider>
-            <AppContent />
-          </BottomSheetModalProvider>
-        </GestureHandlerRootView>
-      </AuthProvider>
-    </ClerkProvider>
+    <SafeAreaProvider>
+      <ClerkProvider publishableKey={ENV.clerkPublishableKey}>
+        <AuthProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <BottomSheetModalProvider>
+              <AppContent />
+            </BottomSheetModalProvider>
+          </GestureHandlerRootView>
+        </AuthProvider>
+      </ClerkProvider>
+    </SafeAreaProvider>
   );
 }
 

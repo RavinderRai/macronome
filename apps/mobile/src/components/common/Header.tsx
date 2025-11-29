@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Keyboard } from 'react-native';
 import { colors } from '../../theme';
 import { spacing } from '../../theme';
 import { usePantryStore } from '../../store';
@@ -23,6 +23,7 @@ export default function Header({
     const pantryCount = pantryItems.filter((item) => item.confirmed).length;
 
     const handlePantryPress = () => {
+        Keyboard.dismiss();
         if (onPantryPress) {
             onPantryPress();
         } else {
@@ -49,7 +50,10 @@ export default function Header({
 
             <TouchableOpacity 
                 style={styles.settingsButton} 
-                onPress={onSettingsPress}
+                onPress={() => {
+                    Keyboard.dismiss();
+                    onSettingsPress?.();
+                }}
                 activeOpacity={0.7}
             >
                 <Text style={styles.settingsIcon}>⚙️</Text>

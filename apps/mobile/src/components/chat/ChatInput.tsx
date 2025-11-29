@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, Keyboard } from 'react-native';
 import { colors } from '../../theme';
 import { spacing } from '../../theme';
 import { CHAT_CONSTANTS } from '../../utils/constants';
@@ -31,6 +31,7 @@ export default function ChatInput({
 	// Handle send button press
 	const handleSend = () => {
 		if (value.trim() && !disabled) {
+			Keyboard.dismiss();
 			onSend();
 		}
 	};
@@ -41,7 +42,10 @@ export default function ChatInput({
 			{onCameraPress && (
 				<TouchableOpacity 
 					style={styles.cameraButton}
-					onPress={onCameraPress}
+					onPress={() => {
+						Keyboard.dismiss();
+						onCameraPress();
+					}}
 					disabled={disabled}
 					activeOpacity={0.7}
 				>
@@ -93,7 +97,6 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end',
 		paddingHorizontal: spacing.md,
 		paddingTop: spacing.md,
-		paddingBottom: spacing.md,
 		backgroundColor: colors.background.primary,
 		borderTopWidth: 1,
 		borderTopColor: colors.border.light,

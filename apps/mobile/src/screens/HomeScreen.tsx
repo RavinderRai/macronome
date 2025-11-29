@@ -13,7 +13,8 @@ import {
 	Alert,
 	Modal,
 	TouchableOpacity,
-	Text
+	Text,
+	Keyboard
 } from 'react-native';
 import { colors } from '../theme';
 import { spacing } from '../theme';
@@ -278,6 +279,7 @@ export default function HomeScreen() {
 
   // Handle camera button press
   const handleCameraPress = () => {
+    Keyboard.dismiss();
     setCameraVisible(true);
   };
 
@@ -332,6 +334,7 @@ export default function HomeScreen() {
 
   // Handle settings button press
   const handleSettingsPress = () => {
+    Keyboard.dismiss();
     setSettingsModalVisible(true);
   };
 
@@ -363,6 +366,7 @@ export default function HomeScreen() {
   const handleMealRecommendation = async () => {
     if (isLoading || mealLoading) return;
 
+    Keyboard.dismiss();
     setMealLoading(true);
     
     try {
@@ -526,7 +530,7 @@ export default function HomeScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS ==='ios' ? 'padding' : undefined}
+      behavior='padding'
       keyboardVerticalOffset={0}
     >
       {/* Header */}
