@@ -13,8 +13,7 @@
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
         "NODE_ENV": "production",
-        "API_BASE_URL": "http://macronome.ravinderrai.com:8000",
-        "CLERK_PUBLISHABLE_KEY": "${CLERK_PUBLISHABLE_KEY}"
+        "API_BASE_URL": "http://macronome.ravinderrai.com:8000"
       }
     },
     "production": {
@@ -22,8 +21,7 @@
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
         "NODE_ENV": "production",
-        "API_BASE_URL": "http://macronome.ravinderrai.com:8000",
-        "CLERK_PUBLISHABLE_KEY": "${CLERK_PUBLISHABLE_KEY}"
+        "API_BASE_URL": "http://macronome.ravinderrai.com:8000"
       }
     }
   },
