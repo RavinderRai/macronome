@@ -12,6 +12,7 @@ import {
 	Alert,
 	ActivityIndicator,
 	Modal,
+	Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -206,12 +207,14 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 		// Still loading permissions
 		return (
 			<Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
-				<SafeAreaView style={styles.container}>
+				<View style={styles.modalBackground}>
+					<SafeAreaView style={styles.container}>
 					<View style={styles.centered}>
 						<ActivityIndicator size="large" color={colors.accent.coral} />
 						<Text style={styles.loadingText}>Loading camera...</Text>
 					</View>
-				</SafeAreaView>
+					</SafeAreaView>
+				</View>
 			</Modal>
 		);
 	}
@@ -220,7 +223,8 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 		// No permission yet
 		return (
 			<Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
-				<SafeAreaView style={styles.container}>
+				<View style={styles.modalBackground}>
+					<SafeAreaView style={styles.container}>
 					<View style={styles.centered}>
 						<Text style={styles.permissionText}>📷</Text>
 						<Text style={styles.permissionTitle}>Camera Access Required</Text>
@@ -234,7 +238,8 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 							<Text style={styles.closeButtonText}>Cancel</Text>
 						</TouchableOpacity>
 					</View>
-				</SafeAreaView>
+					</SafeAreaView>
+				</View>
 			</Modal>
 		);
 	}
@@ -246,8 +251,9 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 			presentationStyle="fullScreen"
 			onRequestClose={onClose}
 		>
-			<SafeAreaView style={styles.container}>
-					<>
+			<View style={styles.modalBackground}>
+				<SafeAreaView style={styles.container}>
+					<View style={styles.cameraWrapper}>
 						<CameraView
 							ref={cameraRef}
 							style={styles.camera}
@@ -287,8 +293,16 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 									style={styles.galleryButton}
 									onPress={handlePickFromGallery}
 									disabled={isProcessing}
+									activeOpacity={0.7}
 								>
-									<Text style={styles.galleryIcon}>🖼️</Text>
+									<Image
+										source={require('../../assets/gallery-icon.png')}
+										style={styles.galleryIcon}
+										resizeMode="contain"
+										onError={(error) => {
+											console.error('Gallery icon load error:', error);
+										}}
+									/>
 								</TouchableOpacity>
 
 								{/* Capture button */}
@@ -311,24 +325,33 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 								<View style={styles.galleryButton} />
 							</View>
 						</CameraView>
+					</View>
 
-						{/* Processing overlay */}
-						{isProcessing && (
-							<View style={styles.processingOverlay}>
-								<ActivityIndicator size="large" color={colors.accent.coral} />
-								<Text style={styles.processingText}>
-									Processing image...
-								</Text>
-							</View>
-						)}
-					</>
-			</SafeAreaView>
+					{/* Processing overlay */}
+					{isProcessing && (
+						<View style={styles.processingOverlay}>
+							<ActivityIndicator size="large" color={colors.accent.coral} />
+							<Text style={styles.processingText}>
+								Processing image...
+							</Text>
+						</View>
+					)}
+				</SafeAreaView>
+			</View>
 		</Modal>
 	);
 }
 
 const styles = StyleSheet.create({
+	modalBackground: {
+		flex: 1,
+		backgroundColor: colors.background.primary,
+	},
 	container: {
+		flex: 1,
+		backgroundColor: colors.background.primary,
+	},
+	cameraWrapper: {
 		flex: 1,
 		backgroundColor: colors.background.primary,
 	},
@@ -387,6 +410,7 @@ const styles = StyleSheet.create({
 	},
 	camera: {
 		flex: 1,
+		backgroundColor: colors.background.primary,
 	},
 	header: {
 		flexDirection: 'row',
@@ -394,7 +418,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		paddingHorizontal: spacing.md,
 		paddingVertical: spacing.lg,
-		backgroundColor: 'rgba(0, 0, 0, 0.5)',
+		backgroundColor: 'rgba(30, 41, 59, 0.95)', // More solid dark blue background
 	},
 	headerButton: {
 		width: 44,
@@ -404,18 +428,26 @@ const styles = StyleSheet.create({
 	},
 	headerButtonText: {
 		fontSize: 24,
-		color: colors.text.inverse,
+		color: '#FFFFFF', // Pure white for better visibility
+		fontWeight: '700', // Bolder
+		textShadowColor: 'rgba(0, 0, 0, 0.5)',
+		textShadowOffset: { width: 0, height: 1 },
+		textShadowRadius: 2,
 	},
 	headerTitle: {
 		fontSize: 18,
-		fontWeight: '600',
+		fontWeight: '700', // Bolder
 		lineHeight: 24,
-		color: colors.text.inverse,
+		color: '#FFFFFF', // Pure white for better visibility
+		textShadowColor: 'rgba(0, 0, 0, 0.5)',
+		textShadowOffset: { width: 0, height: 1 },
+		textShadowRadius: 2,
 	},
 	overlay: {
 		flex: 1,
 		alignItems: 'center',
 		justifyContent: 'center',
+		backgroundColor: 'transparent', // Transparent so camera feed shows through
 	},
 	guideBox: {
 		width: '80%',
@@ -442,16 +474,20 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		paddingHorizontal: spacing.xl,
 		paddingVertical: spacing.xl,
-		backgroundColor: 'rgba(0, 0, 0, 0.5)',
+		backgroundColor: 'rgba(30, 41, 59, 0.8)', // Dark blue with transparency
 	},
 	galleryButton: {
 		width: 60,
 		height: 60,
 		alignItems: 'center',
 		justifyContent: 'center',
+		// backgroundColor: 'rgba(255, 0, 0, 0.3)', // Debug: uncomment to see button area
 	},
 	galleryIcon: {
-		fontSize: 32,
+		width: 40,
+		height: 40,
+		// tintColor removed - use original image colors
+		opacity: 0.9, // Adjust this value (0.0 to 1.0) to control translucency
 	},
 	captureButton: {
 		width: 80,
