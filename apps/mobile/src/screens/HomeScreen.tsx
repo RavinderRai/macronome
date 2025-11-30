@@ -49,6 +49,7 @@ export default function HomeScreen() {
 	const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined);
 	const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 	const [mealLoading, setMealLoading] = useState(false);
+	const [keyboardHeight, setKeyboardHeight] = useState(0);
 	
 	// Ref for scrolling to bottom
 	const flatListRef = useRef<FlatList>(null);
@@ -72,6 +73,24 @@ export default function HomeScreen() {
 			if (pollTimeoutRef.current) {
 				clearTimeout(pollTimeoutRef.current);
 			}
+		};
+	}, []);
+
+	// Keyboard event listeners for Android - manually manage spacing
+	useEffect(() => {
+		if (Platform.OS !== 'android') return;
+
+		const keyboardWillShow = Keyboard.addListener('keyboardDidShow', (e) => {
+			setKeyboardHeight(e.endCoordinates.height);
+		});
+
+		const keyboardWillHide = Keyboard.addListener('keyboardDidHide', () => {
+			setKeyboardHeight(0);
+		});
+
+		return () => {
+			keyboardWillShow.remove();
+			keyboardWillHide.remove();
 		};
 	}, []);
 
@@ -527,17 +546,13 @@ export default function HomeScreen() {
     }
   };
 
-  return (
-    <View style={styles.outerContainer}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
-      >
-        {/* Header */}
-        <Header
-          onSettingsPress={handleSettingsPress}
-        />
+  // Render content with platform-specific keyboard handling
+  const renderContent = () => (
+    <View style={[styles.container, Platform.OS === 'android' && keyboardHeight > 0 && { marginBottom: keyboardHeight }]}>
+      {/* Header */}
+      <Header
+        onSettingsPress={handleSettingsPress}
+      />
 
       {/* Filter Section */}
       <FilterSection />
@@ -666,7 +681,22 @@ export default function HomeScreen() {
 					</View>
 				</TouchableOpacity>
 			</Modal>
-      </KeyboardAvoidingView>
+    </View>
+  );
+
+  return (
+    <View style={styles.outerContainer}>
+      {Platform.OS === 'ios' ? (
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior="padding"
+          keyboardVerticalOffset={0}
+        >
+          {renderContent()}
+        </KeyboardAvoidingView>
+      ) : (
+        renderContent()
+      )}
     </View>
   );
 }
