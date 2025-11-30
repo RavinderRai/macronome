@@ -322,7 +322,7 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 								</TouchableOpacity>
 
 								{/* Placeholder for symmetry */}
-								<View style={styles.galleryButton} />
+								<View style={styles.galleryButtonPlaceholder} />
 							</View>
 						</CameraView>
 					</View>
@@ -481,7 +481,14 @@ const styles = StyleSheet.create({
 		height: 60,
 		alignItems: 'center',
 		justifyContent: 'center',
-		// backgroundColor: 'rgba(255, 0, 0, 0.3)', // Debug: uncomment to see button area
+		borderRadius: 12, // Rounded square corners
+		backgroundColor: '#000000', // Black filled background
+		overflow: 'hidden', // Ensures image respects rounded corners
+	},
+	galleryButtonPlaceholder: {
+		width: 60,
+		height: 60,
+		// No border, just spacing
 	},
 	galleryIcon: {
 		width: 40,
