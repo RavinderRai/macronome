@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Keyboard } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../theme';
 import { spacing } from '../../theme';
 import { CHAT_CONSTANTS } from '../../utils/constants';
@@ -28,6 +29,9 @@ export default function ChatInput({
 	disabled = false,
 	renderRightButton,
 }: ChatInputProps) {
+	// Get safe area insets for proper positioning above Android navigation bar
+	const insets = useSafeAreaInsets();
+	
 	// Handle send button press
 	const handleSend = () => {
 		if (value.trim() && !disabled) {
@@ -37,7 +41,7 @@ export default function ChatInput({
 	};
 
 	return (
-		<View style={styles.container}>
+		<View style={[styles.container, { paddingBottom: insets.bottom }]}>
 			{/* Camera button */}
 			{onCameraPress && (
 				<TouchableOpacity 

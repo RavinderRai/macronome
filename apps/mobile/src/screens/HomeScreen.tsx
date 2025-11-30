@@ -528,15 +528,16 @@ export default function HomeScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior='padding'
-      keyboardVerticalOffset={0}
-    >
-      {/* Header */}
-      <Header
-        onSettingsPress={handleSettingsPress}
-      />
+    <View style={styles.outerContainer}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={0}
+      >
+        {/* Header */}
+        <Header
+          onSettingsPress={handleSettingsPress}
+        />
 
       {/* Filter Section */}
       <FilterSection />
@@ -665,11 +666,16 @@ export default function HomeScreen() {
 					</View>
 				</TouchableOpacity>
 			</Modal>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  outerContainer: {
+		flex: 1,
+		backgroundColor: colors.background.primary,  // Ensure background fills entire screen
+	},
   container: {
 		flex: 1,                              // Take full screen height
 		backgroundColor: colors.background.primary,
