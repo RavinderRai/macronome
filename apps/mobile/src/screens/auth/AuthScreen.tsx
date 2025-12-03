@@ -4,18 +4,20 @@
  */
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SignInScreen from './SignInScreen';
 import SignUpScreen from './SignUpScreen';
 import { colors } from '../../theme/colors';
 
 export default function AuthScreen() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
       {isSignUp ? <SignUpScreen /> : <SignInScreen />}
       
-      <View style={styles.switchContainer}>
+      <View style={[styles.switchContainer, { paddingBottom: Math.max(24, insets.bottom + 16) }]}>
         <Text style={styles.switchText}>
           {isSignUp ? "Already have an account? " : "Don't have an account? "}
         </Text>
@@ -37,6 +39,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     padding: 24,
+    paddingBottom: 24, // Will be overridden by inline style for safe area
     backgroundColor: colors.background.primary,
   },
   switchText: {
