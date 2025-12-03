@@ -642,45 +642,42 @@ export default function HomeScreen() {
 			)}
 
 			{/* Settings Modal */}
-			<Modal
-				visible={settingsModalVisible}
-				transparent={true}
-				animationType="fade"
-				onRequestClose={() => setSettingsModalVisible(false)}
-			>
-				<TouchableOpacity
-					style={styles.modalOverlay}
-					activeOpacity={1}
-					onPress={() => setSettingsModalVisible(false)}
-				>
-					<View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-						<Text style={styles.modalTitle}>{APP_CONFIG.name}</Text>
-						<Text style={styles.modalTagline}>{APP_CONFIG.tagline}</Text>
-						<Text style={styles.modalVersion}>Version {APP_CONFIG.version}</Text>
-						
-						<View style={styles.modalDivider} />
-						
-						<Text style={styles.modalAbout}>
-							Your AI-powered nutrition co-pilot. Get personalized meal recommendations 
-							that match your cravings, diet, and available ingredients.
-						</Text>
-						
-						<TouchableOpacity
-							style={styles.logoutButton}
-							onPress={handleLogout}
-						>
-							<Text style={styles.logoutButtonText}>Sign Out</Text>
-						</TouchableOpacity>
-						
-						<TouchableOpacity
-							style={styles.closeButton}
-							onPress={() => setSettingsModalVisible(false)}
-						>
-							<Text style={styles.closeButtonText}>Close</Text>
-						</TouchableOpacity>
-					</View>
-				</TouchableOpacity>
-			</Modal>
+			{settingsModalVisible && (
+				<View style={styles.settingsOverlay}>
+					<TouchableOpacity
+						style={styles.settingsOverlayTouchable}
+						activeOpacity={1}
+						onPress={() => setSettingsModalVisible(false)}
+					>
+						<View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+							<Text style={styles.modalTitle}>{APP_CONFIG.name}</Text>
+							<Text style={styles.modalTagline}>{APP_CONFIG.tagline}</Text>
+							<Text style={styles.modalVersion}>Version {APP_CONFIG.version}</Text>
+							
+							<View style={styles.modalDivider} />
+							
+							<Text style={styles.modalAbout}>
+								Your AI-powered nutrition co-pilot. Get personalized meal recommendations 
+								that match your cravings, diet, and available ingredients.
+							</Text>
+							
+							<TouchableOpacity
+								style={styles.logoutButton}
+								onPress={handleLogout}
+							>
+								<Text style={styles.logoutButtonText}>Sign Out</Text>
+							</TouchableOpacity>
+							
+							<TouchableOpacity
+								style={styles.closeButton}
+								onPress={() => setSettingsModalVisible(false)}
+							>
+								<Text style={styles.closeButtonText}>Close</Text>
+							</TouchableOpacity>
+						</View>
+					</TouchableOpacity>
+				</View>
+			)}
     </View>
   );
 
@@ -722,6 +719,21 @@ const styles = StyleSheet.create({
 		bottom: spacing.md,
 		left: spacing.md,
 		right: spacing.md,
+	},
+	settingsOverlay: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0,
+		backgroundColor: 'rgba(0, 0, 0, 0.5)',
+		zIndex: 1000,
+	},
+	settingsOverlayTouchable: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		padding: spacing.lg,
 	},
 	modalOverlay: {
 		flex: 1,
