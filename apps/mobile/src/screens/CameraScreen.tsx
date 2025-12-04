@@ -66,32 +66,51 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 
 			// Send to ML pipeline with base64
 			console.log('🔍 Detecting pantry items...');
-			const scanResult = await detectPantryItems(photo.uri, photo.base64);
-			console.log('✅ Detection complete. Items found:', scanResult.items.length);
-			console.log('📦 Items:', scanResult.items);
-			if (scanResult.image_id) {
-				console.log('🖼️ Image ID:', scanResult.image_id);
-			}
+			
+			try {
+				const scanResult = await detectPantryItems(photo.uri, photo.base64);
+				console.log('✅ Detection complete. Items found:', scanResult.items.length);
+				console.log('📦 Items:', scanResult.items);
+				if (scanResult.image_id) {
+					console.log('🖼️ Image ID:', scanResult.image_id);
+				}
+					
+				// Pass items and image_id to parent to show review sheet
+				if (scanResult.items.length > 0) {
+					console.log('🎯 Showing review sheet with', scanResult.items.length, 'items');
+					onClose(); // Close camera first
+					setTimeout(() => {
+						onItemsDetected({ items: scanResult.items, image_id: scanResult.image_id }); // Show review sheet after camera closes
+					}, 300);
+				} else {
+					Alert.alert(
+						'No Items Detected',
+						'Try taking another photo with better lighting.',
+						[{ text: 'OK' }]
+					);
+				}
+			} catch (scanError: any) {
+				console.error('❌ Scan error details:', scanError);
+				console.error('Error response:', scanError.response?.data);
+				console.error('Error status:', scanError.response?.status);
 				
-			// Pass items and image_id to parent to show review sheet
-			if (scanResult.items.length > 0) {
-				console.log('🎯 Showing review sheet with', scanResult.items.length, 'items');
-				onClose(); // Close camera first
-				setTimeout(() => {
-					onItemsDetected({ items: scanResult.items, image_id: scanResult.image_id }); // Show review sheet after camera closes
-				}, 300);
-			} else {
+				const errorMessage = scanError.response?.data?.detail || 
+				                     scanError.message || 
+				                     'Failed to process image. Please check your connection and try again.';
+				
 				Alert.alert(
-					'No Items Detected',
-					'Try taking another photo with better lighting.',
+					'Scan Failed',
+					errorMessage,
 					[{ text: 'OK' }]
 				);
+			} finally {
+				setLoading(false);
 			}
 		} catch (error) {
 			console.error('Error taking picture:', error);
 			Alert.alert(
 				'Error',
-				'Failed to process image. Please try again.',
+				'Failed to capture photo. Please try again.',
 				[{ text: 'OK' }]
 			);
 		} finally {
@@ -110,25 +129,45 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 				console.log('📊 Base64 length:', result.base64?.length || 0);
 				
 				setLoading(true);
-				const scanResult = await detectPantryItems(result.uri, result.base64);
+				
+				try {
+					const scanResult = await detectPantryItems(result.uri, result.base64);
 
-				if (scanResult.items.length > 0) {
-					onClose(); // Close camera first
-					onItemsDetected({ items: scanResult.items, image_id: scanResult.image_id }); // Show review sheet
-				} else {
+					if (scanResult.items.length > 0) {
+						onClose(); // Close camera first
+						setTimeout(() => {
+							onItemsDetected({ items: scanResult.items, image_id: scanResult.image_id }); // Show review sheet
+						}, 300);
+					} else {
+						Alert.alert(
+							'No Items Detected',
+							'Try selecting another photo.',
+							[{ text: 'OK' }]
+						);
+					}
+				} catch (scanError: any) {
+					console.error('❌ Scan error details:', scanError);
+					console.error('Error response:', scanError.response?.data);
+					console.error('Error status:', scanError.response?.status);
+					
+					const errorMessage = scanError.response?.data?.detail || 
+					                     scanError.message || 
+					                     'Failed to process image. Please check your connection and try again.';
+					
 					Alert.alert(
-						'No Items Detected',
-						'Try selecting another photo.',
+						'Scan Failed',
+						errorMessage,
 						[{ text: 'OK' }]
 					);
+				} finally {
+					setLoading(false);
 				}
-				setLoading(false);
 			}
 		} catch (error) {
 			console.error('Error processing gallery image:', error);
 			Alert.alert(
 				'Error',
-				'Failed to process image. Please try again.',
+				'Failed to select image. Please try again.',
 				[{ text: 'OK' }]
 			);
 		} finally {
