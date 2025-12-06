@@ -14,12 +14,27 @@ export default function EmptyState({
 	title,
 	message,
 }: EmptyStateProps) {
+	// Split message by newlines to render bullet points with proper spacing
+	const messageLines = message?.split('\n').filter(line => line.trim()) || [];
+	
 	return (
 		<View style={styles.container}>
 			<Text style={styles.icon}>{icon}</Text>
 			<Text style={styles.title}>{title}</Text>
-			{message && (
-				<Text style={styles.message}>{message}</Text>
+			{messageLines.length > 0 && (
+				<View style={styles.messageContainer}>
+					{messageLines.map((line, index) => (
+						<Text 
+							key={index} 
+							style={[
+								styles.message,
+								index === messageLines.length - 1 && styles.messageLast
+							]}
+						>
+							{line}
+						</Text>
+					))}
+				</View>
 			)}
 		</View>
 	);
@@ -44,11 +59,19 @@ const styles = StyleSheet.create({
 		marginBottom: spacing.sm,
 		textAlign: 'center',
 	},
+	messageContainer: {
+		alignItems: 'center',
+		maxWidth: 320,
+	},
 	message: {
-		fontSize: 16,
+		fontSize: 15,
 		lineHeight: 24,
 		color: colors.text.secondary,
-		textAlign: 'center',
-		maxWidth: 300,
+		textAlign: 'left',
+		marginBottom: spacing.xs,
+		width: '100%',
+	},
+	messageLast: {
+		marginBottom: 0,
 	},
 });

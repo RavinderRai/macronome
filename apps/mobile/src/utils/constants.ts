@@ -135,7 +135,7 @@ export const CHAT_CONSTANTS = {
   // Placeholder text
   placeholders: {
     input: 'Type a message...',
-    empty: 'Start a conversation to get meal recommendations!',
+    empty: 'Set preferences (filters or chat)\nScan your pantry to use foods at home\nGet meal recommendations catered to you',
   },
 };
 
