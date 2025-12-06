@@ -113,18 +113,21 @@ export async function processImageForML(imageUri: string, base64?: string): Prom
  */
 export async function detectPantryItems(imageUri: string, base64?: string): Promise<{ items: any[]; image_id?: string }> {
     try {
-        console.log('📸 Sending image to pantry scanner API...', imageUri);
-        console.log('📊 Base64 length:', base64?.length || 0);
+        console.log('🔍 detectPantryItems called');
+        console.log('  📸 Image URI:', imageUri);
+        console.log('  📊 Base64 provided:', base64 ? `yes (${base64.length} chars)` : 'no');
+        console.log('  📱 Platform check - URI scheme:', imageUri.split(':')[0]);
 
 		// Import the pantry API service
 		const { scanPantryImage } = await import('../api/pantry');
 		
-		// Call the API endpoint
-		const response = await scanPantryImage(imageUri);
+		// Call the API endpoint with base64 data for better Android compatibility
+		console.log('  🚀 Calling scanPantryImage...');
+		const response = await scanPantryImage(imageUri, base64);
 		
-		console.log('✅ Pantry scan complete:', response.num_items, 'items detected');
+		console.log('  ✅ Pantry scan complete:', response.num_items, 'items detected');
 		if (response.image_id) {
-			console.log('🖼️ Image saved with ID:', response.image_id);
+			console.log('  🖼️ Image saved with ID:', response.image_id);
 		}
 		
 		// Transform API response to match expected format
@@ -132,7 +135,7 @@ export async function detectPantryItems(imageUri: string, base64?: string): Prom
 			name: item.name,
 			category: item.category,
 			confidence: item.confidence,
-						confirmed: false,
+			confirmed: false,
 			boundingBox: item.bounding_box,
 		}));
 		
@@ -140,8 +143,9 @@ export async function detectPantryItems(imageUri: string, base64?: string): Prom
 			items,
 			image_id: response.image_id,
 		};
-	} catch (error) {
-		console.error('❌ Error detecting pantry items:', error);
+	} catch (error: any) {
+		console.error('❌ detectPantryItems error:', error.message || error);
+		console.error('  Error type:', error.constructor?.name);
 		throw error;
 	}
 }
