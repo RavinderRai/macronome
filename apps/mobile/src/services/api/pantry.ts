@@ -64,11 +64,6 @@ export interface PantryItemUpdate {
  * @param base64Data - Optional base64 encoded image data (fallback for problematic URIs)
  */
 export async function scanPantryImage(imageUri: string, base64Data?: string): Promise<PantryScanResponse> {
-  console.log('📤 scanPantryImage called');
-  console.log('  📍 Image URI:', imageUri);
-  console.log('  📍 URI scheme:', imageUri.split(':')[0]);
-  console.log('  📍 Base64 provided:', base64Data ? `yes (${base64Data.length} chars)` : 'no');
-  
   // Get imports
   const { tokenManager } = await import('../auth/tokenManager');
   const { ENV } = await import('../../utils/env');
@@ -76,7 +71,6 @@ export async function scanPantryImage(imageUri: string, base64Data?: string): Pr
   
   const baseUrl = ENV.apiBaseUrl;
   const url = `${baseUrl}/api/pantry/scan`;
-  console.log('  🌐 Full URL:', url);
   
   // Helper to make request with a given token
   const makeRequest = async (authToken: string) => {
@@ -100,38 +94,25 @@ export async function scanPantryImage(imageUri: string, base64Data?: string): Pr
   // Get auth token
   let token = await tokenManager.getToken();
   if (!token) {
-    console.error('  ❌ No auth token available');
     throw new Error('Authentication required');
   }
-  console.log('  🔑 Auth token available');
   
   try {
-    console.log('  📤 Sending request with native fetch...');
     let response = await makeRequest(token);
-    
-    console.log('  📥 Response status:', response.status);
     
     // Handle 401 - try token refresh (same logic as axios interceptor)
     if (response.status === 401) {
-      console.log('  🔄 Token expired, attempting to refresh...');
-      
       const clerkTokenGetter = getClerkTokenGetter();
       if (clerkTokenGetter) {
         const newToken = await clerkTokenGetter();
         if (newToken) {
-          console.log('  ✅ Got fresh token, retrying request...');
           await tokenManager.saveToken(newToken);
-          
-          // Retry with new token
           response = await makeRequest(newToken);
-          console.log('  📥 Retry response status:', response.status);
         } else {
-          console.error('  ❌ Failed to get fresh token');
           await tokenManager.deleteToken();
           throw new Error('Authentication expired - please sign in again');
         }
       } else {
-        console.error('  ❌ Token refresh not available');
         await tokenManager.deleteToken();
         throw new Error('Authentication expired - please sign in again');
       }
@@ -139,25 +120,13 @@ export async function scanPantryImage(imageUri: string, base64Data?: string): Pr
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('  ❌ Error response:', errorText);
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
     
     const data = await response.json();
-    console.log('  ✅ Success! Items detected:', data.num_items);
-    
     return data as PantryScanResponse;
   } catch (error: any) {
-    console.error('  ❌ scanPantryImage error:', error.message);
-    console.error('  ❌ Error name:', error.name);
-    
-    if (error.message === 'Network request failed') {
-      console.error('  ❌ Network request failed - possible causes:');
-      console.error('     - Device cannot reach server');
-      console.error('     - SSL/TLS issues');
-      console.error('     - File URI not accessible');
-    }
-    
+    console.error('Failed to scan pantry image:', error.message);
     throw error;
   }
 }
