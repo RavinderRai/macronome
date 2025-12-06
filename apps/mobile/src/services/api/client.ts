@@ -25,6 +25,13 @@ export function setClerkTokenGetter(fn: () => Promise<string | null>) {
   getClerkToken = fn;
 }
 
+/**
+ * Get the Clerk token getter (for services that bypass axios interceptors)
+ */
+export function getClerkTokenGetter(): (() => Promise<string | null>) | null {
+  return getClerkToken;
+}
+
 // Request interceptor - add auth token to all requests
 apiClient.interceptors.request.use(
   async (config) => {

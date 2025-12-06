@@ -106,23 +106,23 @@ export default function PantryReviewSheet({
 			animationType="none"
 			onRequestClose={onClose}
 		>
-			<View style={styles.overlay}>
-				{/* Backdrop */}
-				<TouchableOpacity 
-					style={styles.backdrop} 
-					activeOpacity={1} 
-					onPress={onClose}
-				/>
+		<View style={styles.overlay} pointerEvents="box-none">
+			{/* Backdrop */}
+			<TouchableOpacity 
+				style={styles.backdrop} 
+				activeOpacity={1} 
+				onPress={onClose}
+			/>
 
-				{/* Sheet */}
-				<Animated.View 
-					style={[
-						styles.sheet,
-						{
-							transform: [{ translateY: slideAnim }],
-						},
-					]}
-				>
+			{/* Sheet */}
+			<Animated.View 
+				style={[
+					styles.sheet,
+					{
+						transform: [{ translateY: slideAnim }],
+					},
+				]}
+			>
 					{/* Handle */}
 					<View style={styles.handle} />
 					
@@ -136,51 +136,54 @@ export default function PantryReviewSheet({
 				</View>
 
 				{/* Items list */}
-				<FlatList
-					data={selectedItems}
-					keyExtractor={(item, index) => `${item.name}-${index}`}
-					renderItem={({ item, index }) => (
-						<TouchableOpacity
-							style={[
-								styles.itemContainer,
-								item.selected && styles.itemSelected,
-							]}
-							onPress={() => toggleItemSelection(index)}
-							activeOpacity={0.7}
-						>
-							{/* Checkbox */}
-							<View
+				<View style={styles.listWrapper}>
+					<FlatList
+						data={selectedItems}
+						keyExtractor={(item, index) => `${item.name}-${index}`}
+						renderItem={({ item, index }) => (
+							<TouchableOpacity
 								style={[
-									styles.checkbox,
-									item.selected && styles.checkboxSelected,
+									styles.itemContainer,
+									item.selected && styles.itemSelected,
 								]}
+								onPress={() => toggleItemSelection(index)}
+								activeOpacity={0.7}
 							>
-								{item.selected && (
-									<Text style={styles.checkmark}>✓</Text>
-								)}
-							</View>
-
-							{/* Item details */}
-							<View style={styles.itemContent}>
-								<Text style={styles.itemName}>{item.name}</Text>
-								<View style={styles.itemMeta}>
-									{item.category && (
-										<Text style={styles.itemMetaText}>
-											{item.category}
-										</Text>
-									)}
-									{item.confidence !== undefined && (
-										<Text style={styles.itemMetaText}>
-											• {Math.round(item.confidence * 100)}% confident
-										</Text>
+								{/* Checkbox */}
+								<View
+									style={[
+										styles.checkbox,
+										item.selected && styles.checkboxSelected,
+									]}
+								>
+									{item.selected && (
+										<Text style={styles.checkmark}>✓</Text>
 									)}
 								</View>
-							</View>
-						</TouchableOpacity>
-					)}
-					contentContainerStyle={styles.listContent}
-					showsVerticalScrollIndicator={true}
-				/>
+
+								{/* Item details */}
+								<View style={styles.itemContent}>
+									<Text style={styles.itemName}>{item.name}</Text>
+									<View style={styles.itemMeta}>
+										{item.category && (
+											<Text style={styles.itemMetaText}>
+												{item.category}
+											</Text>
+										)}
+										{item.confidence !== undefined && (
+											<Text style={styles.itemMetaText}>
+												• {Math.round(item.confidence * 100)}% confident
+											</Text>
+										)}
+									</View>
+								</View>
+							</TouchableOpacity>
+						)}
+						contentContainerStyle={styles.listContent}
+						showsVerticalScrollIndicator={true}
+						style={styles.flatList}
+					/>
+				</View>
 
 				{/* Actions */}
 				<View style={styles.actions}>
@@ -226,6 +229,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.background.primary,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
+		height: SCREEN_HEIGHT * 0.75,  // Fixed height for consistent animation
 		maxHeight: SCREEN_HEIGHT * 0.85,
 		shadowColor: '#000',
 		shadowOffset: { width: 0, height: -3 },
@@ -245,6 +249,7 @@ const styles = StyleSheet.create({
 	container: {
 		paddingHorizontal: spacing.md,
 		paddingBottom: spacing.md,
+		flex: 1,
 	},
 	header: {
 		paddingVertical: spacing.md,
@@ -263,6 +268,13 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		lineHeight: 20,
 		color: colors.text.secondary,
+	},
+	listWrapper: {
+		flex: 1,
+		maxHeight: SCREEN_HEIGHT * 0.5,
+	},
+	flatList: {
+		flex: 1,
 	},
 	listContent: {
 		paddingBottom: spacing.md,

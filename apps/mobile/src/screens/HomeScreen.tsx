@@ -327,13 +327,6 @@ export default function HomeScreen() {
 		setTimeout(() => {
 			setDrawerOpen(true);
 		}, 300);
-
-		// Show success message
-		Alert.alert(
-			'Items Added',
-			`Added ${confirmedItems.length} ${confirmedItems.length === 1 ? 'item' : 'items'} to your pantry.`,
-			[{ text: 'OK' }]
-		);
 		} catch (error) {
 			console.error('Failed to add items:', error);
 			Alert.alert(

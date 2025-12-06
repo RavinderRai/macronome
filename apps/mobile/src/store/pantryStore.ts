@@ -18,7 +18,7 @@ interface PantryStore extends PantryState {
 	
 	// API integration
 	loadItems: () => Promise<void>;
-	syncItemsToBackend: (items: Omit<PantryItem, 'id' | 'detectedAt'>[], imageId?: string) => Promise<void>;
+	syncItemsToBackend: (items: Omit<PantryItem, 'id' | 'detectedAt'>[], imageId?: string) => Promise<any[]>;
 }
 
 // Create the store
@@ -42,23 +42,36 @@ export const usePantryStore = create<PantryStore>((set, get) => ({
 	},
 
 	addItems: async (itemsData, imageId?: string) => {
-		const newItems: PantryItem[] = itemsData.map((itemData) => ({
-			...itemData,
-			id: uuidv4(),
-			detectedAt: new Date(),
-		}));
-
-		set((state) => ({
-			items: [...state.items, ...newItems],
-		}));
-
-		// Sync to backend with image_id if provided
+		// Sync to backend first to get real IDs
 		try {
 			const { syncItemsToBackend } = get();
-			await syncItemsToBackend(itemsData, imageId);
+			const backendItems = await syncItemsToBackend(itemsData, imageId);
+			
+			// Add items with backend IDs to local state
+			const newItems: PantryItem[] = backendItems.map((backendItem) => ({
+				id: backendItem.id,
+				name: backendItem.name,
+				category: backendItem.category,
+				confirmed: backendItem.confirmed,
+				confidence: backendItem.confidence,
+				detectedAt: new Date(backendItem.created_at),
+			}));
+
+			set((state) => ({
+				items: [...state.items, ...newItems],
+			}));
 		} catch (error) {
 			console.error('❌ Failed to sync items to backend:', error);
-			// Don't throw - UI should still work if backend sync fails
+			// Fallback: Add with local UUIDs if backend fails
+			const newItems: PantryItem[] = itemsData.map((itemData) => ({
+				...itemData,
+				id: uuidv4(),
+				detectedAt: new Date(),
+			}));
+
+			set((state) => ({
+				items: [...state.items, ...newItems],
+			}));
 		}
 	},
 
@@ -185,24 +198,19 @@ export const usePantryStore = create<PantryStore>((set, get) => ({
 	},
 
 	syncItemsToBackend: async (itemsData, imageId?: string) => {
-		try {
-			// Transform frontend items to backend format
-			const itemsToAdd = itemsData.map((item) => ({
-				name: item.name,
-				category: item.category,
-				confirmed: item.confirmed ?? true,
-				confidence: item.confidence,
-				image_id: imageId, // Link all items from same scan to the same image
-			}));
+		// Transform frontend items to backend format
+		const itemsToAdd = itemsData.map((item) => ({
+			name: item.name,
+			category: item.category,
+			confirmed: item.confirmed ?? true,
+			confidence: item.confidence,
+			image_id: imageId, // Link all items from same scan to the same image
+		}));
 
-			const response = await addPantryItems(itemsToAdd);
-			console.log('✅ Synced', response.items.length, 'items to backend');
-			
-			// Update local items with backend IDs if needed
-			// For now, we'll keep the local UUIDs since they're already in the store
-		} catch (error) {
-			console.error('❌ Failed to sync items to backend:', error);
-			throw error;
-		}
+		const response = await addPantryItems(itemsToAdd);
+		console.log('✅ Synced', response.items.length, 'items to backend');
+		
+		// Return backend items with their IDs
+		return response.items;
 	},
 }));
