@@ -8,7 +8,6 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { colors, spacing } from '../../theme';
 import type { PantryItem as PantryItemType } from '../../types/pantry';
 import PantryItem from './PantryItem';
-import EmptyState from '../common/EmptyState';
 
 interface PantryItemListProps {
 	items: PantryItemType[];
@@ -30,11 +29,16 @@ export default function PantryItemList({
 	// Show empty state if no items
 	if (items.length === 0) {
 		return (
-			<EmptyState
-				icon="🧺"
-				title="No pantry items"
-				message="Tap the camera button to scan your fridge or pantry"
-			/>
+			<View style={styles.emptyContainer}>
+				<Text style={styles.emptyIcon}>🧺</Text>
+				<Text style={styles.emptyTitle}>No pantry items</Text>
+				<View style={styles.emptyMessageContainer}>
+					<Text style={styles.emptyMessage} numberOfLines={1}>Tap the camera button</Text>
+					<Text style={styles.emptyMessage} numberOfLines={1}>to scan your fridge or pantry</Text>
+					<Text style={styles.emptyMessage} numberOfLines={1}>Then pick which items to use</Text>
+					<Text style={styles.emptyMessage} numberOfLines={1}>and we'll include them in your meal</Text>
+				</View>
+			</View>
 		);
 	}
 
@@ -93,5 +97,34 @@ const styles = StyleSheet.create({
 	},
 	separator: {
 		height: 0,
+	},
+	emptyContainer: {
+		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
+		padding: spacing.xl,
+	},
+	emptyIcon: {
+		fontSize: 64,
+		marginBottom: spacing.md,
+	},
+	emptyTitle: {
+		fontSize: 20,
+		fontWeight: '600',
+		lineHeight: 28,
+		color: colors.text.primary,
+		marginBottom: spacing.sm,
+		textAlign: 'center',
+	},
+	emptyMessageContainer: {
+		alignItems: 'center',
+		maxWidth: 240,
+		width: '100%',
+	},
+	emptyMessage: {
+		fontSize: 15,
+		lineHeight: 24,
+		color: colors.text.secondary,
+		textAlign: 'center',
 	},
 });

@@ -49,6 +49,7 @@ export default function HomeScreen() {
 	const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined);
 	const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 	const [mealLoading, setMealLoading] = useState(false);
+	const [pantryScanLoading, setPantryScanLoading] = useState(false);
 	const [keyboardHeight, setKeyboardHeight] = useState(0);
 	
 	// Ref for scrolling to bottom
@@ -308,6 +309,7 @@ export default function HomeScreen() {
 		if (result.image_id) {
 			console.log('🏠 HomeScreen received image_id:', result.image_id);
 		}
+		setPantryScanLoading(false); // Turn off loading
 		setDetectedItems(result.items);
 		setDetectedImageId(result.image_id);
 		setReviewSheetVisible(true);
@@ -609,6 +611,7 @@ export default function HomeScreen() {
         visible={cameraVisible}
         onClose={() => setCameraVisible(false)}
 				onItemsDetected={handleItemsDetected}
+				onProcessingChange={setPantryScanLoading}
       />
 
 			{/* Pantry Review Sheet */}
@@ -628,7 +631,22 @@ export default function HomeScreen() {
 				>
 					<View style={styles.loadingOverlay}>
 						<View style={styles.loadingContent}>
-							<LoadingSpinner message="Creating your perfect meal..." />
+							<LoadingSpinner message="Creating your perfect meal, this may take a few minutes..." />
+						</View>
+					</View>
+				</Modal>
+			)}
+
+			{/* Loading overlay for pantry scanning */}
+			{pantryScanLoading && (
+				<Modal
+					visible={pantryScanLoading}
+					transparent={true}
+					animationType="fade"
+				>
+					<View style={styles.loadingOverlay}>
+						<View style={styles.loadingContent}>
+							<LoadingSpinner message="Processing image..." />
 						</View>
 					</View>
 				</Modal>

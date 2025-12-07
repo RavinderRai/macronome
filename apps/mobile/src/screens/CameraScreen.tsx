@@ -18,7 +18,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Linking from 'expo-linking';
 import { colors, spacing } from '../theme';
-import { usePantryStore, useUIStore } from '../store';
 import {
 	detectPantryItems,
 	pickImageFromGallery,
@@ -29,15 +28,15 @@ interface CameraScreenProps {
 	visible: boolean;
 	onClose: () => void;
 	onItemsDetected: (result: { items: any[]; image_id?: string }) => void;
+	onProcessingChange?: (isProcessing: boolean) => void;
 }
 
-export default function CameraScreen({ visible, onClose, onItemsDetected }: CameraScreenProps) {
+export default function CameraScreen({ visible, onClose, onItemsDetected, onProcessingChange }: CameraScreenProps) {
 	const [permission, requestPermission] = useCameraPermissions();
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [cameraFacing, setCameraFacing] = useState<'front' | 'back'>('back');
 	
 	const cameraRef = useRef<CameraView>(null);
-	const setLoading = usePantryStore((state) => state.setLoading);
 
 	// Request permissions when modal opens
 	React.useEffect(() => {
@@ -61,8 +60,9 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 			console.log('📸 Photo captured:', photo.uri);
 			console.log('📊 Base64 length:', photo.base64?.length || 0);
 
-			// Show loading state
-			setLoading(true);
+			// Close camera immediately and show loading on home screen
+			onClose();
+			onProcessingChange?.(true);
 
 			// Send to ML pipeline with base64
 			console.log('🔍 Detecting pantry items...');
@@ -78,10 +78,7 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 				// Pass items and image_id to parent to show review sheet
 				if (scanResult.items.length > 0) {
 					console.log('🎯 Showing review sheet with', scanResult.items.length, 'items');
-					onClose(); // Close camera first
-					setTimeout(() => {
-						onItemsDetected({ items: scanResult.items, image_id: scanResult.image_id }); // Show review sheet after camera closes
-					}, 300);
+					onItemsDetected({ items: scanResult.items, image_id: scanResult.image_id }); // Show review sheet
 				} else {
 					Alert.alert(
 						'No Items Detected',
@@ -104,7 +101,7 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 					[{ text: 'OK' }]
 				);
 			} finally {
-				setLoading(false);
+				onProcessingChange?.(false);
 			}
 		} catch (error) {
 			console.error('Error taking picture:', error);
@@ -113,9 +110,9 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 				'Failed to capture photo. Please try again.',
 				[{ text: 'OK' }]
 			);
+			onProcessingChange?.(false);
 		} finally {
 			setIsProcessing(false);
-			setLoading(false);
 		}
 	};
 
@@ -128,16 +125,15 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 				console.log('🖼️ Image selected:', result.uri);
 				console.log('📊 Base64 length:', result.base64?.length || 0);
 				
-				setLoading(true);
+				// Close camera and show loading on home screen
+				onClose();
+				onProcessingChange?.(true);
 				
 				try {
 					const scanResult = await detectPantryItems(result.uri, result.base64);
 
 					if (scanResult.items.length > 0) {
-						onClose(); // Close camera first
-						setTimeout(() => {
-							onItemsDetected({ items: scanResult.items, image_id: scanResult.image_id }); // Show review sheet
-						}, 300);
+						onItemsDetected({ items: scanResult.items, image_id: scanResult.image_id }); // Show review sheet
 					} else {
 						Alert.alert(
 							'No Items Detected',
@@ -160,7 +156,7 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 						[{ text: 'OK' }]
 					);
 				} finally {
-					setLoading(false);
+					onProcessingChange?.(false);
 				}
 			}
 		} catch (error) {
@@ -170,9 +166,9 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 				'Failed to select image. Please try again.',
 				[{ text: 'OK' }]
 			);
+			onProcessingChange?.(false);
 		} finally {
 			setIsProcessing(false);
-			setLoading(false);
 		}
 	};
 
@@ -227,9 +223,9 @@ export default function CameraScreen({ visible, onClose, onItemsDetected }: Came
 		} catch (error) {
 			console.error('Error picking from gallery:', error);
 			Alert.alert('Error', 'Failed to process image. Please try again.');
+			onProcessingChange?.(false);
 		} finally {
 			setIsProcessing(false);
-			setLoading(false);
 		}
 	};
 
@@ -556,7 +552,7 @@ const styles = StyleSheet.create({
 	},
 	processingOverlay: {
 		...StyleSheet.absoluteFillObject,
-		backgroundColor: 'rgba(0, 0, 0, 0.8)',
+		backgroundColor: colors.background.primary,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
