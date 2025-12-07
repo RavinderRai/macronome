@@ -175,47 +175,61 @@ export default function HomeScreen() {
             pollCount++;
             console.log(`🔄 Poll ${pollCount}/${MAX_POLLS}: status=${status.status}`);
 
-            if (status.status === 'success' && status.result) {
-              // Celery task succeeded, check workflow result
-              if (pollTimeoutRef.current) {
-                clearTimeout(pollTimeoutRef.current);
-                pollTimeoutRef.current = null;
-              }
-              
-              if (status.result.success === true && status.result.recommendation) {
-                // Workflow succeeded - use structured component
-                setMealLoading(false);
+            if (status.status === 'success') {
+              if (status.result) {
+                // Celery task succeeded, check workflow result
+                if (pollTimeoutRef.current) {
+                  clearTimeout(pollTimeoutRef.current);
+                  pollTimeoutRef.current = null;
+                }
                 
-                addMessage({
-                  text: '', // Empty text, using component instead
-                  type: 'assistant',
-                  component: 'MealRecommendationCard',
-                  data: status.result.recommendation,
-                });
-                
-                // Scroll to bottom
-                setTimeout(() => {
-                  flatListRef.current?.scrollToEnd({ animated: true });
-                }, 100);
-                
-              } else if (status.result.success === false) {
-                // Workflow failed - use error component
-                setMealLoading(false);
-                
-                addMessage({
-                  text: '', // Empty text, using component instead
-                  type: 'assistant',
-                  component: 'ErrorCard',
-                  data: {
-                    error_message: status.result.error_message || 'Could not generate a meal recommendation.',
-                    suggestions: status.result.suggestions || [],
-                  },
-                });
+                if (status.result.success === true && status.result.recommendation) {
+                  // Workflow succeeded - use structured component
+                  setMealLoading(false);
+                  
+                  addMessage({
+                    text: '', // Empty text, using component instead
+                    type: 'assistant',
+                    component: 'MealRecommendationCard',
+                    data: status.result.recommendation,
+                  });
+                  
+                  // Scroll to bottom
+                  setTimeout(() => {
+                    flatListRef.current?.scrollToEnd({ animated: true });
+                  }, 100);
+                  
+                } else if (status.result.success === false) {
+                  // Workflow failed - use error component
+                  setMealLoading(false);
+                  
+                  addMessage({
+                    text: '', // Empty text, using component instead
+                    type: 'assistant',
+                    component: 'ErrorCard',
+                    data: {
+                      error_message: status.result.error_message || 'Could not generate a meal recommendation.',
+                      suggestions: status.result.suggestions || [],
+                    },
+                  });
+                } else {
+                  // Unexpected result structure
+                  setMealLoading(false);
+                  addMessage({
+                    text: 'Sorry, received an unexpected response. Please try again 1 more time. If this persists, it may be a bug.',
+                    type: 'assistant',
+                  });
+                }
               } else {
-                // Unexpected result structure
+                // Success status but no result - this shouldn't happen but handle gracefully
+                console.error('Success status but no result:', status);
+                if (pollTimeoutRef.current) {
+                  clearTimeout(pollTimeoutRef.current);
+                  pollTimeoutRef.current = null;
+                }
                 setMealLoading(false);
                 addMessage({
-                  text: 'Sorry, received an unexpected response. Please try again.',
+                  text: 'Received success status but no result. Please try again 1 more time. If this persists, it may be a bug.',
                   type: 'assistant',
                 });
               }
@@ -433,48 +447,62 @@ export default function HomeScreen() {
           pollCount++;
           console.log(`🔄 Poll ${pollCount}/${MAX_POLLS}: status=${status.status}`);
 
-          if (status.status === 'success' && status.result) {
-            // Celery task succeeded, check workflow result
-            // Backend returns: { status: "success", result: { success: bool, recommendation: {...} or error_message: ... } }
-            if (pollTimeoutRef.current) {
-              clearTimeout(pollTimeoutRef.current);
-              pollTimeoutRef.current = null;
-            }
-            
-            if (status.result.success === true && status.result.recommendation) {
-              // Workflow succeeded - use structured component
-              setMealLoading(false);
+          if (status.status === 'success') {
+            if (status.result) {
+              // Celery task succeeded, check workflow result
+              // Backend returns: { status: "success", result: { success: bool, recommendation: {...} or error_message: ... } }
+              if (pollTimeoutRef.current) {
+                clearTimeout(pollTimeoutRef.current);
+                pollTimeoutRef.current = null;
+              }
               
-              addMessage({
-                text: '', // Empty text, using component instead
-                type: 'assistant',
-                component: 'MealRecommendationCard',
-                data: status.result.recommendation,
-              });
-              
-              // Scroll to bottom
-              setTimeout(() => {
-                flatListRef.current?.scrollToEnd({ animated: true });
-              }, 100);
-              
-            } else if (status.result.success === false) {
-              // Workflow failed - use error component
-              setMealLoading(false);
-              
-              addMessage({
-                text: '', // Empty text, using component instead
-                type: 'assistant',
-                component: 'ErrorCard',
-                data: {
-                  error_message: status.result.error_message || 'Could not generate a meal recommendation.',
-                  suggestions: status.result.suggestions || [],
-                },
-              });
+              if (status.result.success === true && status.result.recommendation) {
+                // Workflow succeeded - use structured component
+                setMealLoading(false);
+                
+                addMessage({
+                  text: '', // Empty text, using component instead
+                  type: 'assistant',
+                  component: 'MealRecommendationCard',
+                  data: status.result.recommendation,
+                });
+                
+                // Scroll to bottom
+                setTimeout(() => {
+                  flatListRef.current?.scrollToEnd({ animated: true });
+                }, 100);
+                
+              } else if (status.result.success === false) {
+                // Workflow failed - use error component
+                setMealLoading(false);
+                
+                addMessage({
+                  text: '', // Empty text, using component instead
+                  type: 'assistant',
+                  component: 'ErrorCard',
+                  data: {
+                    error_message: status.result.error_message || 'Could not generate a meal recommendation.',
+                    suggestions: status.result.suggestions || [],
+                  },
+                });
+              } else {
+                // Unexpected result structure
+                setMealLoading(false);
+                addMessage({
+                  text: 'Sorry, received an unexpected response. Please try again.',
+                  type: 'assistant',
+                });
+              }
             } else {
-              // Unexpected result structure
+              // Success status but no result - this shouldn't happen but handle gracefully
+              console.error('Success status but no result:', status);
+              if (pollTimeoutRef.current) {
+                clearTimeout(pollTimeoutRef.current);
+                pollTimeoutRef.current = null;
+              }
               setMealLoading(false);
               addMessage({
-                text: 'Sorry, received an unexpected response. Please try again.',
+                text: 'Received success status but no result. Please try again.',
                 type: 'assistant',
               });
             }

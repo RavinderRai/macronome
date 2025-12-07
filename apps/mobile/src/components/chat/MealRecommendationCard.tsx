@@ -140,9 +140,17 @@ export default function MealRecommendationCard({ data }: MealRecommendationCardP
         <Text style={styles.expandIcon}>{instructionsExpanded ? '▼' : '▶'}</Text>
       </TouchableOpacity>
       {instructionsExpanded && (
-        <ScrollView style={styles.instructionsContent}>
-          <Text style={styles.bodyText}>{recipe_instructions || recipe.directions}</Text>
-        </ScrollView>
+        <View style={styles.instructionsWrapper}>
+          <ScrollView 
+            style={styles.instructionsContent}
+            contentContainerStyle={styles.instructionsContentContainer}
+            nestedScrollEnabled={true}
+            showsVerticalScrollIndicator={true}
+            scrollEnabled={true}
+          >
+            <Text style={styles.bodyText}>{recipe_instructions || recipe.directions}</Text>
+          </ScrollView>
+        </View>
       )}
 
       {/* Pantry utilization badge (if available) */}
@@ -261,10 +269,16 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     marginBottom: spacing.xs,
   },
+  instructionsWrapper: {
+    maxHeight: 400,
+  },
   instructionsContent: {
+    flex: 1,
+  },
+  instructionsContentContainer: {
     paddingVertical: spacing.sm,
     paddingLeft: spacing.sm,
-    maxHeight: 300,
+    paddingRight: spacing.sm,
   },
   pantryBadge: {
     backgroundColor: colors.accent.coral,
