@@ -88,7 +88,7 @@ class MealRecommendationWorkflow(Workflow):
             NodeConfig(
                 node=ModificationAgent,
                 connections=[QCRouter],
-                description="Iteratively adapt recipe to meet all constraints (max 3 iterations, outputs nutrition)"
+                description="Iteratively adapt recipe to meet all constraints (max 5 iterations, outputs nutrition)"
             ),
             
             # Node 7: Quality control router
