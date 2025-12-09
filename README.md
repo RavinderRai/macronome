@@ -117,6 +117,59 @@ You stay consistent *in rhythm* with how you actually live.
 
 ---
 
+## 🏗️ System Architecture Diagram
+
+### Meal Recommendation Workflow
+
+The following diagram shows how the AI meal recommendation system processes user input through constraint satisfaction and recipe retrieval:
+
+```mermaid
+flowchart TD
+    Start([Chat Input]) --> UserChoice{Input Type?}
+    UserChoice -->|Text| LLMStart[LLM Workflow Starts]
+    UserChoice -->|Image| Vision[Pantry Vision Pipeline]
+    
+    Vision --> Detect[Detect Bounding Boxes]
+    Detect --> Crop[Crop Food Items]
+    Crop --> VisionLLM[Vision LLM Prediction]
+    VisionLLM --> Confirm[User Confirms Items]
+    Confirm --> LLMStart
+    
+    LLMStart --> Parse[Parse Constraints]
+    Parse --> Plan[Plan Approach]
+    Plan --> Retrieve[Retrieve Recipes]
+    Retrieve --> Select[Select Best Recipe]
+    Select --> CalcNutrition[Calculate Nutrition]
+    CalcNutrition --> Modify[Modify Constraints]
+    
+    Modify --> Check{Constraints Met?}
+    Check -->|No| Adjust[Adjust Ingredients]
+    Adjust --> Recalc[Recalculate]
+    Recalc --> Check
+    
+    Check -->|Yes| Feasible{Feasible?}
+    Feasible -->|Yes| Explain[Generate Explanation]
+    Explain --> Output([Recipe Output])
+    
+    Feasible -->|No| Relax([Suggest Relaxation])
+    
+    style Start fill:#4ade80
+    style Output fill:#f472b6
+    style Relax fill:#f472b6
+    style Check fill:#fbbf24
+    style Feasible fill:#fbbf24
+```
+
+### Key Workflow Stages:
+
+1. **Input Processing**: Accepts natural language constraints or pantry images
+2. **Vision Pipeline**: Multi-stage food detection using YOLO and Vision LLM
+3. **Constraint Satisfaction Loop**: Iteratively adjusts ingredients to meet dietary requirements
+4. **RAG Retrieval**: Vector search over recipe database using pgvector
+5. **Feasibility Check**: Validates if constraints can be satisfied or suggests relaxations
+
+---
+
 ## 📱 Platform
 
 - **Mobile-first:** Expo (React Native)
