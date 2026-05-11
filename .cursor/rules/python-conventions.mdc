@@ -1,4 +1,0 @@
----
-alwaysApply: true
----
-Also keep python imports at the top of the file.
