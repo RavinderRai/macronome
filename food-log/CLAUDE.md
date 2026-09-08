@@ -34,6 +34,27 @@ python3 food-log/fl.py food add --name "Oikos triple zero vanilla" \
 Always set `--serving-grams` when the label gives it. That is what allows the same food to
 be logged later as either `1 cup` or `170g`.
 
+## Fiber and calories
+
+Ravi wants his calorie figure to reflect what he actually absorbs. Labels count every gram
+of fiber at 4 kcal, which overstates it, so the tool subtracts the difference: insoluble
+fiber comes off entirely, soluble fiber comes off at half. All you have to do is say how the
+fiber splits.
+
+**Whenever a food has fiber, set `--fiber-soluble` and `--fiber-insoluble`.** If the label
+breaks it out, use those numbers. If it does not, estimate from what the food is and say
+that you estimated. Rough guide: bran, wheat, most vegetables, nuts, and seeds are mostly
+insoluble; oats, barley, beans, lentils, psyllium, apples, and citrus carry a large soluble
+share.
+
+The two figures should add up to the total in `--fiber`. Fiber left unaccounted for is
+treated as soluble. If you set no split at all, everything is treated as soluble, which is
+the conservative choice and understates the correction for bran-like foods.
+
+One thing the tool cannot detect: a few labels have already excluded insoluble fiber from
+their calorie figure, in which case this correction double counts. Rare, not worth chasing,
+but say so if a food's adjusted number looks obviously too low.
+
 **Photo of packaged items with no label shown.** Identify each item, then ask for the label
 photo, or add it from a reliable reference and mark `--source estimate`.
 

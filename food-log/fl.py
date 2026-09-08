@@ -44,6 +44,8 @@ CREATE TABLE foods (
     carbs         REAL NOT NULL,
     fat           REAL NOT NULL,
     fiber         REAL,
+    fiber_soluble   REAL,
+    fiber_insoluble REAL,
     micros        TEXT,
     source        TEXT,
     notes         TEXT,
@@ -58,10 +60,14 @@ CREATE TABLE entries (
     unit       TEXT NOT NULL,
     grams      REAL,
     kcal       REAL NOT NULL,
+    kcal_label REAL,
+    kcal_adjust REAL NOT NULL DEFAULT 0,
     protein    REAL NOT NULL,
     carbs      REAL NOT NULL,
     fat        REAL NOT NULL,
     fiber      REAL,
+    fiber_soluble   REAL,
+    fiber_insoluble REAL,
     micros     TEXT,
     eaten_on   TEXT NOT NULL,
     eaten_at   TEXT,
@@ -76,10 +82,28 @@ CREATE TABLE day_notes (day TEXT PRIMARY KEY, note TEXT NOT NULL);
 """
 
 FOOD_FIELDS = ("name", "aliases", "basis", "serving_grams", "serving_label", "kcal",
-               "protein", "carbs", "fat", "fiber", "micros", "source", "notes")
+               "protein", "carbs", "fat", "fiber", "fiber_soluble", "fiber_insoluble",
+               "micros", "source", "notes")
 ENTRY_FIELDS = ("food_id", "label", "qty", "unit", "grams", "kcal", "protein", "carbs",
-                "fat", "fiber", "micros", "eaten_on", "eaten_at", "meal", "source",
-                "confidence", "note")
+                "fat", "fiber", "fiber_soluble", "fiber_insoluble", "micros", "eaten_on",
+                "eaten_at", "meal", "source", "confidence", "note")
+
+SCALED = ("kcal", "protein", "carbs", "fat", "fiber", "fiber_soluble", "fiber_insoluble")
+
+
+def fiber_adjustment(fiber, soluble, insoluble):
+    """Calories to remove from a figure that counted every gram of fiber at 4 kcal.
+
+    Insoluble fiber passes through and yields nothing, so all 4 come back off.
+    Soluble fiber is fermented by gut bacteria into short-chain fatty acids worth
+    roughly 2 kcal/g, so half comes off. Fiber of unstated type is treated as
+    soluble, which matches the 2 kcal/g regulatory average used in the EU.
+    """
+    sol = soluble or 0.0
+    insol = insoluble or 0.0
+    total = fiber if fiber is not None else (sol + insol)
+    unspecified = max(0.0, (total or 0.0) - sol - insol)
+    return round(4.0 * insol + 2.0 * (sol + unspecified), 2)
 
 
 def die(msg):
@@ -164,11 +188,18 @@ def project():
             conn.execute("DELETE FROM foods WHERE id = ?", (ev.get("target"),))
         elif kind == "entry_add":
             seq += 1
-            cols = ["id", "seq"] + list(ENTRY_FIELDS)
-            vals = [ev["id"], seq] + [ev.get(f) for f in ENTRY_FIELDS]
+            row = dict((f, ev.get(f)) for f in ENTRY_FIELDS)
+            adjust = fiber_adjustment(row["fiber"], row["fiber_soluble"],
+                                      row["fiber_insoluble"])
+            row["kcal_label"] = row["kcal"]
+            row["kcal"] = max(0.0, round((row["kcal"] or 0.0) - adjust, 2))
+            row["kcal_adjust"] = adjust
+            row["id"], row["seq"] = ev["id"], seq
+            cols = list(row.keys())
             conn.execute(
                 "INSERT OR REPLACE INTO entries (%s) VALUES (%s)"
-                % (",".join(cols), ",".join("?" * len(cols))), vals)
+                % (",".join(cols), ",".join("?" * len(cols))),
+                [row[c] for c in cols])
         elif kind == "entry_delete":
             conn.execute("DELETE FROM entries WHERE id = ?", (ev.get("target"),))
         elif kind == "profile_set":
@@ -320,7 +351,9 @@ def totals_for(conn, start, end):
     row = conn.execute(
         "SELECT COUNT(*) AS n, COALESCE(SUM(kcal),0) AS kcal, "
         "COALESCE(SUM(protein),0) AS protein, COALESCE(SUM(carbs),0) AS carbs, "
-        "COALESCE(SUM(fat),0) AS fat, COALESCE(SUM(fiber),0) AS fiber "
+        "COALESCE(SUM(fat),0) AS fat, COALESCE(SUM(fiber),0) AS fiber, "
+        "COALESCE(SUM(kcal_label),0) AS kcal_label, "
+        "COALESCE(SUM(kcal_adjust),0) AS kcal_adjust "
         "FROM entries WHERE eaten_on BETWEEN ? AND ?", (start, end)).fetchone()
     return dict(row)
 
@@ -449,12 +482,15 @@ def cmd_log(args, conn):
         "meal": args.meal, "source": args.source or "text",
         "confidence": args.confidence or "high", "note": args.note,
     }
-    for key in MACROS:
+    for key in SCALED:
         base = food[key]
         ev[key] = None if base is None else round(base * factor, 2)
     ev = append_event(ev)
-    print("%s  %s %s%s -> %s kcal, P%s C%s F%s  [%s]"
-          % (ev["id"], food["name"], trim(qty), unit, fmt(ev["kcal"]),
+    adjust = fiber_adjustment(ev["fiber"], ev["fiber_soluble"], ev["fiber_insoluble"])
+    net = max(0.0, (ev["kcal"] or 0.0) - adjust)
+    print("%s  %s %s%s -> %s kcal%s, P%s C%s F%s  [%s]"
+          % (ev["id"], food["name"], trim(qty), unit, fmt(net),
+             (" (%s label, -%s fiber)" % (fmt(ev["kcal"]), fmt(adjust))) if adjust else "",
              fmt(ev["protein"]), fmt(ev["carbs"]), fmt(ev["fat"]), ev["eaten_on"]))
 
 
@@ -469,13 +505,18 @@ def cmd_logx(args, conn):
         "qty": 1, "unit": "serving", "grams": args.grams,
         "kcal": args.kcal, "protein": args.protein, "carbs": args.carbs,
         "fat": args.fat, "fiber": args.fiber, "micros": args.micros,
+        "fiber_soluble": args.fiber_soluble, "fiber_insoluble": args.fiber_insoluble,
         "eaten_on": parse_day(args.date), "eaten_at": args.time or now_local(),
         "meal": args.meal, "source": args.source or "estimate",
         "confidence": args.confidence or "low", "note": args.note,
     })
-    print("%s  %s -> %s kcal, P%s C%s F%s  [%s, %s confidence]"
-          % (ev["id"], ev["label"], fmt(args.kcal), fmt(args.protein), fmt(args.carbs),
-             fmt(args.fat), ev["eaten_on"], ev["confidence"]))
+    adjust = fiber_adjustment(args.fiber, args.fiber_soluble, args.fiber_insoluble)
+    net = max(0.0, (args.kcal or 0.0) - adjust)
+    print("%s  %s -> %s kcal%s, P%s C%s F%s  [%s, %s confidence]"
+          % (ev["id"], ev["label"], fmt(net),
+             (" (%s stated, -%s fiber)" % (fmt(args.kcal), fmt(adjust))) if adjust else "",
+             fmt(args.protein), fmt(args.carbs), fmt(args.fat), ev["eaten_on"],
+             ev["confidence"]))
 
 
 def cmd_rm(args, conn):
@@ -516,7 +557,9 @@ def _print_day(conn, day, show_micros=False):
           % ("", "TOTAL", "", fmt(t["kcal"]), fmt(t["protein"]), fmt(t["carbs"]),
              fmt(t["fat"])))
     if t["fiber"]:
-        print("fiber: %sg" % fmt(t["fiber"]))
+        print("fiber: %sg%s" % (fmt(t["fiber"]),
+                                (", already deducted %s kcal from the total above"
+                                 % fmt(t["kcal_adjust"])) if t["kcal_adjust"] else ""))
     line = target_line(conn, t)
     if line:
         print(line)
@@ -707,6 +750,10 @@ def add_food_fields(p, required):
     p.add_argument("--carbs", type=float, required=required)
     p.add_argument("--fat", type=float, required=required)
     p.add_argument("--fiber", type=float)
+    p.add_argument("--fiber-soluble", dest="fiber_soluble", type=float,
+                   help="grams of the fiber that is soluble, counted at 2 kcal/g")
+    p.add_argument("--fiber-insoluble", dest="fiber_insoluble", type=float,
+                   help="grams of the fiber that is insoluble, counted at 0 kcal/g")
     p.add_argument("--serving-grams", dest="serving_grams", type=float,
                    help="grams in one serving, enables gram<->serving conversion")
     p.add_argument("--serving-label", dest="serving_label",
@@ -765,6 +812,8 @@ def build_parser():
     lx.add_argument("--carbs", type=float, required=True)
     lx.add_argument("--fat", type=float, required=True)
     lx.add_argument("--fiber", type=float)
+    lx.add_argument("--fiber-soluble", dest="fiber_soluble", type=float)
+    lx.add_argument("--fiber-insoluble", dest="fiber_insoluble", type=float)
     lx.add_argument("--grams", type=float)
     lx.add_argument("--micros")
     lx.add_argument("--date")
