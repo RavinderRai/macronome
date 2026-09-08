@@ -6,6 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Macronome is an AI-powered nutrition co-pilot that recommends meals based on constraints (macros, diet type, allergies, cravings, prep time) without calorie counting. It combines deterministic constraint satisfaction with LLM reasoning and uses vision AI for pantry scanning.
 
+## V2 experiment: food-log
+
+`food-log/` is a self-contained personal food tracker (SQLite + a stdlib CLI) used to test
+a chat-driven logging flow before committing to a v2 architecture. If the user talks about
+logging food, macros eaten, or what is left for the day, read `food-log/CLAUDE.md` and use
+that tool. It is intentionally separate from `src/macronome/` — do not connect them.
+
 ## Development Commands
 
 ### Backend (Python/FastAPI)

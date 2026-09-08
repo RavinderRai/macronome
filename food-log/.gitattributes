@@ -1,0 +1,3 @@
+# Append-only log: when two sessions both add lines, keep both sides instead of
+# raising a conflict. Duplicate events are de-duplicated by id at read time.
+events.jsonl merge=union

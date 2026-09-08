@@ -1,0 +1,3 @@
+# events.jsonl is the source of truth and MUST be committed.
+*.db
+backup*.jsonl

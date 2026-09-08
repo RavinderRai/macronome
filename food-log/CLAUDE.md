@@ -1,0 +1,125 @@
+# Food log
+
+Personal food tracking for Ravi. Append-only event log at `food-log/events.jsonl`, driven
+by `food-log/fl.py` (stdlib only, no install). SQLite is built in memory on each run to
+answer queries, so there is no database file. This is a v2 experiment and is deliberately
+independent of `src/macronome/` — do not wire them together.
+
+Run everything as `python3 food-log/fl.py <command>` from the repo root.
+
+## How to behave when Ravi logs food
+
+**Known food, stated in text or voice.** Just log it. No questions, no confirmation step.
+
+```bash
+python3 food-log/fl.py log "chicken breast" 150g
+python3 food-log/fl.py log "whey protein" "2 scoops"
+```
+
+Names resolve loosely, so `log "chicken" 150g` finds `chicken breast`. If the CLI reports an
+ambiguous match, ask which one rather than guessing.
+
+**Photo of a nutrition label.** Read the label, add the food to the library once, then log
+what was eaten. Enter the numbers exactly as printed and set `--basis` to match whichever
+the label is stated per. Say which numbers you read off so mistakes are visible.
+
+```bash
+python3 food-log/fl.py food add --name "Oikos triple zero vanilla" \
+  --basis serving --serving-grams 150 --serving-label cup \
+  --kcal 120 --protein 15 --carbs 14 --fat 0 --fiber 3 \
+  --aliases "oikos,greek yogurt" --source label_photo \
+  --micros '{"sodium_mg": 65, "calcium_mg": 150}'
+```
+
+Always set `--serving-grams` when the label gives it. That is what allows the same food to
+be logged later as either `1 cup` or `170g`.
+
+**Photo of packaged items with no label shown.** Identify each item, then ask for the label
+photo, or add it from a reliable reference and mark `--source estimate`.
+
+**Restaurant meal or a plated photo.** Estimate and log it as a one-off. Never add
+restaurant guesses to the food library.
+
+```bash
+python3 food-log/fl.py logx "chipotle chicken bowl" \
+  --kcal 850 --protein 45 --carbs 90 --fat 32 --meal lunch --source photo
+```
+
+**Unlabelled whole foods** (chicken breast, eggs, rice, produce). Use a reliable per-100g
+reference, add it with `--source usda`, and state the reference values you used.
+
+## Checking state
+
+```bash
+python3 food-log/fl.py today               # entries, totals, distance from target
+python3 food-log/fl.py remaining           # just the gap to targets
+python3 food-log/fl.py range --days 7      # per-day totals and averages
+python3 food-log/fl.py today --json        # when you need to reason over the numbers
+python3 food-log/fl.py food list yogurt    # search the library
+```
+
+Anything the CLI does not cover, query directly. Reads only:
+
+```bash
+python3 food-log/fl.py sql "SELECT eaten_on, SUM(protein) p FROM entries GROUP BY 1"
+```
+
+## Constraints and targets
+
+Daily targets drive `remaining` and the "vs target" line:
+
+```bash
+python3 food-log/fl.py targets set --kcal 2600 --protein 180 --carbs 260 --fat 80
+```
+
+Standing constraints (diet type, allergies, dislikes) go in the profile so they survive
+across chats. Constraints that apply to a single day go in a day note.
+
+```bash
+python3 food-log/fl.py profile set diet "vegan"
+python3 food-log/fl.py note "fasting until 2pm"
+```
+
+Run `profile show` before making any food recommendation.
+
+## Rules
+
+- **Never do the arithmetic yourself.** Run the command and report what it prints. The
+  entire point of this tool is that the numbers are computed rather than estimated.
+- **Entries snapshot their macros.** Correcting a food with `food update` does not rewrite
+  past entries, which is intentional. To fix a past entry, `rm` it and log it again.
+- **Confirm before deleting.** `undo` removes the last logged entry, `rm <id>` removes a
+  specific one (id prefixes work). Show what will go before removing it.
+- **Adding a food is a commitment.** Check `food list` first so the library does not
+  accumulate three spellings of the same yogurt.
+- Batch the work: if Ravi lists five things he ate, run five `log` commands, then `today`
+  once at the end.
+- Backfill with `--date yesterday` or `--date 2026-09-05` rather than editing history.
+
+## Record the friction
+
+This is a trial. The point is to find out where logging hurts, so append a line to
+`food-log/friction.md` whenever any of these happen, without being asked and without making
+a fuss about it:
+
+- a log took more than one exchange to get right
+- Ravi says something was annoying, slow, or not worth it
+- a meal got logged late or not at all, and he says why
+- the tool gave a wrong number, a confusing error, or could not express what he ate
+
+Note what it cost, not just what happened. "Had to walk to the desk to log lunch" is the
+useful version. Do not log routine successes.
+
+## Persistence
+
+`events.jsonl` is the source of truth and is committed to git, which is the only backup.
+Nothing is lost if a session dies, but nothing is backed up until it is committed either.
+
+```bash
+python3 food-log/fl.py sync -m "food log"     # pull, commit only events.jsonl, push
+```
+
+Run `sync` at the end of a logging session, or whenever Ravi asks. It touches no file other
+than the event log. The log is set to `merge=union` in `.gitattributes`, so if two machines
+ever append at the same time, git keeps both sets of lines and duplicate events are
+de-duplicated by id when read.
