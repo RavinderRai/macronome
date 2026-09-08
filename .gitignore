@@ -208,3 +208,7 @@ __marimo__/
 
 data/
 #mlruns/ # easier and faster to ignore this directory to deploy docker on render for now
+
+# Android build artifacts
+*.aab
+*.apk
