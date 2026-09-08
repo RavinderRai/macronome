@@ -91,19 +91,43 @@ ENTRY_FIELDS = ("food_id", "label", "qty", "unit", "grams", "kcal", "protein", "
 SCALED = ("kcal", "protein", "carbs", "fat", "fiber", "fiber_soluble", "fiber_insoluble")
 
 
-def fiber_adjustment(fiber, soluble, insoluble):
+FIBER_MODES = {
+    "label": "fiber at 4 kcal/g, calories exactly as printed on the label",
+    "half": "fiber at 2 kcal/g, the EU convention and Cronometer's usual setting",
+    "net": "fiber at 0 kcal/g, net-carb style, nothing from fiber counts",
+    "split": "insoluble at 0 and soluble at 2 kcal/g, needs the split recorded",
+}
+DEFAULT_FIBER_MODE = "half"
+
+
+def fiber_adjustment(fiber, soluble, insoluble, mode):
     """Calories to remove from a figure that counted every gram of fiber at 4 kcal.
 
-    Insoluble fiber passes through and yields nothing, so all 4 come back off.
-    Soluble fiber is fermented by gut bacteria into short-chain fatty acids worth
-    roughly 2 kcal/g, so half comes off. Fiber of unstated type is treated as
-    soluble, which matches the 2 kcal/g regulatory average used in the EU.
+    Which convention is right is genuinely unsettled, so this is a setting rather
+    than a decision. Because it is applied when the log is replayed, changing the
+    mode re-scores every day already logged.
     """
     sol = soluble or 0.0
     insol = insoluble or 0.0
     total = fiber if fiber is not None else (sol + insol)
-    unspecified = max(0.0, (total or 0.0) - sol - insol)
+    total = total or 0.0
+    if mode == "label":
+        return 0.0
+    if mode == "half":
+        return round(2.0 * total, 2)
+    if mode == "net":
+        return round(4.0 * total, 2)
+    unspecified = max(0.0, total - sol - insol)
     return round(4.0 * insol + 2.0 * (sol + unspecified), 2)
+
+
+def fiber_mode_of(events):
+    mode = DEFAULT_FIBER_MODE
+    for ev in events:
+        if ev.get("type") == "profile_set" and ev.get("key") == "fiber_mode":
+            if ev.get("value") in FIBER_MODES:
+                mode = ev["value"]
+    return mode
 
 
 def die(msg):
@@ -167,8 +191,10 @@ def project():
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
 
+    events = read_events()
+    mode = fiber_mode_of(events)
     seq = 0
-    for ev in read_events():
+    for ev in events:
         kind = ev.get("type")
         if kind == "food_add":
             cols = ["id"] + list(FOOD_FIELDS) + ["created_at"]
@@ -190,7 +216,7 @@ def project():
             seq += 1
             row = dict((f, ev.get(f)) for f in ENTRY_FIELDS)
             adjust = fiber_adjustment(row["fiber"], row["fiber_soluble"],
-                                      row["fiber_insoluble"])
+                                      row["fiber_insoluble"], mode)
             row["kcal_label"] = row["kcal"]
             row["kcal"] = max(0.0, round((row["kcal"] or 0.0) - adjust, 2))
             row["kcal_adjust"] = adjust
@@ -335,6 +361,13 @@ def fmt(value, digits=0):
 
 def trim(value):
     return fmt(value, 2).rstrip("0").rstrip(".")
+
+
+def current_fiber_mode(conn):
+    row = conn.execute("SELECT value FROM profile WHERE key = 'fiber_mode'").fetchone()
+    if row and row["value"] in FIBER_MODES:
+        return row["value"]
+    return DEFAULT_FIBER_MODE
 
 
 def get_targets(conn):
@@ -486,7 +519,8 @@ def cmd_log(args, conn):
         base = food[key]
         ev[key] = None if base is None else round(base * factor, 2)
     ev = append_event(ev)
-    adjust = fiber_adjustment(ev["fiber"], ev["fiber_soluble"], ev["fiber_insoluble"])
+    adjust = fiber_adjustment(ev["fiber"], ev["fiber_soluble"], ev["fiber_insoluble"],
+                              current_fiber_mode(conn))
     net = max(0.0, (ev["kcal"] or 0.0) - adjust)
     print("%s  %s %s%s -> %s kcal%s, P%s C%s F%s  [%s]"
           % (ev["id"], food["name"], trim(qty), unit, fmt(net),
@@ -510,7 +544,8 @@ def cmd_logx(args, conn):
         "meal": args.meal, "source": args.source or "estimate",
         "confidence": args.confidence or "low", "note": args.note,
     })
-    adjust = fiber_adjustment(args.fiber, args.fiber_soluble, args.fiber_insoluble)
+    adjust = fiber_adjustment(args.fiber, args.fiber_soluble, args.fiber_insoluble,
+                              current_fiber_mode(conn))
     net = max(0.0, (args.kcal or 0.0) - adjust)
     print("%s  %s -> %s kcal%s, P%s C%s F%s  [%s, %s confidence]"
           % (ev["id"], ev["label"], fmt(net),
@@ -558,8 +593,9 @@ def _print_day(conn, day, show_micros=False):
              fmt(t["fat"])))
     if t["fiber"]:
         print("fiber: %sg%s" % (fmt(t["fiber"]),
-                                (", already deducted %s kcal from the total above"
-                                 % fmt(t["kcal_adjust"])) if t["kcal_adjust"] else ""))
+                                (", %s kcal deducted (%s mode)"
+                                 % (fmt(t["kcal_adjust"]), current_fiber_mode(conn)))
+                                if t["kcal_adjust"] else ""))
     line = target_line(conn, t)
     if line:
         print(line)
@@ -687,6 +723,37 @@ def cmd_note(args, conn):
     day = parse_day(args.date)
     append_event({"type": "day_note", "day": day, "note": args.text})
     print("note for %s: %s" % (day, args.text))
+
+
+def cmd_fiber(args, conn):
+    if args.mode:
+        if args.mode not in FIBER_MODES:
+            die("unknown mode %r, pick one of: %s"
+                % (args.mode, ", ".join(sorted(FIBER_MODES))))
+        append_event({"type": "profile_set", "key": "fiber_mode", "value": args.mode})
+        print("fiber mode is now %s (%s)" % (args.mode, FIBER_MODES[args.mode]))
+        print("every day already logged has been re-scored\n")
+
+    current = args.mode or current_fiber_mode(conn)
+    day = parse_day(args.date)
+    rows = conn.execute(
+        "SELECT kcal_label, fiber, fiber_soluble, fiber_insoluble FROM entries "
+        "WHERE eaten_on = ?", (day,)).fetchall()
+    if not rows:
+        print("nothing logged on %s to compare" % day)
+        return
+
+    print("calories on %s under each convention:" % day)
+    for name in ("label", "half", "split", "net"):
+        total = 0.0
+        for r in rows:
+            adjust = fiber_adjustment(r["fiber"], r["fiber_soluble"],
+                                      r["fiber_insoluble"], name)
+            total += max(0.0, (r["kcal_label"] or 0.0) - adjust)
+        print("  %-6s %7s kcal   %s%s"
+              % (name, fmt(total), FIBER_MODES[name],
+                 "   <-- in use" if name == current else ""))
+    print("\nLog the same day in Cronometer, then switch with: fiber --mode <name>")
 
 
 def cmd_export(args, conn):
@@ -872,6 +939,12 @@ def build_parser():
     nt.add_argument("text")
     nt.add_argument("--date")
     nt.set_defaults(fn=cmd_note)
+
+    fb = sub.add_parser("fiber", help="compare fiber calorie conventions, or switch")
+    fb.add_argument("--mode", choices=sorted(FIBER_MODES),
+                    help="switch convention and re-score every day already logged")
+    fb.add_argument("--date", help="which day to compare, defaults to today")
+    fb.set_defaults(fn=cmd_fiber)
 
     ex = sub.add_parser("export", help="dump projected state as JSONL")
     ex.add_argument("--out")
