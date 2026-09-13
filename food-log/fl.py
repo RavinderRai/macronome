@@ -339,7 +339,10 @@ def resolve_amount(food, qty, unit):
                 % food["name"])
         return qty / serving_grams, qty
 
-    matches_label = bool(label) and unit in (label, label + "s", label + "es")
+    plurals = {label, label + "s", label + "es"}
+    if label.endswith("y"):
+        plurals.add(label[:-1] + "ies")
+    matches_label = bool(label) and unit in plurals
     if unit in SERVING_UNITS or matches_label or unit == "":
         if basis == "serving":
             return qty, (qty * serving_grams if serving_grams else None)

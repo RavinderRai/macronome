@@ -128,6 +128,15 @@ python3 food-log/fl.py note "fasting until 2pm"
 
 Run `profile show` before making any food recommendation.
 
+## Staple meals
+
+Ravi eats on a rotation. Meals he has described are stored in the profile under `meal_*`
+keys (e.g. `meal_potato_bowl`) with the components and default amounts. When he names one
+("had the potato bowl", "usual post-gym lunch"), read the profile entry and log each
+component as its own `log` line, using his stated amounts where given and the defaults
+otherwise. Do not add the meal itself to the food library as one item, because the amounts
+vary and he wants each ingredient's numbers to stay honest.
+
 ## Rules
 
 - **Never do the arithmetic yourself.** Run the command and report what it prints. The
