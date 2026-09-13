@@ -31,6 +31,25 @@ python3 food-log/fl.py food add --name "Oikos triple zero vanilla" \
   --micros '{"sodium_mg": 65, "calcium_mg": 150}'
 ```
 
+## Record every nutrient on the label
+
+Macros are the required flags. Everything else the label prints goes into `--micros` as
+JSON, so micronutrients sum across the day the same way calories do. **Use exactly these
+keys**, because totals only add up when the spelling matches across foods:
+
+```
+sat_fat_g  trans_fat_g  sugar_g  added_sugar_g  cholesterol_mg
+sodium_mg  potassium_mg  calcium_mg  iron_mg  magnesium_mg  zinc_mg  phosphorus_mg
+vitamin_a_ug  vitamin_c_mg  vitamin_d_ug  vitamin_e_mg  vitamin_k_ug
+thiamin_mg  riboflavin_mg  niacin_mg  vitamin_b6_mg  folate_ug  vitamin_b12_ug
+omega3_g  caffeine_mg
+```
+
+Units are fixed per key. If a label gives a %DV with no absolute amount, convert using the
+Canadian/US daily values (e.g. calcium 1300mg, iron 18mg, potassium 4700mg, vitamin D 20ug)
+and say that you converted. If the label lists something not on this list, add it with the
+same `name_unit` pattern and keep using that spelling.
+
 Always set `--serving-grams` when the label gives it. That is what allows the same food to
 be logged later as either `1 cup` or `170g`.
 
