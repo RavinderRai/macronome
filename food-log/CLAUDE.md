@@ -120,6 +120,10 @@ Daily targets drive `remaining` and the "vs target" line:
 .venv/bin/python food-log/fl.py targets set --kcal 2600 --protein 180 --carbs 260 --fat 80
 ```
 
+A target that applies to one day only (rest day, planned refeed) is an override, not a
+change: `targets set --date today --kcal 1500 --carbs 120`. Keep protein and fat, take the
+difference out of carbs unless Ravi says otherwise. Other days keep the standing targets.
+
 Standing constraints (diet type, allergies, dislikes) go in the profile so they survive
 across chats. Constraints that apply to a single day go in a day note.
 

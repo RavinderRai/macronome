@@ -79,6 +79,8 @@ CREATE TABLE entries (
 CREATE INDEX idx_entries_day ON entries (eaten_on);
 CREATE TABLE profile (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE day_notes (day TEXT PRIMARY KEY, note TEXT NOT NULL);
+CREATE TABLE day_targets (day TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL,
+                          PRIMARY KEY (day, key));
 """
 
 FOOD_FIELDS = ("name", "aliases", "basis", "serving_grams", "serving_label", "kcal",
@@ -233,6 +235,11 @@ def project():
                 "INSERT INTO profile (key,value) VALUES (?,?) "
                 "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
                 (ev.get("key"), ev.get("value")))
+        elif kind == "day_target":
+            conn.execute(
+                "INSERT INTO day_targets (day,key,value) VALUES (?,?,?) "
+                "ON CONFLICT(day,key) DO UPDATE SET value = excluded.value",
+                (ev.get("day"), ev.get("key"), ev.get("value")))
         elif kind == "day_note":
             conn.execute(
                 "INSERT INTO day_notes (day,note) VALUES (?,?) "
@@ -374,13 +381,19 @@ def current_fiber_mode(conn):
     return DEFAULT_FIBER_MODE
 
 
-def get_targets(conn):
+def get_targets(conn, day=None):
     out = {}
     for r in conn.execute("SELECT key, value FROM profile WHERE key LIKE 'target_%'"):
         try:
             out[r["key"][len("target_"):]] = float(r["value"])
         except ValueError:
             continue
+    if day:
+        for r in conn.execute("SELECT key, value FROM day_targets WHERE day = ?", (day,)):
+            try:
+                out[r["key"]] = float(r["value"])
+            except ValueError:
+                continue
     return out
 
 
@@ -410,8 +423,8 @@ def sum_micros(conn, start, end):
     return out
 
 
-def target_line(conn, totals):
-    targets = get_targets(conn)
+def target_line(conn, totals, day=None):
+    targets = get_targets(conn, day)
     if not targets:
         return None
     parts = []
@@ -600,7 +613,7 @@ def _print_day(conn, day, show_micros=False):
                                 (", %s kcal deducted (%s mode)"
                                  % (fmt(t["kcal_adjust"]), current_fiber_mode(conn)))
                                 if t["kcal_adjust"] else ""))
-    line = target_line(conn, t)
+    line = target_line(conn, t, day)
     if line:
         print(line)
     if show_micros:
@@ -617,7 +630,7 @@ def cmd_today(args, conn):
                             (day,)).fetchall()
         print(json.dumps({"day": day, "entries": [dict(r) for r in rows],
                           "totals": totals_for(conn, day, day),
-                          "targets": get_targets(conn),
+                          "targets": get_targets(conn, day),
                           "micros": sum_micros(conn, day, day)}, indent=2))
         return
     _print_day(conn, day, show_micros=args.micros)
@@ -671,7 +684,7 @@ def cmd_range(args, conn):
 def cmd_remaining(args, conn):
     day = parse_day(args.date)
     t = totals_for(conn, day, day)
-    targets = get_targets(conn)
+    targets = get_targets(conn, day)
     if not targets:
         die("no targets set. Try: targets set --kcal 2600 --protein 180")
     out = {k: round(targets[k] - (t[k] or 0), 1) for k in MACROS if k in targets}
@@ -686,17 +699,23 @@ def cmd_remaining(args, conn):
 
 
 def cmd_targets_set(args, conn):
+    day = parse_day(args.date) if args.date else None
     written = []
     for key in MACROS:
         value = getattr(args, key)
         if value is not None:
-            append_event({"type": "profile_set", "key": "target_" + key,
-                          "value": str(value)})
+            if day:
+                append_event({"type": "day_target", "day": day, "key": key,
+                              "value": str(value)})
+            else:
+                append_event({"type": "profile_set", "key": "target_" + key,
+                              "value": str(value)})
             written.append(key)
     if not written:
         die("pass at least one of --kcal --protein --carbs --fat --fiber")
+    print("targets for %s:" % (day or "every day"))
     for key in written:
-        print("%-8s %s" % (key, fmt(getattr(args, key))))
+        print("  %-8s %s" % (key, fmt(getattr(args, key))))
 
 
 def cmd_targets_show(args, conn):
@@ -928,6 +947,7 @@ def build_parser():
     ts = tsub.add_parser("set")
     for key in MACROS:
         ts.add_argument("--" + key, type=float)
+    ts.add_argument("--date", help="override for one day only, e.g. today or 2026-09-16")
     ts.set_defaults(fn=cmd_targets_set)
     tsub.add_parser("show").set_defaults(fn=cmd_targets_show)
 
