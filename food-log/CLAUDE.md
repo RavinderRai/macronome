@@ -96,6 +96,20 @@ restaurant guesses to the food library.
 **Unlabelled whole foods** (chicken breast, eggs, rice, produce). Use a reliable per-100g
 reference, add it with `--source usda`, and state the reference values you used.
 
+## The widget
+
+When Ravi asks how many calories or macros he has left, or what he has eaten so far, render
+the picture and send it to him rather than only quoting numbers. He reads this on his phone.
+
+```bash
+.venv/bin/python food-log/widget.py            # writes food-log/widget.png for today
+.venv/bin/python food-log/widget.py --date yesterday --out /tmp/w.png
+```
+
+Then call `SendUserFile` with the PNG path, `display: "render"`, `status: "normal"`. Add the
+one-line summary in text as well so it survives if the image does not load. Regenerate every
+time; never resend a stale image after a log.
+
 ## Checking state
 
 ```bash
@@ -120,8 +134,8 @@ Daily targets drive `remaining` and the "vs target" line:
 .venv/bin/python food-log/fl.py targets set --kcal 2600 --protein 180 --carbs 260 --fat 80
 ```
 
-A target that applies to one day only (rest day, planned refeed) is an override, not a
-change: `targets set --date today --kcal 1500 --carbs 120`. Keep protein and fat, take the
+A target that applies to one day only (making up for going over, a planned refeed) is an
+override, not a change. Ravi does not lower targets just because a day is a rest day: `targets set --date today --kcal 1500 --carbs 120`. Keep protein and fat, take the
 difference out of carbs unless Ravi says otherwise. Other days keep the standing targets.
 
 Standing constraints (diet type, allergies, dislikes) go in the profile so they survive
