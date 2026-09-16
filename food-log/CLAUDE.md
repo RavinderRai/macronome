@@ -5,15 +5,17 @@ by `food-log/fl.py` (stdlib only, no install). SQLite is built in memory on each
 answer queries, so there is no database file. This is a v2 experiment and is deliberately
 independent of `src/macronome/` — do not wire them together.
 
-Run everything as `python3 food-log/fl.py <command>` from the repo root.
+Run everything as `.venv/bin/python food-log/fl.py <command>` from the repo root. The
+system `python3` is an Xcode shim that can block on a licence prompt after Xcode updates;
+the venv interpreter never does. The script is stdlib-only, so any Python 3.9+ works.
 
 ## How to behave when Ravi logs food
 
 **Known food, stated in text or voice.** Just log it. No questions, no confirmation step.
 
 ```bash
-python3 food-log/fl.py log "chicken breast" 150g
-python3 food-log/fl.py log "whey protein" "2 scoops"
+.venv/bin/python food-log/fl.py log "chicken breast" 150g
+.venv/bin/python food-log/fl.py log "whey protein" "2 scoops"
 ```
 
 Names resolve loosely, so `log "chicken" 150g` finds `chicken breast`. If the CLI reports an
@@ -24,7 +26,7 @@ what was eaten. Enter the numbers exactly as printed and set `--basis` to match 
 the label is stated per. Say which numbers you read off so mistakes are visible.
 
 ```bash
-python3 food-log/fl.py food add --name "Oikos triple zero vanilla" \
+.venv/bin/python food-log/fl.py food add --name "Oikos triple zero vanilla" \
   --basis serving --serving-grams 150 --serving-label cup \
   --kcal 120 --protein 15 --carbs 14 --fat 0 --fiber 3 \
   --aliases "oikos,greek yogurt" --source label_photo \
@@ -60,8 +62,8 @@ figuring out which convention matches the Cronometer history he already has, so 
 change the mode unless he asks.
 
 ```bash
-python3 food-log/fl.py fiber                 # same day scored under all four conventions
-python3 food-log/fl.py fiber --mode half     # switch, re-scoring every day already logged
+.venv/bin/python food-log/fl.py fiber                 # same day scored under all four conventions
+.venv/bin/python food-log/fl.py fiber --mode half     # switch, re-scoring every day already logged
 ```
 
 Modes are `label` (4 kcal/g, as printed), `half` (2 kcal/g, the default and Cronometer's
@@ -87,7 +89,7 @@ photo, or add it from a reliable reference and mark `--source estimate`.
 restaurant guesses to the food library.
 
 ```bash
-python3 food-log/fl.py logx "chipotle chicken bowl" \
+.venv/bin/python food-log/fl.py logx "chipotle chicken bowl" \
   --kcal 850 --protein 45 --carbs 90 --fat 32 --meal lunch --source photo
 ```
 
@@ -97,17 +99,17 @@ reference, add it with `--source usda`, and state the reference values you used.
 ## Checking state
 
 ```bash
-python3 food-log/fl.py today               # entries, totals, distance from target
-python3 food-log/fl.py remaining           # just the gap to targets
-python3 food-log/fl.py range --days 7      # per-day totals and averages
-python3 food-log/fl.py today --json        # when you need to reason over the numbers
-python3 food-log/fl.py food list yogurt    # search the library
+.venv/bin/python food-log/fl.py today               # entries, totals, distance from target
+.venv/bin/python food-log/fl.py remaining           # just the gap to targets
+.venv/bin/python food-log/fl.py range --days 7      # per-day totals and averages
+.venv/bin/python food-log/fl.py today --json        # when you need to reason over the numbers
+.venv/bin/python food-log/fl.py food list yogurt    # search the library
 ```
 
 Anything the CLI does not cover, query directly. Reads only:
 
 ```bash
-python3 food-log/fl.py sql "SELECT eaten_on, SUM(protein) p FROM entries GROUP BY 1"
+.venv/bin/python food-log/fl.py sql "SELECT eaten_on, SUM(protein) p FROM entries GROUP BY 1"
 ```
 
 ## Constraints and targets
@@ -115,15 +117,15 @@ python3 food-log/fl.py sql "SELECT eaten_on, SUM(protein) p FROM entries GROUP B
 Daily targets drive `remaining` and the "vs target" line:
 
 ```bash
-python3 food-log/fl.py targets set --kcal 2600 --protein 180 --carbs 260 --fat 80
+.venv/bin/python food-log/fl.py targets set --kcal 2600 --protein 180 --carbs 260 --fat 80
 ```
 
 Standing constraints (diet type, allergies, dislikes) go in the profile so they survive
 across chats. Constraints that apply to a single day go in a day note.
 
 ```bash
-python3 food-log/fl.py profile set diet "vegan"
-python3 food-log/fl.py note "fasting until 2pm"
+.venv/bin/python food-log/fl.py profile set diet "vegan"
+.venv/bin/python food-log/fl.py note "fasting until 2pm"
 ```
 
 Run `profile show` before making any food recommendation.
@@ -171,7 +173,7 @@ useful version. Do not log routine successes.
 Nothing is lost if a session dies, but nothing is backed up until it is committed either.
 
 ```bash
-python3 food-log/fl.py sync -m "food log"     # pull, commit only events.jsonl, push
+.venv/bin/python food-log/fl.py sync -m "food log"     # pull, commit only events.jsonl, push
 ```
 
 Run `sync` at the end of a logging session, or whenever Ravi asks. It touches no file other
