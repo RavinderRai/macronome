@@ -134,6 +134,12 @@ Daily targets drive `remaining` and the "vs target" line:
 .venv/bin/python food-log/fl.py targets set --kcal 2600 --protein 180 --carbs 260 --fat 80
 ```
 
+Carbs are shown as **net carbs** (total minus fibre) and fibre has its own row; this is
+`carb_mode = net` in the profile. The net-carb target shrinks slightly as fibre is eaten,
+so that hitting protein, fat, and net carbs exactly means hitting calories exactly. Fibre
+is a floor, not a budget: exceeding it is good and is never shown as "over". Do not switch
+back to `total` unless Ravi asks.
+
 A target that applies to one day only (making up for going over, a planned refeed) is an
 override, not a change. Ravi does not lower targets just because a day is a rest day: `targets set --date today --kcal 1500 --carbs 120`. Keep protein and fat, take the
 difference out of carbs unless Ravi says otherwise. Other days keep the standing targets.

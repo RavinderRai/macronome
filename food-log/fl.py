@@ -405,7 +405,9 @@ def totals_for(conn, start, end):
         "COALESCE(SUM(kcal_label),0) AS kcal_label, "
         "COALESCE(SUM(kcal_adjust),0) AS kcal_adjust "
         "FROM entries WHERE eaten_on BETWEEN ? AND ?", (start, end)).fetchone()
-    return dict(row)
+    out = dict(row)
+    out["net_carbs"] = out["carbs"] - out["fiber"]
+    return out
 
 
 def sum_micros(conn, start, end):
@@ -423,16 +425,48 @@ def sum_micros(conn, start, end):
     return out
 
 
-def target_line(conn, totals, day=None):
+def carb_mode(conn):
+    row = conn.execute("SELECT value FROM profile WHERE key = 'carb_mode'").fetchone()
+    return row["value"] if row and row["value"] in ("net", "total") else "total"
+
+
+def macro_status(conn, totals, day=None):
+    """Per-macro (eaten, target, remaining) rows, honouring net-carb mode.
+
+    In net mode carbs are carbs minus fiber, and the carb target gives back the
+    calories the fiber deduction already removed, so protein + fat + carbs on
+    target implies calories on target. Fiber is a floor, not a budget.
+    """
     targets = get_targets(conn, day)
-    if not targets:
+    net = carb_mode(conn) == "net"
+    rows = []
+    for key in MACROS:
+        eaten = totals[key] or 0
+        tgt = targets.get(key)
+        label = key
+        if key == "carbs" and net:
+            label = "net carbs"
+            eaten = totals["net_carbs"]
+            if tgt is not None:
+                tgt = tgt - (totals["kcal_adjust"] or 0) / 4.0
+        rows.append({"key": key, "label": label, "eaten": eaten, "target": tgt,
+                     "floor": key == "fiber",
+                     "left": (tgt - eaten) if tgt is not None else None})
+    return rows
+
+
+def target_line(conn, totals, day=None):
+    rows = [r for r in macro_status(conn, totals, day) if r["target"] is not None]
+    if not rows:
         return None
     parts = []
-    for key in MACROS:
-        if key in targets:
-            left = targets[key] - (totals[key] or 0)
-            parts.append("%s %s %s" % (key, fmt(abs(left)),
-                                       "left" if left >= 0 else "OVER"))
+    for r in rows:
+        if r["floor"]:
+            parts.append("%s %s" % (r["label"], "met" if r["left"] <= 0
+                                    else "%s to go" % fmt(r["left"])))
+        else:
+            parts.append("%s %s %s" % (r["label"], fmt(abs(r["left"])),
+                                       "left" if r["left"] >= 0 else "OVER"))
     return "vs target: " + ", ".join(parts)
 
 
@@ -628,9 +662,11 @@ def cmd_today(args, conn):
     if args.json:
         rows = conn.execute("SELECT * FROM entries WHERE eaten_on = ? ORDER BY eaten_at, seq",
                             (day,)).fetchall()
+        t = totals_for(conn, day, day)
         print(json.dumps({"day": day, "entries": [dict(r) for r in rows],
-                          "totals": totals_for(conn, day, day),
-                          "targets": get_targets(conn, day),
+                          "totals": t, "targets": get_targets(conn, day),
+                          "carb_mode": carb_mode(conn),
+                          "rows": macro_status(conn, t, day),
                           "micros": sum_micros(conn, day, day)}, indent=2))
         return
     _print_day(conn, day, show_micros=args.micros)
@@ -687,15 +723,20 @@ def cmd_remaining(args, conn):
     targets = get_targets(conn, day)
     if not targets:
         die("no targets set. Try: targets set --kcal 2600 --protein 180")
-    out = {k: round(targets[k] - (t[k] or 0), 1) for k in MACROS if k in targets}
+    rows = [r for r in macro_status(conn, t, day) if r["target"] is not None]
     if args.json:
         print(json.dumps({"day": day, "eaten": t, "targets": targets,
-                          "remaining": out}, indent=2))
+                          "carb_mode": carb_mode(conn),
+                          "rows": rows}, indent=2))
         return
     print("remaining for %s:" % day)
-    for key, left in out.items():
-        print("  %-8s %8s %s" % (key, fmt(abs(left), 1),
-                                 "left" if left >= 0 else "OVER"))
+    for r in rows:
+        if r["floor"]:
+            print("  %-10s %8s %s" % (r["label"], fmt(abs(r["left"]), 1),
+                                      "met" if r["left"] <= 0 else "to go"))
+        else:
+            print("  %-10s %8s %s" % (r["label"], fmt(abs(r["left"]), 1),
+                                      "left" if r["left"] >= 0 else "OVER"))
 
 
 def cmd_targets_set(args, conn):

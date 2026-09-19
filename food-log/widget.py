@@ -24,7 +24,7 @@ TRACK = "#2b3044"
 TEXT = "#f4f5f8"
 MUTED = "#9aa0b4"
 KCAL = "#4fd1c5"
-COLORS = {"protein": "#5fe3a1", "carbs": "#4fc3f7", "fat": "#c58bf2"}
+COLORS = {"protein": "#5fe3a1", "carbs": "#4fc3f7", "fat": "#c58bf2", "fiber": "#f5c86b"}
 OVER = "#ff7a7a"
 
 
@@ -33,6 +33,7 @@ def render(day, out_path):
     totals = fl.totals_for(conn, day, day)
     targets = fl.get_targets(conn, day)
     note = conn.execute("SELECT note FROM day_notes WHERE day = ?", (day,)).fetchone()
+    rows = [r for r in fl.macro_status(conn, totals, day) if r["key"] != "kcal"]
     conn.close()
 
     kcal_target = targets.get("kcal")
@@ -69,34 +70,36 @@ def render(day, out_path):
                 ha="center", va="center", fontsize=8.5, color=MUTED)
 
     # macro rows
-    y = 48
-    for key, label in (("protein", "Protein"), ("carbs", "Carbs"), ("fat", "Fat")):
-        got = totals[key]
-        tgt = targets.get(key)
-        col = COLORS[key]
-        ax.add_patch(plt.Circle((9, y), 2.2, color=col))
-        ax.text(15, y, label, ha="left", va="center", fontsize=11, color=TEXT)
-        if tgt:
-            rem = tgt - got
-            right = ("%s g left" % fl.fmt(rem)) if rem >= 0 else ("%s g over" % fl.fmt(-rem))
-            ax.text(91, y, right, ha="right", va="center", fontsize=11,
-                    color=OVER if rem < 0 else TEXT)
-            ax.text(91, y - 5.2, "%s / %s g" % (fl.fmt(got), fl.fmt(tgt)), ha="right",
-                    va="center", fontsize=8, color=MUTED)
-            f = min(got / tgt, 1.0)
-            ax.add_patch(FancyBboxPatch((15, y - 9.5), 76, 2.2, boxstyle="round,pad=0,rounding_size=1.1",
+    y = 50
+    for r in rows:
+        key, got, tgt = r["key"], r["eaten"], r["target"]
+        col = COLORS.get(key, MUTED)
+        ax.add_patch(plt.Circle((9, y), 2.0, color=col))
+        ax.text(15, y, r["label"].capitalize(), ha="left", va="center", fontsize=10, color=TEXT)
+        if tgt is not None:
+            rem = r["left"]
+            if r["floor"]:
+                right = "met" if rem <= 0 else "%s g to go" % fl.fmt(rem)
+                bad = False
+            else:
+                right = ("%s g left" % fl.fmt(rem)) if rem >= 0 else ("%s g over" % fl.fmt(-rem))
+                bad = rem < 0
+            ax.text(91, y, right, ha="right", va="center", fontsize=10,
+                    color=OVER if bad else TEXT)
+            ax.text(91, y - 4.6, "%s / %s g" % (fl.fmt(got), fl.fmt(tgt)), ha="right",
+                    va="center", fontsize=7, color=MUTED)
+            f = min(got / tgt, 1.0) if tgt > 0 else 0
+            ax.add_patch(FancyBboxPatch((15, y - 8.2), 76, 1.9, boxstyle="round,pad=0,rounding_size=0.95",
                                         facecolor=TRACK, edgecolor="none"))
             if f > 0:
-                ax.add_patch(FancyBboxPatch((15, y - 9.5), 76 * f, 2.2,
-                                            boxstyle="round,pad=0,rounding_size=1.1",
-                                            facecolor=OVER if rem < 0 else col, edgecolor="none"))
+                ax.add_patch(FancyBboxPatch((15, y - 8.2), 76 * f, 1.9,
+                                            boxstyle="round,pad=0,rounding_size=0.95",
+                                            facecolor=OVER if bad else col, edgecolor="none"))
         else:
-            ax.text(91, y, "%s g" % fl.fmt(got), ha="right", va="center", fontsize=11, color=TEXT)
-        y -= 15.5
+            ax.text(91, y, "%s g" % fl.fmt(got), ha="right", va="center", fontsize=10, color=TEXT)
+        y -= 12.5
 
     footer = day
-    if totals["fiber"]:
-        footer += "   ·   fibre %sg" % fl.fmt(totals["fiber"])
     ax.text(50, 3.5, footer, ha="center", va="center", fontsize=7.5, color=MUTED)
     if note:
         ax.text(50, 128, note["note"][:60], ha="center", va="center", fontsize=6.5, color=MUTED)
