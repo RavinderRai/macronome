@@ -66,10 +66,17 @@ change the mode unless he asks.
 .venv/bin/python food-log/fl.py fiber --mode half     # switch, re-scoring every day already logged
 ```
 
-Modes are `label` (4 kcal/g, as printed), `half` (2 kcal/g, the default and Cronometer's
-usual setting), `split` (insoluble 0, soluble 2) and `net` (fiber counts for nothing).
-Switching is retroactive because the deduction is applied when the log is replayed, so he
-can log a day, compare against Cronometer, and flip modes until they line up.
+The default is `auto`, and it should stay there. Most Canadian labels already count fiber
+at ~2 kcal/g themselves -- their printed calories match `P*4 + (C-fiber)*4 + fiber*2 + F*9`
+-- so deducting again double counts. `auto` compares each food's stated calories against
+both conventions and deducts only when the label used 4 kcal/g. The fixed modes (`label`,
+`half`, `net`, `split`) exist for comparing a day against another tracker. Switching is
+retroactive because the deduction is applied when the log is replayed.
+
+**When adding a food, check the label's own arithmetic**: if the printed calories are far
+from both `P*4+C*4+F*9` and that minus twice the fiber, the label is wrong. Say so, and
+store the 4 kcal/g figure so `auto` lands on the honest number (this is what was done for
+the two canned beans).
 
 **Always record `--fiber` when a food has any.** Also set `--fiber-soluble` and
 `--fiber-insoluble` when the label breaks them out, or when the food is a clear case: bran,

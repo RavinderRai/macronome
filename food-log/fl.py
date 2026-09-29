@@ -94,25 +94,39 @@ SCALED = ("kcal", "protein", "carbs", "fat", "fiber", "fiber_soluble", "fiber_in
 
 
 FIBER_MODES = {
-    "label": "fiber at 4 kcal/g, calories exactly as printed on the label",
-    "half": "fiber at 2 kcal/g, the EU convention and Cronometer's usual setting",
-    "net": "fiber at 0 kcal/g, net-carb style, nothing from fiber counts",
+    "auto": "trust each label: deduct only when its calories counted fiber at 4 kcal/g",
+    "label": "never deduct, calories exactly as printed on the label",
+    "half": "always deduct 2 kcal per gram of fiber",
+    "net": "always deduct 4 kcal per gram, net-carb style",
     "split": "insoluble at 0 and soluble at 2 kcal/g, needs the split recorded",
 }
-DEFAULT_FIBER_MODE = "half"
+DEFAULT_FIBER_MODE = "auto"
 
 
-def fiber_adjustment(fiber, soluble, insoluble, mode):
-    """Calories to remove from a figure that counted every gram of fiber at 4 kcal.
+def fiber_adjustment(fiber, soluble, insoluble, mode, kcal=None, protein=None,
+                     carbs=None, fat=None):
+    """Calories to remove so fiber is counted at ~2 kcal/g rather than 4.
 
-    Which convention is right is genuinely unsettled, so this is a setting rather
-    than a decision. Because it is applied when the log is replayed, changing the
-    mode re-scores every day already logged.
+    Most Canadian labels already do this themselves: their printed calories match
+    protein*4 + (carbs - fiber)*4 + fiber*2 + fat*9. Deducting again would double
+    count, which is what "auto" prevents -- it compares the stated calories with
+    both conventions and only deducts when the label used 4 kcal/g. The fixed
+    modes remain for comparing against another tracker.
     """
     sol = soluble or 0.0
     insol = insoluble or 0.0
     total = fiber if fiber is not None else (sol + insol)
     total = total or 0.0
+
+    if mode == "auto":
+        if not total or kcal is None or None in (protein, carbs, fat):
+            return 0.0
+        atwater4 = 4.0 * protein + 4.0 * carbs + 9.0 * fat
+        # atwater2 sits 2*fiber below atwater4; anything under the midpoint is a
+        # label that already discounted its fiber.
+        if kcal < atwater4 - total:
+            return 0.0
+        return round(2.0 * total, 2)
     if mode == "label":
         return 0.0
     if mode == "half":
@@ -218,7 +232,8 @@ def project():
             seq += 1
             row = dict((f, ev.get(f)) for f in ENTRY_FIELDS)
             adjust = fiber_adjustment(row["fiber"], row["fiber_soluble"],
-                                      row["fiber_insoluble"], mode)
+                                      row["fiber_insoluble"], mode, row["kcal"],
+                                      row["protein"], row["carbs"], row["fat"])
             row["kcal_label"] = row["kcal"]
             row["kcal"] = max(0.0, round((row["kcal"] or 0.0) - adjust, 2))
             row["kcal_adjust"] = adjust
@@ -571,7 +586,8 @@ def cmd_log(args, conn):
         ev[key] = None if base is None else round(base * factor, 2)
     ev = append_event(ev)
     adjust = fiber_adjustment(ev["fiber"], ev["fiber_soluble"], ev["fiber_insoluble"],
-                              current_fiber_mode(conn))
+                              current_fiber_mode(conn), ev["kcal"], ev["protein"],
+                              ev["carbs"], ev["fat"])
     net = max(0.0, (ev["kcal"] or 0.0) - adjust)
     print("%s  %s %s%s -> %s kcal%s, P%s C%s F%s  [%s]"
           % (ev["id"], food["name"], trim(qty), unit, fmt(net),
@@ -596,7 +612,8 @@ def cmd_logx(args, conn):
         "confidence": args.confidence or "low", "note": args.note,
     })
     adjust = fiber_adjustment(args.fiber, args.fiber_soluble, args.fiber_insoluble,
-                              current_fiber_mode(conn))
+                              current_fiber_mode(conn), args.kcal, args.protein,
+                              args.carbs, args.fat)
     net = max(0.0, (args.kcal or 0.0) - adjust)
     print("%s  %s -> %s kcal%s, P%s C%s F%s  [%s, %s confidence]"
           % (ev["id"], ev["label"], fmt(net),
@@ -801,18 +818,19 @@ def cmd_fiber(args, conn):
     current = args.mode or current_fiber_mode(conn)
     day = parse_day(args.date)
     rows = conn.execute(
-        "SELECT kcal_label, fiber, fiber_soluble, fiber_insoluble FROM entries "
-        "WHERE eaten_on = ?", (day,)).fetchall()
+        "SELECT kcal_label, protein, carbs, fat, fiber, fiber_soluble, "
+        "fiber_insoluble FROM entries WHERE eaten_on = ?", (day,)).fetchall()
     if not rows:
         print("nothing logged on %s to compare" % day)
         return
 
     print("calories on %s under each convention:" % day)
-    for name in ("label", "half", "split", "net"):
+    for name in ("auto", "label", "half", "split", "net"):
         total = 0.0
         for r in rows:
             adjust = fiber_adjustment(r["fiber"], r["fiber_soluble"],
-                                      r["fiber_insoluble"], name)
+                                      r["fiber_insoluble"], name, r["kcal_label"],
+                                      r["protein"], r["carbs"], r["fat"])
             total += max(0.0, (r["kcal_label"] or 0.0) - adjust)
         print("  %-6s %7s kcal   %s%s"
               % (name, fmt(total), FIBER_MODES[name],
