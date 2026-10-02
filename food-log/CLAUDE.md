@@ -159,7 +159,10 @@ across chats. Constraints that apply to a single day go in a day note.
 .venv/bin/python food-log/fl.py note "fasting until 2pm"
 ```
 
-Run `profile show` before making any food recommendation.
+Run `profile show` before making any food recommendation. In particular `snack_definition`
+(a snack is zero-prep, under two minutes, no pan) and `fat_note` (40g fat is a floor he is
+happy to exceed) change what should be suggested, and both came from Ravi correcting
+earlier answers.
 
 ## Staple meals
 
