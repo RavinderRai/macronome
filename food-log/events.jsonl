@@ -534,3 +534,5 @@
 {"day": "2026-10-11", "id": "96b93a", "key": "kcal", "ts": "2026-10-10T20:37:27-04:00", "type": "day_target", "value": "1200.0"}
 {"day": "2026-10-11", "id": "5b4e43", "key": "carbs", "ts": "2026-10-10T20:37:27-04:00", "type": "day_target", "value": "56.0"}
 {"day": "2026-10-11", "id": "49e529", "key": "fat", "ts": "2026-10-10T20:37:27-04:00", "type": "day_target", "value": "35.0"}
+{"id": "6ca139", "target": "50ec71", "ts": "2026-10-10T20:39:41-04:00", "type": "entry_delete"}
+{"carbs": 2.0, "confidence": "high", "eaten_at": "2026-10-10T20:39:41-04:00", "eaten_on": "2026-10-10", "fat": 1.8, "fiber": 1.0, "fiber_insoluble": null, "fiber_soluble": null, "food_id": "82f120", "grams": 30.5, "id": "1a1a77", "kcal": 104.0, "label": "Beyond Yourself vegan protein cookie dough", "meal": "snack", "micros": "{\"sodium_mg\": 200.0, \"sat_fat_g\": 1.5, \"sugar_g\": 0.0}", "note": null, "protein": 20.0, "qty": 1.0, "source": "text", "ts": "2026-10-10T20:39:41-04:00", "type": "entry_add", "unit": "scoop"}
