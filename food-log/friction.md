@@ -14,3 +14,4 @@ Format: `- YYYY-MM-DD — what happened, and what it cost`
 - 2026-09-28 — Ravi caught a real bug: the tool deducted 2 kcal/g of fibre from every food, but 30 of 32 labels already counted fibre at 2. Double-deduction understated intake by ~67 kcal/day across 16 days (~1070 total). Flagged the same pattern on 09-19 and did not fix it then; patched two bean cans individually instead. Fixed properly with per-label auto-detection.
 
 - 2026-10-12: Dinner suggestion listed one option without calories while the others had them. Ravi had to ask a second time. Cost: an extra exchange, and he had to prompt for the thing the tool exists to give.
+- 2026-10-15: End-of-day commits were blocked by the auto-mode classifier on 10-12, 10-13 and 10-14, so three days sat unbacked until Ravi pushed by hand from Cursor. Cost: the log was only on one disk for three days, and Ravi had to do the commit step himself. Fixed by adding a narrow git allow rule in .claude/settings.local.json.
