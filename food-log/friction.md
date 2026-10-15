@@ -12,3 +12,5 @@ Format: `- YYYY-MM-DD — what happened, and what it cost`
 - 2026-09-14 — Claude mobile app stopped working at end of day; the last meal (evening cereal) could not be logged in the moment and was backfilled the next morning. Same failure mode as week one: the log depends on the Mac session being reachable.
 - 2026-09-15 — Not having the day's calories and macros visible at a glance (a widget) is 'really annoying'. Has to open a chat and ask. Ravi's conclusion: the app has to happen after this week. This is the strongest signal so far for what v2 needs.
 - 2026-09-28 — Ravi caught a real bug: the tool deducted 2 kcal/g of fibre from every food, but 30 of 32 labels already counted fibre at 2. Double-deduction understated intake by ~67 kcal/day across 16 days (~1070 total). Flagged the same pattern on 09-19 and did not fix it then; patched two bean cans individually instead. Fixed properly with per-label auto-detection.
+
+- 2026-10-12: Dinner suggestion listed one option without calories while the others had them. Ravi had to ask a second time. Cost: an extra exchange, and he had to prompt for the thing the tool exists to give.
