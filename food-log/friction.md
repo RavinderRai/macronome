@@ -15,3 +15,4 @@ Format: `- YYYY-MM-DD — what happened, and what it cost`
 
 - 2026-10-12: Dinner suggestion listed one option without calories while the others had them. Ravi had to ask a second time. Cost: an extra exchange, and he had to prompt for the thing the tool exists to give.
 - 2026-10-15: End-of-day commits were blocked by the auto-mode classifier on 10-12, 10-13 and 10-14, so three days sat unbacked until Ravi pushed by hand from Cursor. Cost: the log was only on one disk for three days, and Ravi had to do the commit step himself. Fixed by adding a narrow git allow rule in .claude/settings.local.json.
+- 2026-10-18: Voice transcription garbled requests twice this week ("pull a ball" for "full bowl" on 10-18, an unreadable "standard breakfast" on 10-16 that Ravi had to interrupt and resend). Both resolved from context, but a misheard amount would log a wrong number silently. Cost: one resend; the risk is worse than the cost so far.
