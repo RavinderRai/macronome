@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Foundations</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EDEDE8;text-decoration:none}a:hover{color:#FFB547}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.hatch{background:repeating-linear-gradient(135deg,#EDEDE8 0 1.5px,transparent 1.5px 5px)}
+</style>
+</helmet>
+<div style="width: 1280px; height: 1400px; box-sizing: border-box; padding: 64px; display: flex; flex-direction: column; gap: 56px; background: #111210; color: #EDEDE8; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <header style="display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 1px solid #EDEDE8; padding-bottom: 20px">
+    <div style="display: flex; align-items: baseline; gap: 14px">
+      <span style="font-size: 44px; font-weight: 600; letter-spacing: -0.03em">macronome</span>
+      <span style="width: 10px; height: 10px; border-radius: 5px; background: #FFB547"></span>
+    </div>
+    <span class="cap" style="color: #B4B6AE">Foundations · dark by default · Geist and Geist Mono · amber</span>
+  </header>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px">
+    <section aria-label="Color" style="display: flex; flex-direction: column; gap: 20px">
+      <span class="cap" style="color: #B4B6AE">Color</span>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 88px; border-radius: 10px; background: #111210; border: 1px solid #2A2B28"></span><span style="font-size: 13px; font-weight: 600">Graphite</span><span class="mono" style="font-size: 11px; color: #B4B6AE">#111210</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 88px; border-radius: 10px; background: #1A1B19; border: 1px solid #2A2B28"></span><span style="font-size: 13px; font-weight: 600">Surface</span><span class="mono" style="font-size: 11px; color: #B4B6AE">#1A1B19</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 88px; border-radius: 10px; background: #EDEDE8"></span><span style="font-size: 13px; font-weight: 600">Text</span><span class="mono" style="font-size: 11px; color: #B4B6AE">#EDEDE8</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 88px; border-radius: 10px; background: #B4B6AE"></span><span style="font-size: 13px; font-weight: 600">Text 2</span><span class="mono" style="font-size: 11px; color: #B4B6AE">#B4B6AE</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 88px; border-radius: 10px; background: #9A9C95"></span><span style="font-size: 13px; font-weight: 600">Text 3, labels</span><span class="mono" style="font-size: 11px; color: #B4B6AE">#9A9C95</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 88px; border-radius: 10px; background: #FF7A66"></span><span style="font-size: 13px; font-weight: 600">Coral, over only</span><span class="mono" style="font-size: 11px; color: #B4B6AE">#FF7A66</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 88px; border-radius: 10px; background: #2C2D2A"></span><span style="font-size: 13px; font-weight: 600">Track</span><span class="mono" style="font-size: 11px; color: #B4B6AE">#2C2D2A</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 88px; border-radius: 10px; background: #FFB547"></span><span style="font-size: 13px; font-weight: 600">Amber</span><span class="mono" style="font-size: 11px; color: #B4B6AE">#FFB547</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 88px; border-radius: 10px; background: #2B1F0E"></span><span style="font-size: 13px; font-weight: 600">Deep amber</span><span class="mono" style="font-size: 11px; color: #B4B6AE">#2B1F0E</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><span style="height: 88px; border-radius: 10px; background: #7F827A"></span><span style="font-size: 13px; font-weight: 600">Fat</span><span class="mono" style="font-size: 11px; color: #B4B6AE">#7F827A</span></div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding-top: 8px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600"><span style="width: 24px; height: 4px; border-radius: 2px; background: #FFB547"></span>Protein</span>
+          <span style="font-size: 13px; color: #B4B6AE; line-height: 1.45">Amber. Protein is the number that matters most, so it is the only macro in color.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600"><span style="width: 24px; height: 4px; border-radius: 2px; background: #EDEDE8"></span>Net carbs</span>
+          <span style="font-size: 13px; color: #B4B6AE; line-height: 1.45">Off-white, the brightest bar.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600"><span style="width: 24px; height: 4px; border-radius: 2px; background: #7F827A"></span>Fat</span>
+          <span style="font-size: 13px; color: #B4B6AE; line-height: 1.45">Mid grey, the dimmest. The three differ in lightness, not just hue.</span>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Type" style="display: flex; flex-direction: column; gap: 20px">
+      <span class="cap" style="color: #B4B6AE">Type</span>
+      <div style="display: flex; align-items: flex-end; gap: 24px; border-bottom: 1px solid #2A2B28; padding-bottom: 16px">
+        <span style="font-size: 112px; font-weight: 500; letter-spacing: -0.055em; line-height: 0.86">759</span>
+        <span class="mono" style="font-size: 12px; color: #B4B6AE; padding-bottom: 6px">Numeral · Geist 500 · 112 · −5.5%</span>
+      </div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid #2A2B28; padding-bottom: 14px">
+        <span style="font-size: 28px; font-weight: 600; letter-spacing: -0.02em">Rainbow hoops</span>
+        <span class="mono" style="font-size: 12px; color: #B4B6AE">Title · Geist 600 · 28</span>
+      </div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid #2A2B28; padding-bottom: 14px">
+        <span style="font-size: 16px; font-weight: 500">Standard breakfast</span>
+        <span class="mono" style="font-size: 12px; color: #B4B6AE">Row · Geist 500 · 16</span>
+      </div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid #2A2B28; padding-bottom: 14px">
+        <span style="font-size: 15px; line-height: 1.5; max-width: 340px">Keeping 240 for the evening bowl leaves 519 for dinner.</span>
+        <span class="mono" style="font-size: 12px; color: #B4B6AE">Body · Geist 400 · 15 / 1.5</span>
+      </div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid #2A2B28; padding-bottom: 14px">
+        <span class="mono" style="font-size: 15px">496 kcal · 39 g P</span>
+        <span class="mono" style="font-size: 12px; color: #B4B6AE">Figures · Geist Mono 400 · 13 to 15</span>
+      </div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between">
+        <span class="cap" style="color: #9A9C95">Breakfast · 272</span>
+        <span class="mono" style="font-size: 12px; color: #B4B6AE">Label · Geist Mono 500 · 11 · caps</span>
+      </div>
+    </section>
+  </div>
+
+  <section aria-label="Components" style="display: flex; flex-direction: column; gap: 20px">
+    <span class="cap" style="color: #B4B6AE">Components</span>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+
+      <div style="background: #1A1B19; border: 1px solid #2A2B28; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <span class="cap" style="color: #9A9C95">Command bar</span>
+        <div style="height: 60px; border-radius: 30px; background: #232421; display: flex; align-items: center; gap: 4px; padding: 0 6px">
+          <span style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: #EDEDE8"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h3.2l1.8-2.5h7l1.8 2.5h3.2v10h-17z"></path><circle cx="12" cy="13.2" r="3.4"></circle></svg></span>
+          <span style="flex: 1; font-size: 16px; color: #A3A69E">Log or ask anything</span>
+          <span style="width: 48px; height: 48px; border-radius: 24px; background: #FFB547; color: #111210; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg></span>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <span style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #3A3B37; background: #1A1B19; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500">Snack bowl<span class="mono" style="font-size: 12px; color: #9A9C95">189</span></span>
+          <span style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #3A3B37; background: #1A1B19; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500">Evening bowl<span class="mono" style="font-size: 12px; color: #9A9C95">240</span></span>
+        </div>
+        <span style="font-size: 13px; color: #B4B6AE; line-height: 1.45">One input for logging and asking. Usual meals sit above it, ordered by what you tend to eat next.</span>
+      </div>
+
+      <div style="background: #1A1B19; border: 1px solid #2A2B28; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <span class="cap" style="color: #9A9C95">Day strip</span>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span class="mono" style="font-size: 12px; color: #B4B6AE">Eaten</span>
+          <div style="display: flex; gap: 2px; height: 12px"><span style="width: 50px; background: #EDEDE8; border-radius: 2px 0 0 2px"></span><span style="width: 122px; background: #EDEDE8"></span><span style="flex: 1; background: #2C2D2A; border-radius: 0 2px 2px 0"></span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span class="mono" style="font-size: 12px; color: #B4B6AE">Eaten and planned</span>
+          <div style="display: flex; gap: 2px; height: 12px"><span style="width: 50px; background: #EDEDE8; border-radius: 2px 0 0 2px"></span><span style="width: 122px; background: #EDEDE8"></span><span class="hatch" style="width: 91px; box-shadow: inset 0 0 0 1px #EDEDE8"></span><span class="hatch" style="width: 44px; box-shadow: inset 0 0 0 1px #EDEDE8"></span><span style="flex: 1; background: #2C2D2A; border-radius: 0 2px 2px 0"></span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span class="mono" style="font-size: 12px; color: #B4B6AE">Over target</span>
+          <div style="display: flex; gap: 2px; height: 12px"><span style="flex: 1; background: #EDEDE8; border-radius: 2px 0 0 2px"></span><span style="width: 6px; background: #FF7A66; border-radius: 0 2px 2px 0"></span></div>
+        </div>
+        <span style="font-size: 13px; color: #B4B6AE; line-height: 1.45">Solid is eaten, hatched is planned, coral is past the target. A ruler underneath marks every 100 kcal.</span>
+      </div>
+
+      <div style="background: #1A1B19; border: 1px solid #2A2B28; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+        <span class="cap" style="color: #9A9C95">Entry rows</span>
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; border-bottom: 1px solid #2A2B28">
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 16px; font-weight: 500">Nachos</span><span style="font-size: 13px; color: #9A9C95">Lime chips · tortilla · Gusta · Violife</span></span>
+          <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 3px"><span class="mono" style="font-size: 15px">669</span><span class="mono" style="font-size: 12px; color: #9A9C95">58 g P</span></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 0 12px; border-radius: 12px; background: #2B1F0E">
+          <span style="width: 6px; height: 6px; border-radius: 3px; background: #FFB547"></span>
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 16px; font-weight: 500">Potato bowl</span><span class="cap" style="color: #FFB547">Just now</span></span>
+          <span class="mono" style="font-size: 15px">541</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 0 12px; border: 1px dashed #5A5C56; border-radius: 12px">
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 16px; font-weight: 500; color: #B4B6AE">Evening bowl</span><span class="cap" style="color: #9A9C95">Planned</span></span>
+          <span class="mono" style="font-size: 15px; color: #B4B6AE">240</span>
+        </div>
+      </div>
+
+      <div style="background: #1A1B19; border: 1px solid #2A2B28; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <span class="cap" style="color: #9A9C95">Confirmation</span>
+        <div style="background: #2B1F0E; color: #EDEDE8; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline"><span class="cap" style="color: #A3A69E">Logged · Snack</span><span class="mono" style="font-size: 12px; color: #A3A69E">570 left</span></div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 20px; font-weight: 600">Snack bowl</span><span class="mono" style="font-size: 20px">189</span></div>
+          <div style="display: flex; gap: 8px"><span style="flex: 1; height: 44px; border-radius: 22px; border: 1px solid #4A3518; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">Undo</span><span style="flex: 1; height: 44px; border-radius: 22px; background: #3A2A14; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">Edit</span></div>
+        </div>
+        <span style="font-size: 13px; color: #B4B6AE; line-height: 1.45">Deep amber, used only here, on the listening panel and on the row just logged. Logs never ask first; they confirm after.</span>
+      </div>
+
+      <div style="background: #1A1B19; border: 1px solid #2A2B28; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <span class="cap" style="color: #9A9C95">Buttons</span>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center">
+          <span style="height: 48px; padding: 0 22px; border-radius: 24px; background: #EDEDE8; color: #111210; display: flex; align-items: center; font-size: 15px; font-weight: 600">Add to today</span>
+          <span style="height: 48px; padding: 0 22px; border-radius: 24px; border: 1px solid #EDEDE8; display: flex; align-items: center; font-size: 15px; font-weight: 600">Change</span>
+          <span style="height: 48px; padding: 0 12px; display: flex; align-items: center; font-size: 15px; font-weight: 600; color: #FFB547">Delete</span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center">
+          <span style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #3A3B37; display: flex; align-items: center; justify-content: center; font-size: 20px">−</span>
+          <span class="mono" style="min-width: 72px; text-align: center; font-size: 15px">¾ cup</span>
+          <span style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #3A3B37; display: flex; align-items: center; justify-content: center; font-size: 20px">+</span>
+        </div>
+        <span style="font-size: 13px; color: #B4B6AE; line-height: 1.45">Every target is at least 44 px. Amber is kept for the mic and for protein, never for buttons.</span>
+      </div>
+
+      <div style="background: #1A1B19; border: 1px solid #2A2B28; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+        <span class="cap" style="color: #9A9C95">Sync</span>
+        <div style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; border-radius: 20px; background: #232421; font-size: 13px">
+          <span style="width: 8px; height: 8px; border-radius: 4px; background: #EDEDE8"></span>Synced
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; border-radius: 20px; background: #232421; font-size: 13px">
+          <span style="width: 8px; height: 8px; border-radius: 4px; border: 1.5px solid #EDEDE8; box-sizing: border-box"></span>Saved on this phone. Syncs when you're back online.
+        </div>
+        <span style="font-size: 13px; color: #B4B6AE; line-height: 1.45">Logging never waits on a connection. The phone keeps the entry and the server catches up, so a dropped session can't stop a log.</span>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

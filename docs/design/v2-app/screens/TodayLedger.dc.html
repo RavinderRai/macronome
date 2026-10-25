@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Today, night ledger</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#ECEAE2;text-decoration:none}a:hover{color:#D2FF4D}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cmd::placeholder{color:#8F8D85}
+.lead{flex:1;min-width:12px;border-bottom:1px dotted #55544E;margin:0 8px;transform:translateY(-4px)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.caret{animation:blink 1s steps(1) infinite}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #D2FF4D;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; padding: 0 20px; display: flex; flex-direction: column; background: #0E0F0D; color: #ECEAE2; font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums">
+
+  <div style="height: 40px; flex: none; display: flex; align-items: center; justify-content: space-between; font-size: 11px; letter-spacing: .06em; color: #8F8D85; border-bottom: 1px solid #2A2B27">
+    <span>SAT 24 OCT</span><span>DAY 042</span><span>BANK +13.5</span>
+  </div>
+
+  <nav aria-label="Sections" style="height: 52px; flex: none; display: flex; align-items: center; gap: 6px; margin: 0 -10px; font-size: 14px">
+    <a href="Main.dc.html" aria-current="page" style="height: 44px; padding: 0 10px; display: flex; align-items: center; color: #D2FF4D; font-weight: 600">[today]</a>
+    <a href="Foods.dc.html" style="height: 44px; padding: 0 10px; display: flex; align-items: center; color: #8F8D85">foods</a>
+    <a href="History.dc.html" style="height: 44px; padding: 0 10px; display: flex; align-items: center; color: #8F8D85">history</a>
+    <span style="flex: 1"></span>
+    <a href="Settings.dc.html" style="height: 44px; padding: 0 10px; display: flex; align-items: center; color: #8F8D85">settings</a>
+  </nav>
+
+  <section aria-label="Calories" style="display: flex; flex-direction: column; gap: 12px; padding-top: 12px">
+    <span style="font-size: 11px; letter-spacing: .08em; color: #8F8D85">REMAINING</span>
+    <div style="display: flex; align-items: baseline; gap: 10px">
+      <span style="font-size: 104px; font-weight: 500; letter-spacing: -0.06em; line-height: 0.85">759</span>
+      <span style="font-size: 14px; color: #8F8D85">kcal</span>
+    </div>
+    <div role="img" aria-label="941 of 1,700 kcal eaten, one cell per 50" style="display: flex; gap: 2px; height: 18px">
+      <sc-for list="{{cells}}" as="c" hint-placeholder-count="34">
+        <span style="flex: 1; background: {{c.fill}}; border-radius: 1px"></span>
+      </sc-for>
+    </div>
+  </section>
+
+  <section aria-label="Ledger" style="display: flex; flex-direction: column; padding-top: 26px; font-size: 14px">
+    <div style="display: flex; align-items: baseline; height: 30px"><span style="color: #8F8D85">TARGET</span><span class="lead"></span><span>1,700</span></div>
+    <a href="EntryDetail.dc.html" style="display: flex; flex-direction: column; justify-content: center; min-height: 52px">
+      <span style="display: flex; align-items: baseline"><span>BREAKFAST</span><span class="lead"></span><span>−272</span></span>
+      <span style="font-size: 12px; color: #8F8D85; padding-top: 3px">  standard breakfast · 34p</span>
+    </a>
+    <a href="EntryDetail.dc.html" style="display: flex; flex-direction: column; justify-content: center; min-height: 52px">
+      <span style="display: flex; align-items: baseline"><span>LUNCH</span><span class="lead"></span><span>−669</span></span>
+      <span style="font-size: 12px; color: #8F8D85; padding-top: 3px">  nachos · 58p</span>
+    </a>
+    <div style="display: flex; align-items: baseline; height: 40px; border-top: 1px solid #ECEAE2; margin-top: 6px; color: #D2FF4D; font-weight: 600"><span>LEFT</span><span class="lead" style="border-color: #6B7A33"></span><span>759</span></div>
+  </section>
+
+  <section aria-label="Macros" style="display: flex; flex-direction: column; gap: 12px; padding-top: 22px; font-size: 13px">
+    <sc-for list="{{macros}}" as="m" hint-placeholder-count="3">
+      <div role="img" aria-label="{{m.label}}" style="display: flex; align-items: center; gap: 12px">
+        <span style="width: 64px; color: {{m.nameColor}}">{{m.name}}</span>
+        <span style="flex: 1; display: flex; gap: 2px; height: 10px">
+          <sc-for list="{{m.cells}}" as="c" hint-placeholder-count="20">
+            <span style="flex: 1; background: {{c.fill}}"></span>
+          </sc-for>
+        </span>
+        <span style="width: 64px; text-align: right">{{m.left}}</span>
+      </div>
+    </sc-for>
+  </section>
+
+  <form style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; box-sizing: border-box; padding: 0 12px 12px 20px; border-top: 1px solid #2A2B27; background: #0E0F0D; display: flex; align-items: center; gap: 8px">
+    <span aria-hidden="true" style="color: #D2FF4D; font-size: 18px">›</span>
+    <label for="cmd-ledger" class="sr">Log or ask</label>
+    <input id="cmd-ledger" class="cmd" placeholder="log or ask" autocomplete="off" style="flex: 1; min-width: 0; height: 48px; border: 0; background: transparent; color: #ECEAE2; font: inherit; font-size: 16px">
+    <a href="LabelScan.dc.html" aria-label="Photograph a label or a meal" style="flex: none; width: 48px; height: 48px; box-sizing: border-box; border: 1px solid #3A3B36; border-radius: 4px; display: flex; align-items: center; justify-content: center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h3.2l1.8-2.5h7l1.8 2.5h3.2v10h-17z"></path><circle cx="12" cy="13.2" r="3.4"></circle></svg>
+    </a>
+    <a href="Listening.dc.html" aria-label="Talk to log or ask" style="flex: none; width: 56px; height: 48px; border-radius: 4px; background: #D2FF4D; color: #0E0F0D; display: flex; align-items: center; justify-content: center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg>
+    </a>
+  </form>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+// Today so far: 941 of 1,700 kcal; protein 92/165, net carbs 70/156, fat 32/45.
+const ON = '#ECEAE2';
+const OFF = '#2A2B27';
+const LIME = '#D2FF4D';
+
+function row(n, filled, color) {
+  return Array.from({ length: n }, (_, i) => ({ fill: i < filled ? color : OFF }));
+}
+
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      cells: row(34, 19, ON),
+      macros: [
+        { name: 'PROTEIN', nameColor: LIME, left: '73 left', label: 'Protein 92 of 165 g, 73 left', cells: row(20, 11, LIME) },
+        { name: 'NET C', nameColor: '#8F8D85', left: '86 left', label: 'Net carbs 70 of 156 g, 86 left', cells: row(20, 9, ON) },
+        { name: 'FAT', nameColor: '#8F8D85', left: '13 left', label: 'Fat 32 of 45 g, 13 left', cells: row(20, 14, ON) },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Label camera</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2F2EE;text-decoration:none}a:hover{color:#FFB547}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+a:focus-visible{outline:2px solid #FFB547;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; background: #0D0E0C; color: #F2F2EE; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <div style="height: 56px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 8px">
+    <a href="Main.dc.html" aria-label="Close camera" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+    <span class="mono" style="font-size: 13px; color: #A3A69E; padding-right: 12px">759 left</span>
+  </div>
+
+  <div style="position: relative; margin: 0 12px; flex: 1; min-height: 0; border-radius: 24px; background: #1A1B18; overflow: hidden; display: flex; align-items: center; justify-content: center">
+    <div aria-hidden="true" style="width: 212px; height: 330px; border-radius: 6px; background: #DCDDD7; transform: rotate(2deg); display: flex; flex-direction: column; gap: 10px; padding: 20px 18px; box-sizing: border-box">
+      <span style="height: 13px; width: 72%; background: #8C8F87; border-radius: 2px"></span>
+      <span style="height: 3px; background: #121311"></span>
+      <span style="height: 8px; width: 50%; background: #A9ABA4; border-radius: 2px"></span>
+      <span style="height: 6px; background: #121311"></span>
+      <span style="height: 11px; width: 64%; background: #8C8F87; border-radius: 2px"></span>
+      <span style="height: 1px; background: #8C8F87"></span>
+      <span style="height: 8px; width: 82%; background: #A9ABA4; border-radius: 2px"></span>
+      <span style="height: 8px; width: 70%; background: #A9ABA4; border-radius: 2px"></span>
+      <span style="height: 8px; width: 86%; background: #A9ABA4; border-radius: 2px"></span>
+      <span style="height: 8px; width: 64%; background: #A9ABA4; border-radius: 2px"></span>
+      <span style="height: 8px; width: 76%; background: #A9ABA4; border-radius: 2px"></span>
+      <span style="height: 8px; width: 58%; background: #A9ABA4; border-radius: 2px"></span>
+      <span style="height: 1px; background: #8C8F87"></span>
+      <span style="height: 8px; width: 60%; background: #A9ABA4; border-radius: 2px"></span>
+    </div>
+    <span aria-hidden="true" style="position: absolute; inset: 72px 52px 120px; border: 1.5px solid #FFB547; border-radius: 12px"></span>
+    <div style="position: absolute; left: 14px; right: 14px; bottom: 14px; padding: 14px; border-radius: 16px; background: rgba(13,14,12,.82); display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between"><span class="cap" style="color: #FFB547">Label found</span><span class="cap" style="color: #A3A69E">Hold still</span></div>
+      <span style="font-size: 16px; font-weight: 500">Field Roast spicy chipotle sausage</span>
+      <span style="height: 3px; border-radius: 2px; background: #2E302B; display: flex"><span style="width: 68%; background: #FFB547; border-radius: 2px"></span></span>
+    </div>
+  </div>
+
+  <div style="flex: none; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; align-items: center">
+    <nav aria-label="Camera mode" style="display: flex; gap: 4px; padding: 4px; border-radius: 22px; background: #1C1D1A">
+      <a href="LabelScan.dc.html" aria-current="page" style="height: 36px; padding: 0 18px; border-radius: 18px; background: #F2F2EE; color: #121311; display: flex; align-items: center; font-size: 14px; font-weight: 600">Label</a>
+      <a href="PlatePhoto.dc.html" style="height: 36px; padding: 0 18px; border-radius: 18px; color: #C9CBC4; display: flex; align-items: center; font-size: 14px; font-weight: 500">Plate</a>
+    </nav>
+    <a href="NewFood.dc.html" aria-label="Capture label" style="width: 76px; height: 76px; box-sizing: border-box; border-radius: 38px; border: 3px solid #F2F2EE; padding: 5px; display: flex"><span style="flex: 1; border-radius: 50%; background: #F2F2EE"></span></a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

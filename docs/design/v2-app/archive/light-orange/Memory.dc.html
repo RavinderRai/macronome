@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>What it knows about you</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#121311;text-decoration:none}a:hover{color:#C43D0A}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+a:focus-visible,button:focus-visible{outline:2px solid #FF5B1F;outline-offset:2px}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 0 20px; overflow: hidden; display: flex; flex-direction: column; background: #F2F2EE; color: #121311; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <div style="height: 56px; flex: none; display: flex; align-items: center; margin: 0 -10px">
+    <a href="Settings.dc.html" aria-label="Back to settings" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+  </div>
+  <h1 style="margin: 0 0 8px; font-size: 30px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.08">What it knows about you</h1>
+  <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.45; color: #575A54">Things you've said or corrected. It reads these before suggesting anything.</p>
+
+  <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; border-top: 1px solid #DEDFD9">
+    <sc-for list="{{notes}}" as="n" hint-placeholder-count="8">
+      <li style="display: flex; align-items: flex-start; gap: 8px; padding: 12px 0; border-bottom: 1px solid #DEDFD9">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 5px">
+          <span style="font-size: 15px; line-height: 1.4">{{n.text}}</span>
+          <span class="cap" style="color: {{n.metaColor}}">{{n.meta}}</span>
+        </span>
+        <button type="button" aria-label="{{n.editLabel}}" style="flex: none; width: 44px; height: 44px; margin: -6px -10px 0 0; border: 0; background: transparent; color: #575A54; display: flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path><path d="M13.5 6.5l4 4"></path></svg>
+        </button>
+      </li>
+    </sc-for>
+  </ul>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+// Drawn from the notes the current food log keeps in Ravi's profile.
+const NOTES = [
+  { text: 'The evening cereal bowl stays. Budget around it, and never suggest dropping it.', meta: 'You said this', corrected: false },
+  { text: 'A snack is zero prep: under two minutes, no pan, no cooking.', meta: 'Corrected', corrected: true },
+  { text: 'Air-fried potatoes take about 20 minutes. Nachos take 6 to 8 and count as quick.', meta: 'Corrected 17 Oct', corrected: true },
+  { text: 'Every suggestion shows its calories and protein.', meta: 'Corrected 12 Oct', corrected: true },
+  { text: 'Fat target is 45 g. A little over is fine, so don’t flag it.', meta: 'Set 3 Oct', corrected: false },
+  { text: 'Save under days in the bank. Offer it when a meal lands just over, never push it.', meta: 'You said this 18 Oct', corrected: false },
+  { text: 'Pancakes aren’t filling. Only suggest them when you’re not very hungry.', meta: 'Learned 14 Oct', corrected: false },
+  { text: 'Nutritional yeast in the chili is filler. Drop it first when calories are tight.', meta: 'You said this 20 Oct', corrected: false },
+];
+
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      notes: NOTES.map((n) => ({
+        text: n.text,
+        meta: n.meta,
+        metaColor: n.corrected ? '#C43D0A' : '#686B64',
+        editLabel: 'Edit note: ' + n.text,
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

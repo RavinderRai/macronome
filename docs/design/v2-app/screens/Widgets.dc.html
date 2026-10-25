@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home screen widgets</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EDEDE8;text-decoration:none}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+a:focus-visible{outline:2px solid #FFB547;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 64px 16px 28px; display: flex; flex-direction: column; gap: 16px; background: #2B2D29; color: #EDEDE8; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <a href="Main.dc.html" aria-label="Macronome: 759 kcal left. Protein 73 g, net carbs 86 g, fat 13 g left" style="height: 176px; box-sizing: border-box; padding: 18px; border-radius: 26px; background: #111210; display: flex; flex-direction: column; gap: 14px">
+    <div style="flex: 1; display: flex; gap: 18px">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between">
+        <span class="cap" style="color: #9A9C95">Today</span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 64px; font-weight: 500; letter-spacing: -0.055em; line-height: 0.86">759</span><span style="font-size: 14px; font-weight: 500">kcal left</span></span>
+      </div>
+      <div class="mono" style="width: 128px; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; font-size: 12px">
+        <span style="display: flex; flex-direction: column; gap: 4px"><span style="display: flex; justify-content: space-between"><span style="color: #FFB547">Protein</span><span>73 g</span></span><span style="height: 3px; border-radius: 2px; background: #2C2D2A; display: flex"><span style="width: 56%; background: #FFB547"></span></span></span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><span style="display: flex; justify-content: space-between"><span style="color: #B4B6AE">Net carbs</span><span>86 g</span></span><span style="height: 3px; border-radius: 2px; background: #2C2D2A; display: flex"><span style="width: 45%; background: #EDEDE8"></span></span></span>
+        <span style="display: flex; flex-direction: column; gap: 4px"><span style="display: flex; justify-content: space-between"><span style="color: #B4B6AE">Fat</span><span>13 g</span></span><span style="height: 3px; border-radius: 2px; background: #2C2D2A; display: flex"><span style="width: 71%; background: #7F827A"></span></span></span>
+      </div>
+    </div>
+    <span aria-hidden="true" style="display: flex; gap: 2px; height: 8px"><span style="width: 16%; background: #EDEDE8; border-radius: 2px 0 0 2px"></span><span style="width: 39%; background: #EDEDE8"></span><span style="flex: 1; background: #2C2D2A; border-radius: 0 2px 2px 0"></span></span>
+  </a>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+    <div style="height: 171px; box-sizing: border-box; padding: 16px; border-radius: 26px; background: #1A1B19; color: #EDEDE8; display: flex; flex-direction: column; justify-content: space-between">
+      <a href="Main.dc.html" aria-label="759 kcal left" style="color: #EDEDE8; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 52px; font-weight: 500; letter-spacing: -0.055em; line-height: 0.9">759</span>
+        <span class="mono" style="font-size: 12px; color: #A3A69E">kcal left</span>
+      </a>
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <a href="LabelScan.dc.html" aria-label="Photograph a label" style="width: 48px; height: 48px; border-radius: 24px; background: #2A2C28; color: #EDEDE8; display: flex; align-items: center; justify-content: center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h3.2l1.8-2.5h7l1.8 2.5h3.2v10h-17z"></path><circle cx="12" cy="13.2" r="3.4"></circle></svg></a>
+        <a href="Listening.dc.html" aria-label="Talk to log" style="width: 56px; height: 56px; border-radius: 28px; background: #FFB547; color: #111210; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg></a>
+      </div>
+    </div>
+    <a href="Main.dc.html" aria-label="Protein: 73 g to go of 165" style="height: 171px; box-sizing: border-box; padding: 16px; border-radius: 26px; background: #111210; display: flex; flex-direction: column; justify-content: space-between">
+      <span class="cap" style="color: #FFB547">Protein</span>
+      <span style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 44px; font-weight: 500; letter-spacing: -0.05em; line-height: 0.9">73<span style="font-size: 16px; letter-spacing: 0"> g</span></span>
+        <span class="mono" style="font-size: 12px; color: #B4B6AE">to go · 92 of 165</span>
+        <span style="height: 4px; border-radius: 2px; background: #2C2D2A; display: flex"><span style="width: 56%; background: #FFB547; border-radius: 2px"></span></span>
+      </span>
+    </a>
+  </div>
+
+  <a href="Listening.dc.html" aria-label="Log or ask" style="height: 72px; box-sizing: border-box; padding: 0 8px 0 22px; border-radius: 36px; background: #232421; color: #EDEDE8; display: flex; align-items: center; gap: 12px">
+    <span style="flex: 1; font-size: 16px; color: #A3A69E">Log or ask anything</span>
+    <span class="mono" style="font-size: 12px; color: #A3A69E">759 left</span>
+    <span style="width: 56px; height: 56px; border-radius: 28px; background: #FFB547; color: #111210; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg></span>
+  </a>
+
+  <div aria-hidden="true" style="margin-top: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; justify-items: center; padding: 0 10px">
+    <span style="width: 58px; height: 58px; border-radius: 29px; background: #3A3C37"></span>
+    <span style="width: 58px; height: 58px; border-radius: 29px; background: #3A3C37"></span>
+    <span style="width: 58px; height: 58px; border-radius: 29px; background: #3A3C37"></span>
+    <span style="width: 58px; height: 58px; border-radius: 29px; background: #3A3C37"></span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

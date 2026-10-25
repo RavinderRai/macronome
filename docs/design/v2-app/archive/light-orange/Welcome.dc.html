@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Welcome</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#121311;text-decoration:none}a:hover{color:#C43D0A}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+a:focus-visible{outline:2px solid #FF5B1F;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 28px 24px 28px; display: flex; flex-direction: column; gap: 32px; background: #F2F2EE; color: #121311; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <div style="display: flex; align-items: center; gap: 8px">
+    <span style="font-size: 20px; font-weight: 600; letter-spacing: -0.02em">macronome</span>
+    <span style="width: 7px; height: 7px; border-radius: 4px; background: #FF5B1F"></span>
+  </div>
+
+  <h1 style="margin: 0; font-size: 46px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.02">Say what you ate.<span style="display: block; color: #7F827A">That's the log.</span></h1>
+
+  <figure aria-label="Example of a spoken log" style="margin: 0; display: flex; flex-direction: column; gap: 14px; padding: 18px; background: #FBFBF9; border: 1px solid #DEDFD9; border-radius: 16px">
+    <span class="cap" style="color: #686B64">You say</span>
+    <p style="margin: 0; font-size: 18px; line-height: 1.35; font-weight: 500">“Had the potato bowl with a hundred grams of cauliflower.”</p>
+    <span style="height: 1px; background: #DEDFD9"></span>
+    <span class="cap" style="color: #686B64">It logs</span>
+    <div class="mono" style="display: flex; flex-direction: column; gap: 6px; font-size: 13px">
+      <span style="display: flex; gap: 8px"><span style="flex: 1">Russet potato</span><span style="color: #686B64">350 g</span><span style="width: 32px; text-align: right">277</span></span>
+      <span style="display: flex; gap: 8px"><span style="flex: 1">Cauliflower</span><span style="color: #686B64">100 g</span><span style="width: 32px; text-align: right">25</span></span>
+      <span style="display: flex; gap: 8px"><span style="flex: 1">Gusta veggie ground</span><span style="color: #686B64">2 serv</span><span style="width: 32px; text-align: right">180</span></span>
+      <span style="display: flex; gap: 8px"><span style="flex: 1">Mushroom gravy</span><span style="color: #686B64">½ can</span><span style="width: 32px; text-align: right">59</span></span>
+    </div>
+    <div style="display: flex; align-items: baseline; justify-content: space-between; padding-top: 4px">
+      <span style="font-size: 16px; font-weight: 600">Potato bowl</span>
+      <span class="mono" style="font-size: 15px">541 kcal · <span style="color: #C43D0A">40 g P</span></span>
+    </div>
+  </figure>
+
+  <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; font-size: 15px; line-height: 1.4">
+    <li style="display: flex; gap: 14px"><span class="mono" style="font-size: 12px; color: #686B64; padding-top: 2px">01</span><span>Photograph the labels of foods you eat often. Once.</span></li>
+    <li style="display: flex; gap: 14px"><span class="mono" style="font-size: 12px; color: #686B64; padding-top: 2px">02</span><span>Talk or type through the day. Nothing to search for.</span></li>
+    <li style="display: flex; gap: 14px"><span class="mono" style="font-size: 12px; color: #686B64; padding-top: 2px">03</span><span>See what's left from your home screen.</span></li>
+  </ol>
+
+  <a href="Targets.dc.html" style="margin-top: auto; height: 56px; border-radius: 28px; background: #121311; color: #F2F2EE; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; font-weight: 600">Continue with Google</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

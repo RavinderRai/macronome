@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Check what was read</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EDEDE8;text-decoration:none}a:hover{color:#FFB547}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+a:focus-visible,button:focus-visible{outline:2px solid #FFB547;outline-offset:2px}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 0 20px 24px; display: flex; flex-direction: column; background: #111210; color: #EDEDE8; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <div style="height: 56px; flex: none; display: flex; align-items: center; justify-content: space-between; margin: 0 -10px">
+    <a href="PantryScan.dc.html" aria-label="Back to camera" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <span class="cap" style="color: #9A9C95; padding-right: 10px">Step 2 of 2</span>
+  </div>
+
+  <h1 style="margin: 4px 0 6px; font-size: 30px; font-weight: 600; letter-spacing: -0.03em">Check what was read</h1>
+  <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.4; color: #B4B6AE">Read off each label. Tap a food to fix a number.</p>
+
+  <div style="display: flex; flex-direction: column; border-top: 1px solid #2A2B28">
+    <a href="FoodDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 68px; border-bottom: 1px solid #2A2B28">
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 500">Farm Girl rainbow hoops</span><span class="mono" style="font-size: 12px; color: #9A9C95">1 cup · P 12 · C 25 · F 1 · fiber 7</span></span>
+      <span class="mono" style="font-size: 15px">144</span>
+    </a>
+    <a href="FoodDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 68px; border-bottom: 1px solid #2A2B28">
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 500">Silk almond milk, zero sugar vanilla</span><span class="mono" style="font-size: 12px; color: #9A9C95">1 cup · P 1 · C 1 · F 2.5</span></span>
+      <span class="mono" style="font-size: 15px">30</span>
+    </a>
+    <a href="FoodDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 68px; border-bottom: 1px solid #2A2B28">
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 500">Gusta original veggie ground</span><span class="mono" style="font-size: 12px; color: #9A9C95">85 g · P 15 · C 9 · F 0.5 · fiber 3</span></span>
+      <span class="mono" style="font-size: 15px">90</span>
+    </a>
+    <a href="FoodDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 68px; border-bottom: 1px solid #2A2B28">
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 500">Casa Mendosa protein tortilla</span><span class="mono" style="font-size: 12px; color: #9A9C95">57 g · P 12 · C 14 · F 5 · fiber 1</span></span>
+      <span class="mono" style="font-size: 15px">140</span>
+    </a>
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 14px; margin-top: 12px; border-radius: 14px; background: #1A1B19; border: 1px solid #2A2B28">
+      <div style="display: flex; align-items: flex-start; gap: 12px">
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 500">No Name romano beans</span><span class="mono" style="font-size: 12px; color: #9A9C95">1 can · P 30 · C 73 · F 0</span></span>
+        <span class="cap" style="color: #FFB547; padding-top: 3px">Check</span>
+      </div>
+      <p style="margin: 0; font-size: 14px; line-height: 1.45; color: #CFD1C9">The printed calories don't add up from the macros on the same label. Using <span class="mono">397</span>, worked out from the macros.</p>
+      <div style="display: flex; gap: 8px">
+        <button type="button" style="flex: 1; height: 44px; border-radius: 22px; border: 0; background: #EDEDE8; color: #111210; font-size: 14px; font-weight: 600">Use 397</button>
+        <button type="button" style="flex: 1; height: 44px; border-radius: 22px; border: 1px solid #EDEDE8; background: transparent; color: #EDEDE8; font-size: 14px; font-weight: 600">Use printed</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 4px">
+    <a href="Main.dc.html" style="height: 56px; border-radius: 28px; background: #EDEDE8; color: #111210; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600">Add 5 foods</a>
+    <a href="PantryScan.dc.html" style="height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: #B4B6AE">Scan more labels</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

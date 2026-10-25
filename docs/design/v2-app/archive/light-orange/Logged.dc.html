@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Logged</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#121311;text-decoration:none}a:hover{color:#C43D0A}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cmd::placeholder{color:#A3A69E}
+.hatch{background:repeating-linear-gradient(135deg,#121311 0 1.5px,transparent 1.5px 5px)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.rise{animation:rise .28s cubic-bezier(.2,.8,.2,1)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #FF5B1F;outline-offset:2px}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column; background: #F2F2EE; color: #121311; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <nav aria-label="Sections" style="height: 56px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 10px 0 20px">
+    <a href="Main.dc.html" aria-current="page" style="font-size: 17px; font-weight: 600; color: #121311; padding: 12px 0">Today</a>
+    <a href="Foods.dc.html" style="font-size: 17px; font-weight: 500; color: #686B64; padding: 12px 0">Foods</a>
+    <a href="History.dc.html" style="font-size: 17px; font-weight: 500; color: #686B64; padding: 12px 0">History</a>
+    <span style="flex: 1"></span>
+    <a href="Settings.dc.html" aria-label="Settings" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+      <span style="width: 32px; height: 32px; border-radius: 16px; background: #121311; color: #F2F2EE; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">R</span>
+    </a>
+  </nav>
+
+  <main style="flex: 1; min-height: 0; padding: 8px 20px 100px; display: flex; flex-direction: column; gap: 22px">
+    <section aria-label="Calories" style="display: flex; flex-direction: column; gap: 16px">
+      <div class="cap" style="display: flex; justify-content: space-between; color: #686B64"><span>Sat 24 Oct · Day 42</span><span>Bank 13.5</span></div>
+      <div style="display: flex; align-items: flex-end; justify-content: space-between">
+        <span style="font-size: 100px; font-weight: 500; letter-spacing: -0.055em; line-height: 0.86; font-variant-numeric: tabular-nums">218</span>
+        <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; padding-bottom: 4px">
+          <span style="font-size: 16px; font-weight: 500">kcal left</span>
+          <span class="mono" style="font-size: 13px; color: #686B64">1,482 of 1,700</span>
+        </span>
+      </div>
+      <div role="img" aria-label="1,482 eaten, 240 planned, of 1,700" style="display: flex; flex-direction: column; gap: 6px">
+        <div style="display: flex; gap: 2px; height: 12px">
+          <span style="width: 56px; background: #121311; border-radius: 2px 0 0 2px"></span>
+          <span style="width: 136px; background: #121311"></span>
+          <span style="width: 110px; background: #121311"></span>
+          <span class="hatch" style="flex: 1; box-shadow: inset 0 0 0 1px #121311; border-radius: 0 2px 2px 0"></span>
+        </div>
+        <div style="height: 5px; background: repeating-linear-gradient(90deg, #A9ABA4 0 1px, transparent 1px 20.588px)"></div>
+      </div>
+    </section>
+
+    <section aria-label="Macros" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px">
+      <div style="display: flex; flex-direction: column; gap: 7px">
+        <span class="cap" style="color: #686B64">Protein</span>
+        <span style="font-size: 26px; font-weight: 500; letter-spacing: -0.03em">33<span style="font-size: 14px; letter-spacing: 0; color: #575A54"> g left</span></span>
+        <span style="height: 4px; border-radius: 2px; background: #E1E2DC; overflow: hidden; display: flex"><span style="width: 80%; background: #FF5B1F"></span></span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px">
+        <span class="cap" style="color: #686B64">Net carbs</span>
+        <span style="font-size: 26px; font-weight: 500; letter-spacing: -0.03em">5<span style="font-size: 14px; letter-spacing: 0; color: #575A54"> g left</span></span>
+        <span style="height: 4px; border-radius: 2px; background: #E1E2DC; overflow: hidden; display: flex"><span style="width: 97%; background: #121311"></span></span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px">
+        <span class="cap" style="color: #686B64">Fat</span>
+        <span style="font-size: 26px; font-weight: 500; letter-spacing: -0.03em">9<span style="font-size: 14px; letter-spacing: 0; color: #575A54"> g left</span></span>
+        <span style="height: 4px; border-radius: 2px; background: #E1E2DC; overflow: hidden; display: flex"><span style="width: 80%; background: #7F827A"></span></span>
+      </div>
+    </section>
+
+    <section aria-label="Today's log" style="display: flex; flex-direction: column">
+      <div class="cap" style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #DEDFD9; color: #686B64"><span>Dinner</span><span>541</span></div>
+      <a href="EntryDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 60px; border-bottom: 1px solid #DEDFD9">
+        <span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 3px; background: #FF5B1F"></span>
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 500">Potato bowl</span><span class="cap" style="color: #C43D0A">Just now</span></span>
+        <span class="mono" style="font-size: 15px">541</span>
+      </a>
+    </section>
+  </main>
+
+  <section class="rise" role="status" aria-label="Logged potato bowl" style="position: absolute; left: 12px; right: 12px; bottom: 92px; padding: 18px; border-radius: 22px; background: #121311; color: #F2F2EE; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 16px 40px rgba(18,19,17,.3)">
+    <div style="display: flex; justify-content: space-between"><span class="cap" style="color: #A3A69E">Logged · Dinner</span><span class="cap" style="color: #FF8A5C">Replaced the plan</span></div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 22px; font-weight: 600; letter-spacing: -0.02em">Potato bowl</span><span class="mono" style="font-size: 22px">541</span></div>
+    <div class="mono" style="display: flex; flex-direction: column; gap: 7px; font-size: 13px">
+      <span style="display: flex; gap: 8px"><span style="flex: 1; color: #C9CBC4">Russet potato</span><span style="color: #A3A69E">350 g</span><span style="width: 36px; text-align: right">277</span></span>
+      <span style="display: flex; gap: 8px"><span style="flex: 1; color: #C9CBC4">Cauliflower</span><span style="color: #A3A69E">100 g</span><span style="width: 36px; text-align: right">25</span></span>
+      <span style="display: flex; gap: 8px"><span style="flex: 1; color: #C9CBC4">Gusta veggie ground</span><span style="color: #A3A69E">2 serv</span><span style="width: 36px; text-align: right">180</span></span>
+      <span style="display: flex; gap: 8px"><span style="flex: 1; color: #C9CBC4">Mushroom gravy</span><span style="color: #A3A69E">½ can</span><span style="width: 36px; text-align: right">59</span></span>
+    </div>
+    <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px solid #2E302B; padding-top: 12px"><span style="color: #A3A69E">P 40 · C 81 · F 4</span><span>218 left</span></div>
+    <p style="margin: 0; font-size: 14px; line-height: 1.45; color: #C9CBC4">The evening bowl would put you <span class="mono">22</span> over. The bank has <span class="mono">13.5</span> if you want it.</p>
+    <div style="display: flex; gap: 8px">
+      <a href="TodayPlanned.dc.html" style="flex: 1; height: 44px; border-radius: 22px; border: 1px solid #3A3C37; color: #F2F2EE; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">Undo</a>
+      <a href="LoggedEdit.dc.html" style="flex: 1; height: 44px; border-radius: 22px; background: #2A2C28; color: #F2F2EE; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">Edit</a>
+    </div>
+  </section>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 12px 16px">
+    <form style="height: 60px; border-radius: 30px; background: #121311; display: flex; align-items: center; gap: 4px; padding: 0 6px; box-shadow: 0 10px 28px rgba(18,19,17,.22)">
+      <a href="LabelScan.dc.html" aria-label="Photograph a label or a meal" style="flex: none; width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; color: #F2F2EE">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h3.2l1.8-2.5h7l1.8 2.5h3.2v10h-17z"></path><circle cx="12" cy="13.2" r="3.4"></circle></svg>
+      </a>
+      <label for="cmd-logged" class="sr">Log or ask</label>
+      <input id="cmd-logged" class="cmd" placeholder="Log or ask anything" autocomplete="off" style="flex: 1; min-width: 0; height: 48px; border: 0; background: transparent; color: #F2F2EE; font: inherit; font-size: 16px">
+      <a href="Listening.dc.html" aria-label="Talk to log or ask" style="flex: none; width: 48px; height: 48px; border-radius: 24px; background: #FF5B1F; color: #121311; display: flex; align-items: center; justify-content: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg>
+      </a>
+    </form>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

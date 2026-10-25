@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>History</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EDEDE8;text-decoration:none}a:hover{color:#FFB547}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+a:focus-visible,button:focus-visible{outline:2px solid #FFB547;outline-offset:2px}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column; background: #111210; color: #EDEDE8; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <nav aria-label="Sections" style="height: 56px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 10px 0 20px">
+    <a href="Main.dc.html" style="font-size: 17px; font-weight: 500; color: #9A9C95; padding: 12px 0">Today</a>
+    <a href="Foods.dc.html" style="font-size: 17px; font-weight: 500; color: #9A9C95; padding: 12px 0">Foods</a>
+    <a href="History.dc.html" aria-current="page" style="font-size: 17px; font-weight: 600; color: #EDEDE8; padding: 12px 0">History</a>
+    <span style="flex: 1"></span>
+    <a href="Settings.dc.html" aria-label="Settings" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+      <span style="width: 32px; height: 32px; border-radius: 16px; background: #EDEDE8; color: #111210; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">R</span>
+    </a>
+  </nav>
+
+  <main style="flex: 1; min-height: 0; padding: 4px 20px 20px; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <div role="radiogroup" aria-label="Range" style="display: flex; gap: 4px; padding: 4px; border-radius: 22px; background: #232421">
+        <button type="button" role="radio" aria-checked="true" style="height: 36px; padding: 0 16px; border-radius: 18px; border: 0; background: #3A3B37; color: #EDEDE8; font-size: 14px; font-weight: 600">Week</button>
+        <button type="button" role="radio" aria-checked="false" style="height: 36px; padding: 0 16px; border-radius: 18px; border: 0; background: transparent; color: #B4B6AE; font-size: 14px; font-weight: 500">Month</button>
+      </div>
+      <span class="cap" style="color: #9A9C95">18 to 24 Oct</span>
+    </div>
+
+    <section aria-label="Difference from target by day" style="display: flex; flex-direction: column; gap: 8px">
+      <div class="cap" style="display: flex; justify-content: space-between; color: #9A9C95"><span>Over or under 1,700</span><span>kcal</span></div>
+      <div style="position: relative; height: 170px">
+        <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 84px; height: 1px; background: #EDEDE8"></span>
+        <div style="position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px">
+          <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+            <div role="img" aria-label="{{d.label}}" style="position: relative">
+              <span class="mono" style="position: absolute; left: 0; right: 0; text-align: center; font-size: 11px; color: #B4B6AE; top: {{d.numTop}}px">{{d.num}}</span>
+              <span style="position: absolute; left: 6px; right: 6px; top: {{d.top}}px; height: {{d.h}}px; background: {{d.fill}}; box-shadow: {{d.ring}}; border-radius: 2px"></span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div class="cap" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; text-align: center; color: #9A9C95">
+        <span>Sat</span><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span style="color: #EDEDE8">Today</span>
+      </div>
+    </section>
+
+    <section aria-label="Averages" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 1px solid #2A2B28">
+      <div style="padding: 14px 0; border-bottom: 1px solid #2A2B28; display: flex; flex-direction: column; gap: 4px"><span class="cap" style="color: #9A9C95">Avg kcal</span><span style="font-size: 26px; font-weight: 500; letter-spacing: -0.03em">1,711</span><span class="mono" style="font-size: 12px; color: #9A9C95">6 full days</span></div>
+      <div style="padding: 14px 0 14px 16px; border-bottom: 1px solid #2A2B28; border-left: 1px solid #2A2B28; display: flex; flex-direction: column; gap: 4px"><span class="cap" style="color: #FFB547">Avg protein</span><span style="font-size: 26px; font-weight: 500; letter-spacing: -0.03em">166 g</span><span class="mono" style="font-size: 12px; color: #9A9C95">target 165</span></div>
+      <div style="padding: 14px 0; border-bottom: 1px solid #2A2B28; display: flex; flex-direction: column; gap: 4px"><span class="cap" style="color: #9A9C95">Avg fat</span><span style="font-size: 26px; font-weight: 500; letter-spacing: -0.03em">41 g</span><span class="mono" style="font-size: 12px; color: #9A9C95">target 45</span></div>
+      <div style="padding: 14px 0 14px 16px; border-bottom: 1px solid #2A2B28; border-left: 1px solid #2A2B28; display: flex; flex-direction: column; gap: 4px"><span class="cap" style="color: #9A9C95">Days logged</span><span style="font-size: 26px; font-weight: 500; letter-spacing: -0.03em">42</span><span class="mono" style="font-size: 12px; color: #9A9C95">since 13 Sep</span></div>
+    </section>
+
+    <section aria-label="Calorie bank" style="display: flex; flex-direction: column">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 8px; border-bottom: 1px solid #2A2B28"><span class="cap" style="color: #9A9C95">Bank</span><span class="mono" style="font-size: 15px">13.5 kcal</span></div>
+      <div class="mono" style="display: flex; flex-direction: column; font-size: 13px">
+        <span style="display: flex; justify-content: space-between; height: 38px; align-items: center; border-bottom: 1px solid #2A2B28"><span style="color: #B4B6AE">Thu 23 Oct · spent</span><span>−40.5</span></span>
+        <span style="display: flex; justify-content: space-between; height: 38px; align-items: center; border-bottom: 1px solid #2A2B28"><span style="color: #B4B6AE">Wed 22 Oct · spent</span><span>−56</span></span>
+        <span style="display: flex; justify-content: space-between; height: 38px; align-items: center; border-bottom: 1px solid #2A2B28"><span style="color: #B4B6AE">Tue 21 Oct · saved</span><span>+39</span></span>
+        <span style="display: flex; justify-content: space-between; height: 38px; align-items: center; border-bottom: 1px solid #2A2B28"><span style="color: #B4B6AE">Mon 20 Oct · saved</span><span>+1</span></span>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+// Week of 18 to 24 Oct from the food log, as kcal over (+) or under (-) the 1,700 target.
+const WEEK = [
+  { day: 'Sat 18', diff: 24 },
+  { day: 'Sun 19', diff: -17 },
+  { day: 'Mon 20', diff: -2 },
+  { day: 'Tue 21', diff: -39 },
+  { day: 'Wed 22', diff: 56 },
+  { day: 'Thu 23', diff: 41 },
+  { day: 'Today', diff: null },
+];
+const MID = 84;
+const SCALE = 70 / 60;
+
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      days: WEEK.map((d) => {
+        if (d.diff === null) {
+          return { label: 'Today, still logging', num: 'open', numTop: MID + 10, top: MID - 1, h: 3, fill: 'transparent', ring: 'inset 0 0 0 1px #5A5C56' };
+        }
+        const h = Math.max(3, Math.round(Math.abs(d.diff) * SCALE));
+        const over = d.diff > 0;
+        return {
+          label: d.day + ', ' + Math.abs(d.diff) + (over ? ' over' : ' under'),
+          num: (over ? '+' : '−') + Math.abs(d.diff),
+          numTop: over ? MID - h - 18 : MID + h + 4,
+          top: over ? MID - h : MID + 1,
+          h,
+          fill: over ? '#EDEDE8' : 'transparent',
+          ring: over ? 'none' : 'inset 0 0 0 1.5px #EDEDE8',
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

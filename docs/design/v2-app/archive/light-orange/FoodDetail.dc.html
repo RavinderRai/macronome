@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Food detail</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#121311;text-decoration:none}a:hover{color:#C43D0A}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+a:focus-visible,button:focus-visible{outline:2px solid #FF5B1F;outline-offset:2px}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 0 20px 20px; display: flex; flex-direction: column; background: #F2F2EE; color: #121311; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <div style="height: 56px; flex: none; display: flex; align-items: center; justify-content: space-between; margin: 0 -10px">
+    <a href="Foods.dc.html" aria-label="Back to foods" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <span class="cap" style="color: #686B64; padding-right: 10px">Logged 34 times</span>
+  </div>
+
+  <h1 style="margin: 4px 0 16px; font-size: 30px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.08">Farm Girl rainbow hoops</h1>
+
+  <div role="radiogroup" aria-label="Serving" style="display: flex; gap: 8px">
+    <button type="button" role="radio" aria-checked="true" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 0; background: #121311; color: #F2F2EE; font-size: 14px; font-weight: 600">1 cup · 40 g</button>
+    <button type="button" role="radio" aria-checked="false" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #D3D4CE; background: transparent; color: #121311; font-size: 14px; font-weight: 500">¾ cup</button>
+    <button type="button" role="radio" aria-checked="false" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #D3D4CE; background: transparent; color: #121311; font-size: 14px; font-weight: 500">100 g</button>
+  </div>
+
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; padding: 22px 0 14px; border-bottom: 1px solid #121311">
+    <span style="font-size: 64px; font-weight: 500; letter-spacing: -0.05em; line-height: 0.86">144</span>
+    <span class="mono" style="font-size: 13px; color: #575A54; padding-bottom: 4px">kcal per cup</span>
+  </div>
+
+  <div class="mono" style="display: flex; flex-direction: column; font-size: 14px">
+    <span style="display: flex; justify-content: space-between; height: 44px; align-items: center; border-bottom: 1px solid #DEDFD9"><span style="color: #C43D0A">Protein</span><span>12 g</span></span>
+    <span style="display: flex; justify-content: space-between; height: 44px; align-items: center; border-bottom: 1px solid #DEDFD9"><span>Carbs</span><span>25 g</span></span>
+    <span style="display: flex; justify-content: space-between; height: 44px; align-items: center; border-bottom: 1px solid #DEDFD9; padding-left: 14px; color: #575A54"><span>Fiber</span><span>7 g</span></span>
+    <span style="display: flex; justify-content: space-between; height: 44px; align-items: center; border-bottom: 1px solid #DEDFD9; padding-left: 14px; color: #575A54"><span>Net carbs</span><span>18 g</span></span>
+    <span style="display: flex; justify-content: space-between; height: 44px; align-items: center; border-bottom: 1px solid #DEDFD9"><span>Fat</span><span>1 g</span></span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 20px">
+    <span class="cap" style="color: #686B64">Part of</span>
+    <div style="display: flex; gap: 8px">
+      <a href="MealDetail.dc.html" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #D3D4CE; background: #FBFBF9; display: flex; align-items: center; font-size: 14px; font-weight: 500">Evening bowl</a>
+      <a href="MealDetail.dc.html" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #D3D4CE; background: #FBFBF9; display: flex; align-items: center; font-size: 14px; font-weight: 500">Snack bowl</a>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 18px">
+    <span class="cap" style="color: #686B64">Also answers to</span>
+    <div style="display: flex; gap: 6px; flex-wrap: wrap">
+      <span class="mono" style="height: 30px; padding: 0 12px; border-radius: 15px; background: #E9EAE4; display: flex; align-items: center; font-size: 13px">hoops</span>
+      <span class="mono" style="height: 30px; padding: 0 12px; border-radius: 15px; background: #E9EAE4; display: flex; align-items: center; font-size: 13px">rainbow hoops</span>
+      <span class="mono" style="height: 30px; padding: 0 12px; border-radius: 15px; background: #E9EAE4; display: flex; align-items: center; font-size: 13px">farm girl hoops</span>
+      <span class="mono" style="height: 30px; padding: 0 12px; border-radius: 15px; background: #E9EAE4; display: flex; align-items: center; font-size: 13px">froot loops</span>
+    </div>
+  </div>
+
+  <div style="margin-top: auto; display: flex; gap: 8px">
+    <a href="NewFood.dc.html" style="flex: 1; height: 52px; border-radius: 26px; border: 1px solid #121311; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600">Edit numbers</a>
+    <a href="Logged.dc.html" style="flex: 1.3; height: 52px; border-radius: 26px; background: #121311; color: #F2F2EE; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600">Log 1 cup</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

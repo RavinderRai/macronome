@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Chat: planning dinner</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#121311;text-decoration:none}a:hover{color:#C43D0A}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cmd::placeholder{color:#7F827A}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #FF5B1F;outline-offset:2px}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #F2F2EE; color: #121311; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <div aria-hidden="true" style="padding: 16px 20px; display: flex; align-items: flex-end; justify-content: space-between">
+    <span style="font-size: 17px; font-weight: 600">Today</span>
+    <span class="mono" style="font-size: 13px; color: #686B64">759 left</span>
+  </div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(18,19,17,.32)"></div>
+
+  <section aria-label="Chat" style="position: absolute; left: 0; right: 0; top: 60px; bottom: 0; background: #FBFBF9; border-radius: 22px 22px 0 0; display: flex; flex-direction: column; box-shadow: 0 -8px 30px rgba(18,19,17,.18)">
+    <span aria-hidden="true" style="align-self: center; width: 36px; height: 4px; border-radius: 2px; background: #CFD0CA; margin-top: 8px"></span>
+    <div style="height: 52px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 20px">
+      <h1 style="flex: 1; margin: 0; font-size: 17px; font-weight: 600">Chat</h1>
+      <span class="mono" style="font-size: 13px; color: #686B64">759 left</span>
+      <a href="Main.dc.html" aria-label="Close chat" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+    </div>
+
+    <div style="flex: 1; min-height: 0; padding: 4px 20px 16px; display: flex; flex-direction: column; gap: 14px">
+      <p style="align-self: flex-end; margin: 0; max-width: 78%; padding: 10px 14px; border-radius: 18px 18px 4px 18px; background: #E9EAE4; font-size: 15px; line-height: 1.4">What can I have for dinner?</p>
+
+      <p style="margin: 0; font-size: 15px; line-height: 1.5">You have <span class="mono">759</span> left. Keeping <span class="mono">240</span> for the evening bowl leaves <span class="mono">519</span> for dinner. Both of these fit:</p>
+
+      <div role="radiogroup" aria-label="Dinner options" style="display: flex; flex-direction: column; gap: 8px">
+        <button type="button" role="radio" aria-checked="true" style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; border-radius: 14px; border: 1.5px solid #121311; background: #FBFBF9; color: #121311; text-align: left">
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 5px">
+            <span style="font-size: 15px; font-weight: 600">Potato bowl, 300 g potato</span>
+            <span class="mono" style="font-size: 13px">496 kcal · <span style="color: #C43D0A">39 g P</span></span>
+            <span class="cap" style="color: #686B64">About 20 min · air fryer</span>
+          </span>
+          <span aria-hidden="true" style="width: 22px; height: 22px; border-radius: 11px; background: #121311; color: #F2F2EE; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg></span>
+        </button>
+        <button type="button" role="radio" aria-checked="false" style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; border-radius: 14px; border: 1px solid #DEDFD9; background: #FBFBF9; color: #121311; text-align: left">
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 5px">
+            <span style="font-size: 15px; font-weight: 600">Chipotle sausage on 2 slices of Little Big Bread</span>
+            <span class="mono" style="font-size: 13px">336 kcal · <span style="color: #C43D0A">34 g P</span></span>
+            <span class="cap" style="color: #686B64">About 6 min · pan</span>
+          </span>
+          <span aria-hidden="true" style="width: 22px; height: 22px; box-sizing: border-box; border-radius: 11px; border: 1.5px solid #A9ABA4"></span>
+        </button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 14px; background: #F2F2EE">
+        <span class="cap" style="color: #686B64">Rest of today</span>
+        <div class="mono" style="display: flex; flex-direction: column; gap: 6px; font-size: 13px">
+          <span style="display: flex; gap: 8px"><span style="width: 64px; color: #686B64">Dinner</span><span style="flex: 1">Potato bowl</span><span>496</span></span>
+          <span style="display: flex; gap: 8px"><span style="width: 64px; color: #686B64">Evening</span><span style="flex: 1">Evening bowl</span><span>240</span></span>
+        </div>
+        <span style="height: 1px; background: #DEDFD9"></span>
+        <span style="font-size: 14px; line-height: 1.45">Lands at <span class="mono">1,677</span>, <span class="mono">23</span> under. Protein ends at <span class="mono">161</span> of <span class="mono">165</span>.</span>
+        <div style="display: flex; gap: 8px">
+          <a href="TodayPlanned.dc.html" style="flex: 1; height: 44px; border-radius: 22px; background: #121311; color: #F2F2EE; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">Add to today</a>
+          <a href="ChatSheet.dc.html" style="flex: 1; height: 44px; border-radius: 22px; border: 1px solid #121311; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">Change</a>
+        </div>
+      </div>
+    </div>
+
+    <form style="flex: none; margin: 0 12px 16px; height: 56px; border-radius: 28px; border: 1px solid #D3D4CE; background: #FBFBF9; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 18px">
+      <label for="cmd-chat" class="sr">Reply or log</label>
+      <input id="cmd-chat" class="cmd" placeholder="Reply, or say what you ate" autocomplete="off" style="flex: 1; min-width: 0; height: 48px; border: 0; background: transparent; color: #121311; font: inherit; font-size: 16px">
+      <a href="Listening.dc.html" aria-label="Talk" style="flex: none; width: 46px; height: 46px; border-radius: 23px; background: #FF5B1F; color: #121311; display: flex; align-items: center; justify-content: center">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg>
+      </a>
+    </form>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

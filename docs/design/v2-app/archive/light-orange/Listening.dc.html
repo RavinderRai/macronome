@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Listening</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#F2F2EE;text-decoration:none}a:hover{color:#FF8A5C}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.hatch{background:repeating-linear-gradient(135deg,#121311 0 1.5px,transparent 1.5px 5px)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.caret{animation:blink 1s steps(1) infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.5}}
+.pulse{animation:pulse 1.2s ease-in-out infinite}
+a:focus-visible{outline:2px solid #FF5B1F;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #F2F2EE; color: #121311; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <div aria-hidden="true" style="padding: 0 20px; display: flex; flex-direction: column; gap: 16px; opacity: 0.35">
+    <div style="height: 56px; display: flex; align-items: center; gap: 20px; font-size: 17px"><span style="font-weight: 600">Today</span><span style="color: #686B64">Foods</span><span style="color: #686B64">History</span></div>
+    <div style="display: flex; align-items: flex-end; justify-content: space-between"><span style="font-size: 100px; font-weight: 500; letter-spacing: -0.055em; line-height: 0.86">759</span><span style="font-size: 16px; font-weight: 500; padding-bottom: 4px">kcal left</span></div>
+    <div style="display: flex; gap: 2px; height: 12px"><span style="width: 56px; background: #121311"></span><span style="width: 136px; background: #121311"></span><span class="hatch" style="width: 100px; box-shadow: inset 0 0 0 1px #121311"></span><span class="hatch" style="width: 48px; box-shadow: inset 0 0 0 1px #121311"></span><span style="flex: 1; background: #E1E2DC"></span></div>
+  </div>
+
+  <section aria-label="Listening" style="position: absolute; left: 12px; right: 12px; bottom: 16px; height: 596px; box-sizing: border-box; padding: 20px; border-radius: 28px; background: #121311; color: #F2F2EE; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 16px 40px rgba(18,19,17,.35)">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span class="pulse" aria-hidden="true" style="width: 8px; height: 8px; border-radius: 4px; background: #FF5B1F"></span>
+      <span class="cap" style="flex: 1; color: #F2F2EE">Listening</span>
+      <span class="mono" style="font-size: 12px; color: #A3A69E">0:06</span>
+    </div>
+
+    <p aria-live="polite" style="margin: 0; font-size: 25px; line-height: 1.28; font-weight: 500; letter-spacing: -0.015em">Had the potato bowl, 350 of potato and a hundred cauli<span class="caret" aria-hidden="true" style="display: inline-block; width: 2px; height: 26px; margin-left: 3px; vertical-align: -4px; background: #FF5B1F"></span></p>
+
+    <div aria-hidden="true" style="display: flex; align-items: center; gap: 3px; height: 44px">
+      <sc-for list="{{bars}}" as="b" hint-placeholder-count="30">
+        <span style="flex: 1; height: {{b.h}}px; border-radius: 2px; background: {{b.c}}"></span>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #2E302B; padding-top: 16px">
+      <div style="display: flex; justify-content: space-between"><span class="cap" style="color: #A3A69E">Understood so far</span><span class="cap" style="color: #FF8A5C">Matches tonight's plan</span></div>
+      <div class="mono" style="display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+        <span style="display: flex; gap: 8px"><span style="flex: 1">Russet potato</span><span>350 g</span><span style="width: 74px; text-align: right; color: #FF8A5C">was 300</span></span>
+        <span style="display: flex; gap: 8px"><span style="flex: 1">Cauliflower</span><span>100 g</span><span style="width: 74px; text-align: right; color: #FF8A5C">was 80</span></span>
+        <span style="display: flex; gap: 8px; color: #A3A69E"><span style="flex: 1">Gusta veggie ground</span><span>2 serv</span><span style="width: 74px"></span></span>
+        <span style="display: flex; gap: 8px; color: #A3A69E"><span style="flex: 1">Mushroom gravy</span><span>½ can</span><span style="width: 74px"></span></span>
+      </div>
+    </div>
+
+    <div style="margin-top: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center">
+      <a href="TodayPlanned.dc.html" style="justify-self: start; height: 44px; padding: 0 6px; display: flex; align-items: center; font-size: 15px; font-weight: 500; color: #C9CBC4">Cancel</a>
+      <a href="Logged.dc.html" aria-label="Stop and log" style="justify-self: center; width: 68px; height: 68px; border-radius: 34px; background: #FF5B1F; color: #121311; display: flex; align-items: center; justify-content: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"></rect></svg>
+      </a>
+      <a href="TodayPlanned.dc.html" style="justify-self: end; height: 44px; padding: 0 6px; display: flex; align-items: center; font-size: 15px; font-weight: 500; color: #C9CBC4">Type</a>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+const HEIGHTS = [6, 10, 16, 24, 14, 28, 36, 20, 12, 26, 40, 30, 18, 10, 24, 34, 42, 28, 16, 22, 32, 18, 12, 8, 6, 4, 4, 4, 4, 4];
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      bars: HEIGHTS.map((h, i) => ({ h, c: i < 24 ? '#F2F2EE' : '#3A3C37' })),
+    };
+  }
+}
+</script>
+</body>
+</html>

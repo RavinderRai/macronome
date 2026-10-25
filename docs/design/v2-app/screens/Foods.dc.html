@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Foods</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EDEDE8;text-decoration:none}a:hover{color:#FFB547}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.field::placeholder{color:#9A9C95}
+.cmd::placeholder{color:#A3A69E}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #FFB547;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; display: flex; flex-direction: column; background: #111210; color: #EDEDE8; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <nav aria-label="Sections" style="height: 56px; flex: none; display: flex; align-items: center; gap: 20px; padding: 0 10px 0 20px">
+    <a href="Main.dc.html" style="font-size: 17px; font-weight: 500; color: #9A9C95; padding: 12px 0">Today</a>
+    <a href="Foods.dc.html" aria-current="page" style="font-size: 17px; font-weight: 600; color: #EDEDE8; padding: 12px 0">Foods</a>
+    <a href="History.dc.html" style="font-size: 17px; font-weight: 500; color: #9A9C95; padding: 12px 0">History</a>
+    <span style="flex: 1"></span>
+    <a href="Settings.dc.html" aria-label="Settings" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center">
+      <span style="width: 32px; height: 32px; border-radius: 16px; background: #EDEDE8; color: #111210; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center">R</span>
+    </a>
+  </nav>
+
+  <main style="flex: 1; min-height: 0; padding: 4px 20px 100px; display: flex; flex-direction: column; gap: 20px">
+    <div style="position: relative">
+      <label for="food-search" class="sr">Search foods and meals</label>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9A9C95" stroke-width="1.75" stroke-linecap="round" aria-hidden="true" style="position: absolute; left: 14px; top: 15px"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+      <input id="food-search" class="field" placeholder="Search 40 foods and 6 meals" style="width: 100%; height: 48px; box-sizing: border-box; border-radius: 24px; border: 1px solid #3A3B37; background: #1A1B19; padding: 0 16px 0 42px; font: inherit; font-size: 16px; color: #EDEDE8">
+    </div>
+
+    <section aria-label="Usual meals" style="display: flex; flex-direction: column">
+      <div class="cap" style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #2A2B28; color: #9A9C95"><span>Usual meals</span><span>kcal</span></div>
+      <a href="MealDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #2A2B28"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 500">Standard breakfast</span><span style="font-size: 13px; color: #9A9C95">Cinnamon crisps · protein · milk</span></span><span class="mono" style="font-size: 15px">272</span></a>
+      <a href="MealDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #2A2B28"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 500">Potato bowl</span><span style="font-size: 13px; color: #9A9C95">Potato · cauliflower · Gusta · gravy</span></span><span class="mono" style="font-size: 15px">536</span></a>
+      <a href="MealDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #2A2B28"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 500">Nachos</span><span style="font-size: 13px; color: #9A9C95">Lime chips · tortilla · Gusta · Violife</span></span><span class="mono" style="font-size: 15px">669</span></a>
+      <a href="MealDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #2A2B28"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 500">Evening bowl</span><span style="font-size: 13px; color: #9A9C95">Rainbow hoops · protein · milk</span></span><span class="mono" style="font-size: 15px">240</span></a>
+      <a href="MealDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #2A2B28"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 500">Snack bowl</span><span style="font-size: 13px; color: #9A9C95">Rainbow hoops · ½ scoop · milk</span></span><span class="mono" style="font-size: 15px">189</span></a>
+      <a href="MealDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #2A2B28"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 500">Pancakes</span><span style="font-size: 13px; color: #9A9C95">For days you're not very hungry</span></span><span class="mono" style="font-size: 15px">573</span></a>
+    </section>
+
+    <section aria-label="Most used foods" style="display: flex; flex-direction: column">
+      <div class="cap" style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid #2A2B28; color: #9A9C95"><span>Foods · most used</span><span>Times</span></div>
+      <a href="FoodDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #2A2B28"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 500">Silk almond milk, zero sugar</span><span class="mono" style="font-size: 12px; color: #9A9C95">1 cup · 30 kcal</span></span><span class="mono" style="font-size: 14px; color: #B4B6AE">96</span></a>
+      <a href="FoodDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #2A2B28"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 500">Beyond Yourself protein, cookie dough</span><span class="mono" style="font-size: 12px; color: #9A9C95">1 scoop · 102 kcal · 20 g P</span></span><span class="mono" style="font-size: 14px; color: #B4B6AE">81</span></a>
+      <a href="FoodDetail.dc.html" style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #2A2B28"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 16px; font-weight: 500">Farm Girl cinnamon crisps</span><span class="mono" style="font-size: 12px; color: #9A9C95">1 cup · 140 kcal · 13 g P</span></span><span class="mono" style="font-size: 14px; color: #B4B6AE">56</span></a>
+    </section>
+  </main>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 12px 16px; background: linear-gradient(rgba(17,18,16,0), #111210 30%)">
+    <form style="height: 60px; border-radius: 30px; background: #232421; display: flex; align-items: center; gap: 4px; padding: 0 6px; box-shadow: 0 10px 28px rgba(0,0,0,.5)">
+      <a href="LabelScan.dc.html" aria-label="Add a food from a label" style="flex: none; width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; color: #EDEDE8">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h3.2l1.8-2.5h7l1.8 2.5h3.2v10h-17z"></path><circle cx="12" cy="13.2" r="3.4"></circle></svg>
+      </a>
+      <label for="cmd-foods" class="sr">Add or describe a food</label>
+      <input id="cmd-foods" class="cmd" placeholder="Describe a meal to save it" autocomplete="off" style="flex: 1; min-width: 0; height: 48px; border: 0; background: transparent; color: #EDEDE8; font: inherit; font-size: 16px">
+      <a href="Listening.dc.html" aria-label="Talk" style="flex: none; width: 48px; height: 48px; border-radius: 24px; background: #FFB547; color: #111210; display: flex; align-items: center; justify-content: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg>
+      </a>
+    </form>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
