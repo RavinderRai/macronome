@@ -20,20 +20,33 @@ a:focus-visible{outline:2px solid #FFB547;outline-offset:2px}
 </helmet>
 <div style="width: 390px; height: 844px; box-sizing: border-box; padding: 64px 16px 28px; display: flex; flex-direction: column; gap: 16px; background: #2B2D29; color: #EDEDE8; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
 
-  <a href="Main.dc.html" aria-label="Macronome: 759 kcal left. Protein 73 g, net carbs 86 g, fat 13 g left" style="height: 176px; box-sizing: border-box; padding: 18px; border-radius: 26px; background: #111210; display: flex; flex-direction: column; gap: 14px">
-    <div style="flex: 1; display: flex; gap: 18px">
-      <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between">
-        <span class="cap" style="color: #9A9C95">Today</span>
-        <span style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 64px; font-weight: 500; letter-spacing: -0.055em; line-height: 0.86">759</span><span style="font-size: 14px; font-weight: 500">kcal left</span></span>
+  <div style="height: 176px; box-sizing: border-box; padding: 18px; border-radius: 26px; background: #111210; display: flex; align-items: center; gap: 18px">
+    <a href="Main.dc.html" aria-label="759 of 1,700 kcal left. Eaten so far: protein 357 kcal, carbs 305 kcal, fat 279 kcal" style="position: relative; flex: none; width: 140px; height: 140px">
+      <svg width="140" height="140" viewBox="0 0 140 140" aria-hidden="true">
+        <g transform="rotate(-90 70 70)" fill="none" stroke-width="14">
+          <circle cx="70" cy="70" r="60" stroke="#2C2D2A"></circle>
+          <circle cx="70" cy="70" r="60" stroke="#FFB547" stroke-dasharray="76.2 377" stroke-dashoffset="0"></circle>
+          <circle cx="70" cy="70" r="60" stroke="#EDEDE8" stroke-dasharray="64.6 377" stroke-dashoffset="-79.2"></circle>
+          <circle cx="70" cy="70" r="60" stroke="#7F827A" stroke-dasharray="58.9 377" stroke-dashoffset="-146.8"></circle>
+        </g>
+      </svg>
+      <span style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px">
+        <span style="font-size: 30px; font-weight: 500; letter-spacing: -0.05em; line-height: 1">759</span>
+        <span class="mono" style="font-size: 11px; color: #9A9C95">kcal left</span>
+      </span>
+    </a>
+    <div style="flex: 1; min-width: 0; align-self: stretch; display: flex; flex-direction: column; justify-content: space-between">
+      <div class="mono" style="display: flex; flex-direction: column; gap: 9px; font-size: 12px; padding-top: 4px">
+        <span style="display: flex; align-items: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 4px; background: #FFB547"></span><span style="flex: 1; color: #FFB547">Protein</span><span>357 kcal</span></span>
+        <span style="display: flex; align-items: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 4px; background: #EDEDE8"></span><span style="flex: 1; color: #B4B6AE">Carbs</span><span>305 kcal</span></span>
+        <span style="display: flex; align-items: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 4px; background: #7F827A"></span><span style="flex: 1; color: #B4B6AE">Fat</span><span>279 kcal</span></span>
       </div>
-      <div class="mono" style="width: 128px; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; font-size: 12px">
-        <span style="display: flex; flex-direction: column; gap: 4px"><span style="display: flex; justify-content: space-between"><span style="color: #FFB547">Protein</span><span>73 g</span></span><span style="height: 3px; border-radius: 2px; background: #2C2D2A; display: flex"><span style="width: 56%; background: #FFB547"></span></span></span>
-        <span style="display: flex; flex-direction: column; gap: 4px"><span style="display: flex; justify-content: space-between"><span style="color: #B4B6AE">Net carbs</span><span>86 g</span></span><span style="height: 3px; border-radius: 2px; background: #2C2D2A; display: flex"><span style="width: 45%; background: #EDEDE8"></span></span></span>
-        <span style="display: flex; flex-direction: column; gap: 4px"><span style="display: flex; justify-content: space-between"><span style="color: #B4B6AE">Fat</span><span>13 g</span></span><span style="height: 3px; border-radius: 2px; background: #2C2D2A; display: flex"><span style="width: 71%; background: #7F827A"></span></span></span>
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px">
+        <a href="LabelScan.dc.html" aria-label="Photograph a label" style="width: 48px; height: 48px; border-radius: 24px; background: #232421; color: #EDEDE8; display: flex; align-items: center; justify-content: center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5h3.2l1.8-2.5h7l1.8 2.5h3.2v10h-17z"></path><circle cx="12" cy="13.2" r="3.4"></circle></svg></a>
+        <a href="Listening.dc.html" aria-label="Talk to log" style="width: 56px; height: 56px; border-radius: 28px; background: #FFB547; color: #111210; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg></a>
       </div>
     </div>
-    <span aria-hidden="true" style="display: flex; gap: 2px; height: 8px"><span style="width: 16%; background: #EDEDE8; border-radius: 2px 0 0 2px"></span><span style="width: 39%; background: #EDEDE8"></span><span style="flex: 1; background: #2C2D2A; border-radius: 0 2px 2px 0"></span></span>
-  </a>
+  </div>
 
   <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
     <div style="height: 171px; box-sizing: border-box; padding: 16px; border-radius: 26px; background: #1A1B19; color: #EDEDE8; display: flex; flex-direction: column; justify-content: space-between">
