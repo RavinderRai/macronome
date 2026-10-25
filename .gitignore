@@ -218,3 +218,8 @@ data/
 
 # Node
 node_modules/
+
+# iOS
+ios/build/
+*.xcuserstate
+xcuserdata/

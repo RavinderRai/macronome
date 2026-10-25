@@ -1,0 +1,95 @@
+name: Macronome
+options:
+  bundleIdPrefix: com.macronome
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "2.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    APP_GROUP_ID: group.com.macronome.app
+targets:
+  Macronome:
+    type: application
+    platform: iOS
+    sources:
+      - path: Macronome
+      - path: Shared
+      # Ravi's food-log history, imported on first launch when present. Optional so a
+      # fresh clone without it still builds.
+      - path: ../food-log/events.jsonl
+        optional: true
+        buildPhase: resources
+      - path: ../food-log/meals.jsonl
+        optional: true
+        buildPhase: resources
+    entitlements:
+      path: Macronome/Macronome.entitlements
+      properties:
+        com.apple.security.application-groups: [$(APP_GROUP_ID)]
+    info:
+      path: Macronome/Info.plist
+      properties:
+        CFBundleDisplayName: Macronome
+        UILaunchScreen:
+          UIColorName: Graphite
+        UIUserInterfaceStyle: Dark
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSMicrophoneUsageDescription: Macronome listens while you hold the mic so you can log by talking.
+        NSSpeechRecognitionUsageDescription: Speech is turned into text on your phone to log what you ate.
+        NSCameraUsageDescription: The camera reads nutrition labels and estimates plates.
+        NSPhotoLibraryUsageDescription: Pick a photo of a label or a meal.
+        MacronomeAppGroup: $(APP_GROUP_ID)
+        CFBundleURLTypes:
+          - CFBundleURLName: com.macronome.app
+            CFBundleURLSchemes: [macronome]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.macronome.app
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: Amber
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    dependencies:
+      - target: MacronomeWidget
+  MacronomeWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: MacronomeWidget
+      - path: Shared
+    entitlements:
+      path: MacronomeWidget/MacronomeWidget.entitlements
+      properties:
+        com.apple.security.application-groups: [$(APP_GROUP_ID)]
+    info:
+      path: MacronomeWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Macronome
+        MacronomeAppGroup: $(APP_GROUP_ID)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.macronome.app.widget
+  MacronomeTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: MacronomeTests
+      - path: Shared
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Macronome:
+    build:
+      targets:
+        Macronome: all
+        MacronomeTests: [test]
+    test:
+      targets: [MacronomeTests]
