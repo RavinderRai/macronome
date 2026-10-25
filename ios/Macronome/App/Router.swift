@@ -19,6 +19,7 @@ enum Route: Hashable {
     case aiSettings
     case newFood(FoodDraft)     // NewFood form, often prefilled from a label
     case pantryReview([FoodDraft])
+    case widgets                // preview of the home-screen widgets
 }
 
 /// Modal screens.
@@ -69,6 +70,8 @@ final class Router {
         case "chat": show(.today); sheet = .chat(prompt: nil)
         case "foods": show(.foods)
         case "history": show(.history)
+        case "settings": show(.today); push(.settings)
+        case "widgets": show(.today); push(.widgets)
         default: show(.today)
         }
     }

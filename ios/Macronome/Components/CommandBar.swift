@@ -30,10 +30,11 @@ struct CommandBar: View {
                                 HStack(spacing: 8) {
                                     if chip.isChat { Image(systemName: "bubble.left").font(.system(size: 13)) }
                                     Text(chip.title)
-                                    if let k = chip.kcal { Text(Format.int(k)).font(Typo.mono(13)).foregroundStyle(Theme.text3) }
+                                    if let k = chip.kcal { Text(Format.int(k)).font(Typo.mono(13)).foregroundStyle(chip.isChat ? Theme.graphite : Theme.text3) }
                                 }
                             }
-                            .buttonStyle(.chip)
+                            .buttonStyle(chip.isChat ? ChipButtonStyle(background: Theme.text, foreground: Theme.graphite)
+                                                     : ChipButtonStyle(background: Theme.surface, border: Color(hex: 0x3A3B37)))
                         }
                     }
                     .padding(.horizontal, 12)

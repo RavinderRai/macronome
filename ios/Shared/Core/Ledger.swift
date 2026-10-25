@@ -283,7 +283,8 @@ struct Ledger: Sendable {
 
     private func guessMealName(_ entries: [Entry]) -> String {
         let ids = Set(entries.compactMap(\.foodID))
-        let best = meals.values.max { a, b in
+        // Sorted first so ties (Snack bowl vs Evening bowl) resolve the same way every run.
+        let best = meals.values.sorted { $0.id < $1.id }.max { a, b in
             overlap(a, ids) < overlap(b, ids)
         }
         if let best, overlap(best, ids) >= max(2, best.components.count - 1) { return best.name }

@@ -27,13 +27,13 @@ final class FoodStore {
         reload()
     }
 
-    static var appGroupID: String? {
+    nonisolated static var appGroupID: String? {
         Bundle.main.object(forInfoDictionaryKey: "MacronomeAppGroup") as? String
     }
 
     /// `<App Group>/events.jsonl`, or Application Support when the group is not
     /// available (free signing on a device does not allow App Groups).
-    static var defaultURL: URL {
+    nonisolated static var defaultURL: URL {
         let fm = FileManager.default
         if let gid = appGroupID, let url = fm.containerURL(forSecurityApplicationGroupIdentifier: gid) {
             return url.appendingPathComponent("events.jsonl")
@@ -45,6 +45,11 @@ final class FoodStore {
 
     var today: String { Clock.dayString() }
     var isEmpty: Bool { ledger.events.isEmpty }
+
+    /// Read-only replay for the widget and intents, off the main actor.
+    nonisolated static func loadLedger(from url: URL = FoodStore.defaultURL) -> Ledger {
+        Ledger(events: EventCodec.decodeLines((try? Data(contentsOf: url)) ?? Data()))
+    }
 
     func reload() {
         let data = (try? Data(contentsOf: fileURL)) ?? Data()
@@ -70,7 +75,7 @@ final class FoodStore {
         let fm = FileManager.default
         try fm.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         if !fm.fileExists(atPath: fileURL.path) { fm.createFile(atPath: fileURL.path, contents: nil) }
-        let handle = try FileHandle(forWritingTo: fileURL)
+        let handle = try FileHandle(forUpdating: fileURL)
         defer { try? handle.close() }
         let end = try handle.seekToEnd()
         var text = events.map(EventCodec.encodeLine).joined(separator: "\n") + "\n"
@@ -132,15 +137,20 @@ final class FoodStore {
         Data((ledger.events.map(EventCodec.encodeLine).joined(separator: "\n") + "\n").utf8)
     }
 
-    /// Bundled history (food-log/events.jsonl and food-log/meals.jsonl) imported once
-    /// on first launch, when the build includes them.
+    /// Bundled history (food-log/events.jsonl and food-log/meals.jsonl), imported on
+    /// first launch when the build includes them. Safe to repeat: events are skipped by
+    /// id, and meals are only imported while there are none.
     func seedIfNeeded() {
-        guard isEmpty else { return }
-        for name in ["events", "meals"] {
-            if let url = Bundle.main.url(forResource: name, withExtension: "jsonl"), let data = try? Data(contentsOf: url) {
-                importEvents(from: data)
-            }
+        if isEmpty { importBundled("events") }
+        if ledger.meals.isEmpty && !ledger.events.contains(where: { $0.type == "meal_delete" }) {
+            importBundled("meals")
         }
+    }
+
+    private func importBundled(_ name: String) {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "jsonl"),
+              let data = try? Data(contentsOf: url) else { return }
+        importEvents(from: data)
     }
 
     func eraseEverything() {

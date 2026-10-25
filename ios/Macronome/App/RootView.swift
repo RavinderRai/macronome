@@ -57,6 +57,7 @@ struct RootView: View {
         case .aiSettings: AISettingsView()
         case .newFood(let draft): NewFoodView(draft: draft)
         case .pantryReview(let drafts): PantryReviewView(drafts: drafts)
+        case .widgets: WidgetGallery()
         }
     }
 }

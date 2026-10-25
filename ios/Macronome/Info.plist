@@ -33,8 +33,15 @@
 	<string>1</string>
 	<key>MacronomeAppGroup</key>
 	<string>$(APP_GROUP_ID)</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>The camera reads nutrition labels and estimates plates.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Macronome can use a model server running on your own network.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Macronome listens while you hold the mic so you can log by talking.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

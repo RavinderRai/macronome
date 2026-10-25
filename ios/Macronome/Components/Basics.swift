@@ -64,13 +64,16 @@ struct OutlineButtonStyle: ButtonStyle {
 /// Raised dark pill used on bars and chips.
 struct ChipButtonStyle: ButtonStyle {
     var background: Color = Theme.bar
+    var foreground: Color = Theme.text
+    var border: Color?
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 15, weight: .medium))
             .padding(.horizontal, 16)
             .frame(minHeight: 44)
             .background(Capsule().fill(background))
-            .foregroundStyle(Theme.text)
+            .overlay { if let border { Capsule().stroke(border, lineWidth: 1) } }
+            .foregroundStyle(foreground)
             .opacity(configuration.isPressed ? 0.75 : 1)
     }
 }

@@ -89,7 +89,7 @@ struct DayStrip: View {
                     let w = geo.size.width
                     ZStack(alignment: .leading) {
                         Text("0")
-                        ForEach([500.0, 1000, 1500, 2000, 2500].filter { $0 < target * 0.92 }, id: \.self) { mark in
+                        ForEach([500.0, 1000, 1500, 2000, 2500].filter { $0 < target * 0.8 }, id: \.self) { mark in
                             Text(Format.int(mark)).offset(x: w * mark / target - 10)
                         }
                         Text(Format.int(target)).frame(maxWidth: .infinity, alignment: .trailing)

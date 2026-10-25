@@ -45,6 +45,10 @@ targets:
         NSCameraUsageDescription: The camera reads nutrition labels and estimates plates.
         NSPhotoLibraryUsageDescription: Pick a photo of a label or a meal.
         MacronomeAppGroup: $(APP_GROUP_ID)
+        # Lets a model server on your own network (Ollama, LM Studio) be used over http.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        NSLocalNetworkUsageDescription: Macronome can use a model server running on your own network.
         CFBundleURLTypes:
           - CFBundleURLName: com.macronome.app
             CFBundleURLSchemes: [macronome]
@@ -82,6 +86,14 @@ targets:
     sources:
       - path: MacronomeTests
       - path: Shared
+      # The log parser is pure Swift over the ledger, so its tests build it directly.
+      - path: Macronome/Services/Logging/Parsing
+      # Foundation-only model layer (prompts, parsing, providers) and its contracts.
+      - path: Macronome/Services/AI/Core
+      - path: Macronome/Services/AIContracts.swift
+      # The label parser is pure Swift; compiled into the tests directly.
+      - path: Macronome/App/FoodDraft.swift
+      - path: Macronome/Services/Capture/NutritionLabelParser.swift
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
