@@ -10,6 +10,13 @@ widget for what's left today. It is being rebuilt from scratch on `main`.
 The v1 app (Expo + FastAPI, still on Google Play) lives on the `legacy/v1` branch and the
 `v1-legacy` tag. Don't bring v1 code back onto main; read it from that branch if needed.
 
+## iOS app
+
+`ios/` is the v2 app: SwiftUI plus widgets, generated with XcodeGen (`cd ios && xcodegen
+generate`). See `ios/README.md`. Its `Shared/Core/Ledger.swift` is a port of
+`food-log/fl.py` and must keep matching it; `ParityTests` checks every logged day. Open
+product decisions are in `docs/v2-decisions.md`.
+
 ## food-log
 
 `food-log/` is the tracker in daily use until v2 replaces it (SQLite + a stdlib CLI). If

@@ -7,6 +7,7 @@ This is v2, being rebuilt from scratch.
 
 ## What's here
 
+- `ios/`: the v2 iPhone app (SwiftUI, widgets, Siri). See `ios/README.md`.
 - `food-log/`: the current tracker, a stdlib Python CLI over an append-only event log,
   driven by chatting with Claude Code. v2 starts from what this taught (`food-log/friction.md`).
 - `docs/design/v2-app/`: screen designs for the v2 app.
