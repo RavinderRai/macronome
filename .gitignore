@@ -212,3 +212,9 @@ data/
 # Android build artifacts
 *.aab
 *.apk
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/
