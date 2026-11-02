@@ -21,8 +21,7 @@ struct DayView: View {
             ScreenHeader("", trailing: AnyView(Cap(day == store.today ? "Today" : "History").padding(.trailing, 10)))
             ScrollView {
                 VStack(alignment: .leading, spacing: 26) {
-                    CaloriesHeader(day: day, dayNumber: ledger.dayNumber(day), bank: nil,
-                                   left: target - eaten, eaten: eaten, target: max(target, 1),
+                    CaloriesHeader(day: day, dayNumber: ledger.dayNumber(day), left: target - eaten, eaten: eaten, target: max(target, 1),
                                    afterPlan: nil, segments: ledger.stripSegments(on: day, includePlans: false))
                     MacroColumns(rows: status)
 

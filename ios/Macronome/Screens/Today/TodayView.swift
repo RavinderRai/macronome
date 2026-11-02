@@ -77,7 +77,7 @@ struct TodayView: View {
         let planned = ledger.plannedMacros(on: day)
         if let kcal, let target = kcal.target {
             CaloriesHeader(
-                day: day, dayNumber: ledger.dayNumber(day), bank: ledger.bank, left: kcal.left ?? 0,
+                day: day, dayNumber: ledger.dayNumber(day), left: kcal.left ?? 0,
                 eaten: kcal.eaten, target: target,
                 afterPlan: plans.isEmpty ? nil : ledger.macroStatus(on: day, extra: planned).first?.left,
                 segments: ledger.stripSegments(on: day))

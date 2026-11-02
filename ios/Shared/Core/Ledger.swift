@@ -246,13 +246,6 @@ struct Ledger: Sendable {
         return days >= 0 ? days + 1 : nil
     }
 
-    /// The leading number of the calorie_bank profile note, e.g. "15 - built ...".
-    var bank: Double? {
-        guard let raw = profile["calorie_bank"] else { return nil }
-        let scanner = Scanner(string: raw)
-        return scanner.scanDouble()
-    }
-
     // MARK: groups
 
     static func slotOrder(_ s: MealSlot?) -> Int {

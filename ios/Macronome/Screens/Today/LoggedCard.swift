@@ -87,7 +87,6 @@ struct LoggedCard: View {
 
     /// What the next plan, or the usual meal still to come, would do to the day.
     private var hint: Text? {
-        let bank = ledger.bank ?? 0
         var name: String?
         var extra = Macros.zero
         if let plan = ledger.plans(on: day).first {
@@ -97,18 +96,14 @@ struct LoggedCard: View {
             name = meal.name
             extra = ledger.preview(meal)
         }
-        let leftNow = ledger.macroStatus(on: day).first?.left ?? 0
-        guard let name else {
-            guard leftNow < 0 else { return nil }
-            return bank > 0 ? Text("The bank has \(mono(Format.trim(bank))) if you want it.") : nil
-        }
+        // The card's own row already says when today is over.
+        guard let name else { return nil }
         guard let after = ledger.macroStatus(on: day, extra: extra).first?.left else { return nil }
         let subject = "The " + Self.sentenceCase(name)
         if after >= 0 {
             return Text("\(subject) would still leave \(mono(Format.int(after))).")
         }
-        let over = Text("\(subject) would put you \(mono(Format.int(-after))) over.")
-        return bank > 0 ? Text("\(over) The bank has \(mono(Format.trim(bank))) if you want it.") : over
+        return Text("\(subject) would put you \(mono(Format.int(-after))) over.")
     }
 
     private func mono(_ s: String) -> Text { Text(s).font(Typo.mono(14)) }

@@ -125,10 +125,8 @@ LinkedIn, decide whether to keep it as a real demo dataset or move it out of the
 
 Smaller calls. Each has a current behaviour, so none blocks using the app.
 
-6. **Calorie bank.** It's a hand-kept note in the profile ("15 - built 10-12 to 10-16…").
-   The app reads the number, and History shows each day as saved/spent. Should the app keep
-   the bank itself from a start date? And should "Use bank" on a log become a one-day
-   override that draws it down? (Now it only mentions the bank.)
+6. **Calorie bank.** Decided 2026-11-01: dropped. The app no longer shows or tracks it, and the
+   chat never mentions it. The old `calorie_bank` note stays in the log, unused.
 7. **"Yesterday" / "last night" in a log.** Should saying it backdate the entry? Now it
    logs to today.
 8. **"Potato" alone.** The parser reads it as the Potato bowl (your alias) and only logs

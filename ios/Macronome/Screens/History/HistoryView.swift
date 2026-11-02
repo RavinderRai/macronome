@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Week (or month) of kcal against target, averages, and the calorie bank.
+/// Week (or month) of kcal against target, and averages.
 struct HistoryView: View {
     @Environment(FoodStore.self) private var store
     @Environment(Router.self) private var router
@@ -50,7 +50,6 @@ struct HistoryView: View {
                     }
 
                     averages(stats, ledger: ledger)
-                    bank(window, ledger: ledger, today: today)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 4)
@@ -115,44 +114,6 @@ struct HistoryView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func bank(_ window: HistWindow, ledger: Ledger, today: String) -> some View {
-        let moves = ledger.histBankMoves(window.days, today: today)
-        return VStack(spacing: 0) {
-            HStack(alignment: .firstTextBaseline) {
-                Cap("Bank")
-                Spacer()
-                Text(ledger.bank.map { "\(Format.trim($0)) kcal" } ?? "Not set").font(Typo.mono(15))
-            }
-            .padding(.bottom, 8)
-            .overlay(alignment: .bottom) { Hairline() }
-            ForEach(moves, id: \.day) { move in
-                Button { router.push(.day(move.day)) } label: {
-                    HStack {
-                        Text("\(Format.dayHeader(move.day)) · \(move.change >= 0 ? "saved" : "spent")").foregroundStyle(Theme.text2)
-                        Spacer()
-                        Text(Self.signed(move.change))
-                    }
-                    .font(Typo.mono(13))
-                    .frame(minHeight: 44)
-                    .overlay(alignment: .bottom) { Hairline() }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-            if moves.isEmpty {
-                Text("No finished days logged in this range.")
-                    .font(.system(size: 13)).foregroundStyle(Theme.text3)
-                    .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 10)
-            }
-        }
-    }
-
-    /// "+39", "−40.5".
-    static func signed(_ x: Double) -> String {
-        let r = (x * 10).rounded() / 10
-        if r == 0 { return "0" }
-        return (r > 0 ? "+" : "−") + Format.trim(abs(r))
-    }
 }
 
 /// Bars above the line are kcal past the target (coral), outlined bars below are kcal

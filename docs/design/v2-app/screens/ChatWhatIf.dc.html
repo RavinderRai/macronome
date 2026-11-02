@@ -55,7 +55,7 @@ button{font:inherit;cursor:pointer}
           </div>
         </sc-for>
       </div>
-      <p style="margin: 0; font-size: 15px; line-height: 1.45">None fits with <span class="mono">48</span> spare. One slice is <span class="mono">2</span> over, which the bank covers.</p>
+      <p style="margin: 0; font-size: 15px; line-height: 1.45">None fits with <span class="mono">48</span> spare. One slice is <span class="mono">2</span> over.</p>
 
       <div style="align-self: flex-end; max-width: 82%; display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
         <p style="margin: 0; padding: 10px 14px; border-radius: 18px 18px 4px 18px; background: #232421; font-size: 15px; line-height: 1.4">Had it, one slice. Forgot to weigh the lettuce, use 165.</p>
@@ -71,18 +71,6 @@ button{font:inherit;cursor:pointer}
           <span style="display: flex; gap: 8px"><span style="flex: 1; color: #C9CBC4">Little Big Bread · 1 slice</span><span>50</span></span>
         </div>
         <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px solid #4A3518; padding-top: 8px"><span style="color: #A3A69E">Left</span><span>238 · <span style="color: #FFB547">16 P</span></span></div>
-        <sc-if value="{{banked}}" hint-placeholder-val="{{ true }}">
-          <div style="display: flex; align-items: center; gap: 8px">
-            <span style="flex: 1; font-size: 13px; line-height: 1.4; color: #C9CBC4">The bowl lands <span class="mono">2</span> over. Bank <span class="mono">6.3</span> covers it.</span>
-            <button type="button" onClick="{{toggle}}" style="flex: none; height: 36px; padding: 0 12px; border-radius: 18px; border: 1px solid #4A3518; background: transparent; color: #EDEDE8; font-size: 13px; font-weight: 600">Don't bank today</button>
-          </div>
-        </sc-if>
-        <sc-if value="{{unbanked}}" hint-placeholder-val="{{ false }}">
-          <div style="display: flex; align-items: center; gap: 8px">
-            <span style="flex: 1; font-size: 13px; line-height: 1.4; color: #C9CBC4">Today won't touch the bank. It stays at <span class="mono">6.3</span>.</span>
-            <button type="button" onClick="{{toggle}}" style="flex: none; height: 36px; padding: 0 12px; border-radius: 18px; border: 1px solid #4A3518; background: transparent; color: #EDEDE8; font-size: 13px; font-weight: 600">Use bank</button>
-          </div>
-        </sc-if>
       </div>
     </div>
 
@@ -99,10 +87,6 @@ button{font:inherit;cursor:pointer}
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
 const BUDGET = 496;
 class Component extends DCLogic {
-  constructor(props) {
-    super(props);
-    this.state = { bank: true };
-  }
   renderVals() {
     const slices = [0, 1, 2].map((n) => {
       const kcal = 448 + n * 50;
@@ -117,9 +101,6 @@ class Component extends DCLogic {
     });
     return {
       slices,
-      banked: this.state.bank,
-      unbanked: !this.state.bank,
-      toggle: () => this.setState({ bank: !this.state.bank }),
     };
   }
 }

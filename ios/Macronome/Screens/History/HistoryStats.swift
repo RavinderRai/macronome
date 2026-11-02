@@ -85,9 +85,4 @@ extension Ledger {
         return HistStats(fullDays: full, avgKcal: sums.kcal / n, avgProtein: sums.protein / n, avgFat: sums.fat / n)
     }
 
-    /// Finished days in a window as bank moves, newest first: under the target saves
-    /// the difference, over spends it.
-    func histBankMoves(_ days: [String], today: String) -> [(day: String, change: Double)] {
-        days.filter { $0 < today }.reversed().compactMap { d in histDiff(on: d).map { (d, -$0) } }
-    }
 }

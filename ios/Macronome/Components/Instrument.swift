@@ -1,10 +1,9 @@
 import SwiftUI
 
-/// The top of Today: date and bank caps, the big calories-left numeral, the day strip.
+/// The top of Today: the date cap, the big calories-left numeral, the day strip.
 struct CaloriesHeader: View {
     var day: String
     var dayNumber: Int?
-    var bank: Double?
     var left: Double
     var eaten: Double
     var target: Double
@@ -17,7 +16,6 @@ struct CaloriesHeader: View {
             HStack {
                 Cap(dayNumber.map { "\(Format.dayHeader(day)) · Day \($0)" } ?? Format.dayHeader(day))
                 Spacer()
-                if let bank { Cap("Bank \(Format.trim(bank))") }
             }
             HStack(alignment: .bottom) {
                 Text(Format.int(abs(left)))

@@ -1,7 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Targets, conventions, the bank, models, memory and the data on this phone.
+/// Targets, conventions, models, memory and the data on this phone.
 struct SettingsView: View {
     @Environment(FoodStore.self) private var store
     @Environment(Router.self) private var router
@@ -17,7 +17,7 @@ struct SettingsView: View {
     @State private var eraseStep = 0
 
     enum SettingsSheet: String, Identifiable {
-        case fiber, bank, today, diet, initial
+        case fiber, today, diet, initial
         var id: String { rawValue }
     }
 
@@ -51,9 +51,6 @@ struct SettingsView: View {
                         }
                         Button { sheet = .fiber } label: {
                             LibRow("Fiber calories", value: SetFiberSheet.title(ledger.fiberMode))
-                        }
-                        Button { sheet = .bank } label: {
-                            LibRow("Calorie bank", value: ledger.bank.map { "\(Format.trim($0)) kcal" } ?? "Not set")
                         }
                     }
 
@@ -121,7 +118,6 @@ struct SettingsView: View {
         .sheet(item: $sheet) { s in
             switch s {
             case .fiber: SetFiberSheet()
-            case .bank: SetBankSheet()
             case .today: SetTodaySheet()
             case .diet: SetProfileSheet(title: "Diet", key: "diet", prompt: "vegan, no peanuts…")
             case .initial: SetInitialSheet(initial: $initial)
@@ -266,44 +262,6 @@ struct SetFiberSheet: View {
         } message: {
             Text("Every logged day is re-scored under the new convention, so past totals and the history change too.")
         }
-    }
-}
-
-/// Edit the bank number, keeping the explanation that follows it in the note.
-struct SetBankSheet: View {
-    @Environment(FoodStore.self) private var store
-    @State private var value: Double?
-
-    var body: some View {
-        let raw = store.ledger.profile["calorie_bank"] ?? ""
-        LibSheet(title: "Calorie bank", canSave: value != nil, onSave: { save(raw) }) {
-            Text("Calories saved on days you finish under, to spend on a hungry day. It doesn't reset weekly.")
-                .font(.system(size: 14)).foregroundStyle(Theme.text2).padding(.bottom, 12)
-            NumberField(label: "In the bank", value: $value, unit: "kcal")
-            let tail = Self.tail(raw)
-            if !tail.isEmpty {
-                Text(tail).font(.system(size: 13)).foregroundStyle(Theme.text3).padding(.top, 12)
-            }
-        }
-        .presentationDetents([.medium, .large])
-        .onAppear { if value == nil { value = store.ledger.bank } }
-    }
-
-    /// Everything after the leading number, e.g. " - built 2026-10-12 to 10-16 …".
-    static func tail(_ raw: String) -> String {
-        let scanner = Scanner(string: raw)
-        scanner.charactersToBeSkipped = nil
-        _ = scanner.scanCharacters(from: .whitespaces)
-        guard scanner.scanDouble() != nil else { return raw }
-        return String(raw[scanner.currentIndex...])
-    }
-
-    private func save(_ raw: String) {
-        guard let value else { return }
-        let tail = Self.tail(raw)
-        let number = Format.trim(value).replacingOccurrences(of: ",", with: "")
-        let text = raw.isEmpty ? number : number + (tail == raw ? " - " + raw : tail)
-        store.append(Commands.setProfile("calorie_bank", text))
     }
 }
 

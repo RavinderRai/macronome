@@ -224,7 +224,6 @@ struct LoggedEditView: View {
                            carbs: total.carbs - group.macros.carbs, fat: total.fat - group.macros.fat,
                            fiber: total.fiber - group.macros.fiber)
         let left = ledger.macroStatus(on: day, extra: delta).first?.left
-        let bank = ledger.bank ?? 0
         return VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("P \(Format.int(total.protein)) · C \(Format.int(carbs)) · F \(Format.int(total.fat))").foregroundStyle(Theme.muted)
@@ -235,10 +234,6 @@ struct LoggedEditView: View {
                 }
             }
             .font(Typo.mono(13))
-            if let left, left < 0, bank > 0 {
-                Text("The bank has \(Text(Format.trim(bank)).font(Typo.mono(14))) if you want it.")
-                    .font(.system(size: 14)).foregroundStyle(Theme.amberText)
-            }
         }
         .padding(.top, 12)
         .overlay(alignment: .top) { Hairline(color: Theme.amberDivider) }

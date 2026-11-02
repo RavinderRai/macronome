@@ -71,12 +71,12 @@ signal orange accent) before the switch to dark and amber.
 | `PlatePhoto` | Restaurant plate estimate (logged as a one-off) |
 | `EntryDetail` | One logged entry with its micronutrients |
 | `Foods`, `FoodDetail`, `MealDetail` | Food library, a food, a usual meal |
-| `History` | Week view and the calorie bank |
+| `History` | Week view and averages |
 | `Settings`, `Memory` | Settings, and the notes it has learned about you |
 | `Widgets` | Android home-screen widgets |
 | `QuickClarify` | Fast log from Today: works out garbled voice and says what it assumed; the implausible-amount question |
 | `ChatLogAndAsk` | Log and plan in one message: dinner options with the evening bowl held back |
-| `ChatWhatIf` | A what-if table, then "had it" logging the option with an estimate and the bank line |
+| `ChatWhatIf` | A what-if table, then "had it" logging the option with an estimate |
 | `ChatTargets` | Changing targets and remembering a preference, by talking |
 | `ChatTalk` | Hands-free voice conversation |
 | `ChatMemory` | Structured memory: rules, meals, likes, and usuals from the log |
