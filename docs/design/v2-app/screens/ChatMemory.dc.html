@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>What it remembers</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EDEDE8;text-decoration:none}a:hover{color:#FFB547}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+a:focus-visible,button:focus-visible{outline:2px solid #FFB547;outline-offset:2px}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 0 20px; overflow: hidden; display: flex; flex-direction: column; gap: 14px; background: #111210; color: #EDEDE8; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <div style="height: 56px; flex: none; display: flex; align-items: center; margin: 0 -10px">
+    <a href="Settings.dc.html" aria-label="Back to settings" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 6px; margin-top: -14px">
+    <h1 style="margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.08">What it remembers</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.45; color: #B4B6AE">Learned from chat. The chat reads all of it before every answer.</p>
+  </div>
+
+  <div role="tablist" aria-label="Memory" class="noscroll" style="display: flex; gap: 6px; overflow-x: auto; margin: 0 -20px; padding: 0 20px">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+      <button type="button" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="flex: none; height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid {{t.border}}; background: {{t.bg}}; color: {{t.fg}}; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px">{{t.name}}<span class="mono" style="font-size: 12px; opacity: .7">{{t.count}}</span></button>
+    </sc-for>
+  </div>
+
+  <div role="tabpanel" style="flex: 1; min-height: 0; display: flex; flex-direction: column">
+    <sc-if value="{{showRules}}" hint-placeholder-val="{{ false }}">
+      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; border-top: 1px solid #2A2B28">
+        <sc-for list="{{rules}}" as="n" hint-placeholder-count="5">
+          <li style="display: flex; flex-direction: column; gap: 5px; padding: 12px 0; border-bottom: 1px solid #2A2B28">
+            <span style="font-size: 15px; line-height: 1.4">{{n.text}}</span>
+            <span class="cap" style="color: #9A9C95">{{n.meta}}</span>
+          </li>
+        </sc-for>
+      </ul>
+    </sc-if>
+
+    <sc-if value="{{showMeals}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <article style="padding: 14px; border-radius: 14px; background: #1A1B19; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline">
+            <h2 style="margin: 0; font-size: 17px; font-weight: 600">Potato bowl</h2>
+            <span class="cap" style="color: #9A9C95">Also “poutine”</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span class="cap" style="color: #9A9C95">Always</span>
+            <span class="mono" style="display: flex; gap: 8px; font-size: 13px"><span style="flex: 1; color: #C9CBC4">Gusta veggie ground</span><span>2 serv</span></span>
+            <span class="mono" style="display: flex; gap: 8px; font-size: 13px"><span style="flex: 1; color: #C9CBC4">Mushroom gravy</span><span>½ can</span></span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <span class="cap" style="color: #9A9C95">You say the amount</span>
+            <span class="mono" style="display: flex; gap: 8px; font-size: 13px"><span style="flex: 1; color: #C9CBC4">Russet potato</span><span style="color: #9A9C95">300–400 g, default</span><span style="width: 44px; text-align: right">{{potato}}</span></span>
+            <span class="mono" style="display: flex; gap: 8px; font-size: 13px"><span style="flex: 1; color: #C9CBC4">Cauliflower</span><span style="color: #9A9C95">default</span><span style="width: 44px; text-align: right">{{cauli}}</span></span>
+          </div>
+          <sc-if value="{{suggest}}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 12px; background: #2B1F0E">
+              <span style="font-size: 14px; line-height: 1.45">Your last 15 were <span class="mono">308 g</span> potato and <span class="mono">207 g</span> cauliflower on average. Make that the default?</span>
+              <div style="display: flex; gap: 8px">
+                <button type="button" onClick="{{accept}}" style="flex: 1; height: 44px; border-radius: 22px; border: 0; background: #EDEDE8; color: #111210; font-size: 14px; font-weight: 600">Use 310 / 210</button>
+                <button type="button" onClick="{{dismiss}}" style="flex: 1; height: 44px; border-radius: 22px; border: 1px solid #4A3518; background: transparent; color: #EDEDE8; font-size: 14px; font-weight: 600">Keep 350 / 80</button>
+              </div>
+            </div>
+          </sc-if>
+        </article>
+        <a href="MealDetail.dc.html" style="min-height: 56px; padding: 0 14px; border-radius: 14px; background: #1A1B19; display: flex; align-items: center; gap: 10px">
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 600">Nachos</span><span style="font-size: 12px; color: #9A9C95">Chips vary, 65 g default · quick, 6–8 min</span></span>
+          <span class="mono" style="font-size: 13px">669</span>
+        </a>
+        <a href="MealDetail.dc.html" style="min-height: 56px; padding: 0 14px; border-radius: 14px; background: #1A1B19; display: flex; align-items: center; gap: 10px">
+          <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 600">Evening bowl</span><span style="font-size: 12px; color: #9A9C95">Held back in every budget · ¾ cup on snack days</span></span>
+          <span class="mono" style="font-size: 13px">240</span>
+        </a>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showLikes}}" hint-placeholder-val="{{ false }}">
+      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; border-top: 1px solid #2A2B28">
+        <sc-for list="{{likes}}" as="n" hint-placeholder-count="4">
+          <li style="display: flex; flex-direction: column; gap: 5px; padding: 12px 0; border-bottom: 1px solid #2A2B28">
+            <span style="font-size: 15px; line-height: 1.4">{{n.text}}</span>
+            <span class="cap" style="color: #9A9C95">{{n.meta}}</span>
+          </li>
+        </sc-for>
+      </ul>
+    </sc-if>
+
+    <sc-if value="{{showUsuals}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span class="cap" style="color: #9A9C95">Days eaten, last 30 · worked out from your log</span>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+          <sc-for list="{{usuals}}" as="u" hint-placeholder-count="6">
+            <li style="display: grid; grid-template-columns: minmax(0, 1fr) 110px 28px; gap: 10px; align-items: center; min-height: 32px">
+              <span style="font-size: 15px">{{u.name}}</span>
+              <span aria-hidden="true" style="height: 6px; border-radius: 3px; background: #2C2D2A; display: flex; overflow: hidden"><span style="width: {{u.pct}}%; background: #EDEDE8"></span></span>
+              <span class="mono" style="font-size: 13px; text-align: right">{{u.days}}</span>
+            </li>
+          </sc-for>
+        </ul>
+        <p style="margin: 0; font-size: 13px; line-height: 1.45; color: #9A9C95">Not stored as memory. The chat looks these up when it needs them.</p>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+const RULES = [
+  { text: 'The evening bowl is held back in every budget. It can shrink to ¾ cup, never be dropped.', meta: 'Applies to every plan' },
+  { text: 'On snack-bowl days the evening bowl is ¾ cup and ½ scoop.', meta: 'Applies to every plan' },
+  { text: 'Offer the bank when a meal lands just over. Never push it or call it debt.', meta: 'You said this 18 Oct' },
+  { text: 'Every option shows calories and protein, and what’s spare or over.', meta: 'Corrected 12 Oct' },
+  { text: 'Nutritional yeast is the first thing cut when calories are tight.', meta: 'You said this 20 Oct' },
+];
+const LIKES = [
+  { text: 'Breakfast cereal is always cinnamon crisps. The evening bowl is always rainbow hoops.', meta: 'Learned' },
+  { text: 'Pancakes were nice but not filling. Only when you’re not very hungry.', meta: 'Learned 14 Oct' },
+  { text: 'Nachos count as quick: 6 to 8 minutes.', meta: 'Corrected 17 Oct' },
+  { text: 'Vegan.', meta: 'Profile' },
+];
+const USUALS = [
+  { name: 'Standard breakfast', days: 29 },
+  { name: 'Evening bowl', days: 23 },
+  { name: 'Nachos', days: 22 },
+  { name: 'Potato bowl', days: 15 },
+  { name: 'Little Big Bread', days: 13 },
+  { name: 'Romano beans', days: 10 },
+];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'meals', defaults: 'suggest' };
+  }
+  renderVals() {
+    const tab = this.state.tab;
+    const tabs = [
+      { id: 'rules', name: 'Rules', count: RULES.length },
+      { id: 'meals', name: 'Meals', count: 6 },
+      { id: 'likes', name: 'Likes', count: LIKES.length },
+      { id: 'usuals', name: 'Usuals', count: '' },
+    ].map((t) => {
+      const on = t.id === tab;
+      return { ...t, on, bg: on ? '#EDEDE8' : '#1A1B19', fg: on ? '#111210' : '#EDEDE8', border: on ? '#EDEDE8' : '#3A3B37', pick: () => this.setState({ tab: t.id }) };
+    });
+    const accepted = this.state.defaults === 'accepted';
+    return {
+      tabs,
+      showRules: tab === 'rules',
+      showMeals: tab === 'meals',
+      showLikes: tab === 'likes',
+      showUsuals: tab === 'usuals',
+      rules: RULES,
+      likes: LIKES,
+      usuals: USUALS.map((u) => ({ ...u, pct: Math.round((u.days / 30) * 100) })),
+      potato: accepted ? '310 g' : '350 g',
+      cauli: accepted ? '210 g' : '80 g',
+      suggest: this.state.defaults === 'suggest',
+      accept: () => this.setState({ defaults: 'accepted' }),
+      dismiss: () => this.setState({ defaults: 'kept' }),
+    };
+  }
+}
+</script>
+</body>
+</html>

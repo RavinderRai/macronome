@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Talking, hands-free</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EDEDE8;text-decoration:none}a:hover{color:#FFB547}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.5}}
+.pulse{animation:pulse 1.2s ease-in-out infinite}
+a:focus-visible,button:focus-visible{outline:2px solid #FFB547;outline-offset:2px}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #2B1F0E; color: #EDEDE8; font-family: Geist, 'Helvetica Neue', Arial, sans-serif; display: flex; flex-direction: column">
+
+  <div style="height: 60px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 20px">
+    <span class="cap" style="flex: 1; color: #EDEDE8">Talking · Sun 1 Nov</span>
+    <button type="button" onClick="{{toggleVoice}}" aria-pressed="{{voiceOn}}" style="height: 44px; padding: 0 12px; border-radius: 22px; border: 1px solid #6A4C1E; background: transparent; color: #EDEDE8; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4z"></path><sc-if value="{{voiceOn}}" hint-placeholder-val="{{ true }}"><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"></path></sc-if></svg>{{voiceLabel}}
+    </button>
+    <a href="ChatTargets.dc.html" style="height: 44px; padding: 0 8px; display: flex; align-items: center; font-size: 15px; font-weight: 600">End</a>
+  </div>
+
+  <div style="flex: 1; min-height: 0; padding: 8px 24px 0; display: flex; flex-direction: column; gap: 22px">
+    <div style="display: flex; flex-direction: column; gap: 8px; opacity: .55">
+      <span class="cap" style="color: #C9CBC4">You</span>
+      <p style="margin: 0; font-size: 17px; line-height: 1.35">If I have poutine tomorrow, how much potato and cauliflower can I have?</p>
+      <p class="mono" style="margin: 0; font-size: 15px; line-height: 1.45; color: #EDEDE8">245 g potato + 200 g cauliflower, or 225 g + 250 g. Both keep the bowl.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span class="cap" style="color: #C9CBC4">You</span>
+      <p style="margin: 0; font-size: 19px; line-height: 1.35; color: #C9CBC4">Okay. Log the bowl.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <p aria-live="polite" style="margin: 0; font-size: 27px; line-height: 1.25; font-weight: 500; letter-spacing: -0.015em">Logged. That's <span class="mono" style="font-weight: 500">2</span> over, covered by the bank. It goes to <span class="mono" style="font-weight: 500">4.3</span> at midnight.</p>
+      <div role="status" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 6px 0 14px; border-radius: 14px; background: #3A2A14">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+          <span class="cap" style="color: #FFB547">Logged · Evening</span>
+          <span style="font-size: 15px; font-weight: 600">Evening bowl, full <span class="mono" style="font-weight: 400">240</span></span>
+        </span>
+        <a href="LoggedEdit.dc.html" style="height: 44px; padding: 0 14px; display: flex; align-items: center; font-size: 14px; font-weight: 600; color: #EDEDE8">Undo</a>
+      </div>
+      <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; color: #C9CBC4"><span>1,552 of 1,550</span><span><span style="color: #FFB547">169</span> of 155 P</span></div>
+    </div>
+  </div>
+
+  <div style="flex: none; padding: 18px 20px 24px; display: flex; flex-direction: column; gap: 16px; border-top: 1px solid #4A3518">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span class="pulse" aria-hidden="true" style="width: 8px; height: 8px; border-radius: 4px; background: #FFB547"></span>
+      <span class="cap" style="flex: 1">Listening for your next one</span>
+    </div>
+    <div aria-hidden="true" style="display: flex; align-items: center; gap: 3px; height: 32px">
+      <sc-for list="{{bars}}" as="b" hint-placeholder-count="30">
+        <span style="flex: 1; height: {{b.h}}px; border-radius: 2px; background: #6A4C1E"></span>
+      </sc-for>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center">
+      <a href="ChatWhatIf.dc.html" style="justify-self: start; height: 44px; padding: 0 6px; display: flex; align-items: center; font-size: 15px; font-weight: 500; color: #C9CBC4">See chat</a>
+      <a href="ChatTargets.dc.html" aria-label="Stop listening" style="justify-self: center; width: 68px; height: 68px; border-radius: 34px; background: #FFB547; color: #111210; display: flex; align-items: center; justify-content: center">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"></rect></svg>
+      </a>
+      <a href="ChatWhatIf.dc.html" style="justify-self: end; height: 44px; padding: 0 6px; display: flex; align-items: center; font-size: 15px; font-weight: 500; color: #C9CBC4">Type</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+const HEIGHTS = [4, 6, 4, 8, 5, 4, 10, 6, 4, 4, 7, 5, 4, 9, 6, 4, 4, 5, 8, 4, 6, 4, 4, 7, 5, 4, 4, 6, 4, 4];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { voice: true };
+  }
+  renderVals() {
+    const on = this.state.voice;
+    return {
+      voiceOn: on,
+      voiceLabel: on ? 'Reading aloud' : 'Silent',
+      toggleVoice: () => this.setState({ voice: !on }),
+      bars: HEIGHTS.map((h) => ({ h })),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>What-if, then had it</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EDEDE8;text-decoration:none}a:hover{color:#FFB547}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cmd::placeholder{color:#9A9C95}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #FFB547;outline-offset:2px}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #111210; color: #EDEDE8; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <div aria-hidden="true" style="padding: 16px 20px; display: flex; align-items: flex-end; justify-content: space-between">
+    <span style="font-size: 17px; font-weight: 600">Today</span>
+    <span class="mono" style="font-size: 13px; color: #9A9C95">238 left</span>
+  </div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(0,0,0,.55)"></div>
+
+  <section aria-label="Chat" style="position: absolute; left: 0; right: 0; top: 60px; bottom: 0; background: #1A1B19; border-radius: 22px 22px 0 0; display: flex; flex-direction: column; box-shadow: 0 -8px 30px rgba(0,0,0,.4)">
+    <span aria-hidden="true" style="align-self: center; width: 36px; height: 4px; border-radius: 2px; background: #45463F; margin-top: 8px"></span>
+    <div style="height: 48px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 20px">
+      <h1 style="flex: 1; margin: 0; font-size: 17px; font-weight: 600">Chat</h1>
+      <span class="mono" style="font-size: 13px; color: #9A9C95">238 left</span>
+      <a href="Main.dc.html" aria-label="Close chat" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+    </div>
+
+    <div style="flex: 1; min-height: 0; padding: 0 20px 12px; display: flex; flex-direction: column; gap: 12px">
+      <a href="ChatLogAndAsk.dc.html" class="cap" style="align-self: center; min-height: 32px; display: flex; align-items: center; color: #9A9C95">Earlier: dinner options</a>
+
+      <p style="align-self: flex-end; margin: 0; max-width: 82%; padding: 10px 14px; border-radius: 18px 18px 4px 18px; background: #232421; font-size: 15px; line-height: 1.4">Field Roast and Gusta, with 2 slices of bread, or none?</p>
+
+      <div role="table" aria-label="Bread options" style="display: flex; flex-direction: column; border-radius: 14px; background: #111210; overflow: hidden">
+        <div role="row" class="cap" style="display: grid; grid-template-columns: minmax(0, 1fr) 44px 40px 64px; gap: 8px; padding: 10px 12px 6px; color: #9A9C95">
+          <span role="columnheader">Bread</span><span role="columnheader" style="text-align: right">kcal</span><span role="columnheader" style="text-align: right">P</span><span role="columnheader" style="text-align: right">Left</span>
+        </div>
+        <sc-for list="{{slices}}" as="s" hint-placeholder-count="3">
+          <div role="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 44px 40px 64px; gap: 8px; align-items: center; min-height: 40px; padding: 0 12px; border-top: 1px solid #232421">
+            <span role="cell" style="font-size: 14px; font-weight: 500">{{s.name}}</span>
+            <span role="cell" class="mono" style="font-size: 13px; text-align: right">{{s.kcal}}</span>
+            <span role="cell" class="mono" style="font-size: 13px; text-align: right; color: #FFB547">{{s.p}}</span>
+            <span role="cell" class="mono" style="font-size: 13px; text-align: right; color: {{s.color}}">{{s.left}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 0; font-size: 15px; line-height: 1.45">None fits with <span class="mono">48</span> spare. One slice is <span class="mono">2</span> over, which the bank covers.</p>
+
+      <div style="align-self: flex-end; max-width: 82%; display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
+        <p style="margin: 0; padding: 10px 14px; border-radius: 18px 18px 4px 18px; background: #232421; font-size: 15px; line-height: 1.4">Had it, one slice. Forgot to weigh the lettuce, use 165.</p>
+        <span class="cap" style="display: flex; align-items: center; gap: 5px; color: #9A9C95"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg>Spoken</span>
+      </div>
+
+      <div role="status" style="padding: 12px 14px; border-radius: 14px; background: #2B1F0E; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><span class="cap" style="color: #FFB547">Logged · Dinner</span><a href="LoggedEdit.dc.html" class="cap" style="min-height: 24px; display: flex; align-items: center; color: #C9CBC4">Undo · Edit</a></div>
+        <div class="mono" style="display: flex; flex-direction: column; gap: 4px; font-size: 13px">
+          <span style="display: flex; gap: 8px"><span style="flex: 1; color: #C9CBC4">Field Roast chipotle sausage</span><span>240</span></span>
+          <span style="display: flex; gap: 8px"><span style="flex: 1; color: #C9CBC4">Gusta veggie ground · 2</span><span>180</span></span>
+          <span style="display: flex; gap: 8px; align-items: center"><span style="flex: 1; color: #C9CBC4">Romaine · 165 g</span><span class="cap" style="padding: 2px 6px; border-radius: 4px; border: 1px solid #6A4C1E; color: #FFB547">Estimate</span><span>28</span></span>
+          <span style="display: flex; gap: 8px"><span style="flex: 1; color: #C9CBC4">Little Big Bread · 1 slice</span><span>50</span></span>
+        </div>
+        <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px solid #4A3518; padding-top: 8px"><span style="color: #A3A69E">Left</span><span>238 · <span style="color: #FFB547">16 P</span></span></div>
+        <sc-if value="{{banked}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <span style="flex: 1; font-size: 13px; line-height: 1.4; color: #C9CBC4">The bowl lands <span class="mono">2</span> over. Bank <span class="mono">6.3</span> covers it.</span>
+            <button type="button" onClick="{{toggle}}" style="flex: none; height: 36px; padding: 0 12px; border-radius: 18px; border: 1px solid #4A3518; background: transparent; color: #EDEDE8; font-size: 13px; font-weight: 600">Don't bank today</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{unbanked}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <span style="flex: 1; font-size: 13px; line-height: 1.4; color: #C9CBC4">Today won't touch the bank. It stays at <span class="mono">6.3</span>.</span>
+            <button type="button" onClick="{{toggle}}" style="flex: none; height: 36px; padding: 0 12px; border-radius: 18px; border: 1px solid #4A3518; background: transparent; color: #EDEDE8; font-size: 13px; font-weight: 600">Use bank</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <form style="flex: none; margin: 0 12px 16px; height: 56px; border-radius: 28px; border: 1px solid #3A3B37; background: #1A1B19; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 18px">
+      <label for="cmd-whatif" class="sr">Reply or log</label>
+      <input id="cmd-whatif" class="cmd" placeholder="What if…, or say what you ate" autocomplete="off" style="flex: 1; min-width: 0; height: 48px; border: 0; background: transparent; color: #EDEDE8; font: inherit; font-size: 16px">
+      <a href="ChatTalk.dc.html" aria-label="Talk" style="flex: none; width: 46px; height: 46px; border-radius: 23px; background: #FFB547; color: #111210; display: flex; align-items: center; justify-content: center">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg>
+      </a>
+    </form>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+const BUDGET = 496;
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { bank: true };
+  }
+  renderVals() {
+    const slices = [0, 1, 2].map((n) => {
+      const kcal = 448 + n * 50;
+      const left = BUDGET - kcal;
+      return {
+        name: n === 0 ? 'None' : n === 1 ? '1 slice' : '2 slices',
+        kcal,
+        p: 60 + n * 3,
+        left: left >= 0 ? left + ' spare' : -left + ' over',
+        color: left >= 0 ? '#C9CBC4' : '#FF7A66',
+      };
+    });
+    return {
+      slices,
+      banked: this.state.bank,
+      unbanked: !this.state.bank,
+      toggle: () => this.setState({ bank: !this.state.bank }),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Log, then plan dinner</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#EDEDE8;text-decoration:none}a:hover{color:#FFB547}
+.mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.cap{font-family:'Geist Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cmd::placeholder{color:#9A9C95}
+.hatch{background:repeating-linear-gradient(135deg,#5A5C56 0 1px,transparent 1px 5px)}
+.row:hover{background:#232421}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #FFB547;outline-offset:2px}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #111210; color: #EDEDE8; font-family: Geist, 'Helvetica Neue', Arial, sans-serif">
+
+  <div aria-hidden="true" style="padding: 16px 20px; display: flex; align-items: flex-end; justify-content: space-between">
+    <span style="font-size: 17px; font-weight: 600">Today</span>
+    <span class="mono" style="font-size: 13px; color: #9A9C95">736 left</span>
+  </div>
+  <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(0,0,0,.55)"></div>
+
+  <section aria-label="Chat" style="position: absolute; left: 0; right: 0; top: 60px; bottom: 0; background: #1A1B19; border-radius: 22px 22px 0 0; display: flex; flex-direction: column; box-shadow: 0 -8px 30px rgba(0,0,0,.4)">
+    <span aria-hidden="true" style="align-self: center; width: 36px; height: 4px; border-radius: 2px; background: #45463F; margin-top: 8px"></span>
+    <div style="height: 48px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 20px">
+      <h1 style="flex: 1; margin: 0; font-size: 17px; font-weight: 600">Chat</h1>
+      <span class="mono" style="font-size: 13px; color: #9A9C95">736 left</span>
+      <a href="Main.dc.html" aria-label="Close chat" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+    </div>
+
+    <div style="flex: 1; min-height: 0; padding: 0 20px 12px; display: flex; flex-direction: column; gap: 12px">
+      <div style="align-self: flex-end; max-width: 86%; display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
+        <p style="margin: 0; padding: 10px 14px; border-radius: 18px 18px 4px 18px; background: #232421; font-size: 15px; line-height: 1.4">For today, standard breakfast and standard poutine, 310 g potatoes 230 g cauliflower. What's for dinner?</p>
+        <span class="cap" style="display: flex; align-items: center; gap: 5px; color: #9A9C95"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg>Spoken</span>
+      </div>
+
+      <div role="status" style="padding: 12px 14px; border-radius: 14px; background: #2B1F0E; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><span class="cap" style="color: #FFB547">Logged 2</span><a href="EntryDetail.dc.html" class="cap" style="min-height: 24px; display: flex; align-items: center; color: #C9CBC4">Undo · Edit</a></div>
+        <div class="mono" style="display: flex; flex-direction: column; gap: 4px; font-size: 13px">
+          <span style="display: flex; gap: 8px"><span style="flex: 1; color: #C9CBC4">Standard breakfast</span><span>272</span></span>
+          <span style="display: flex; gap: 8px"><span style="flex: 1; color: #C9CBC4">Potato bowl · 310 g / 230 g</span><span>542</span></span>
+        </div>
+        <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px solid #4A3518; padding-top: 8px"><span style="color: #A3A69E">Left</span><span>736 · <span style="color: #FFB547">79 P</span> · 27 C · 31 F</span></div>
+      </div>
+
+      <p style="margin: 0; font-size: 15px; line-height: 1.45">With the bowl held back, dinner has <span class="mono">496</span> kcal and <span class="mono" style="color: #FFB547">49 g</span> protein.</p>
+
+      <div role="table" aria-label="Dinner options" style="display: flex; flex-direction: column; border-radius: 14px; background: #111210; overflow: hidden">
+        <div role="row" class="cap" style="display: grid; grid-template-columns: minmax(0, 1fr) 44px 40px 64px; gap: 8px; padding: 10px 12px 6px; color: #9A9C95">
+          <span role="columnheader">Dinner</span><span role="columnheader" style="text-align: right">kcal</span><span role="columnheader" style="text-align: right">P</span><span role="columnheader" style="text-align: right">Left</span>
+        </div>
+        <sc-for list="{{options}}" as="o" hint-placeholder-count="4">
+          <a role="row" href="{{o.href}}" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 44px 40px 64px; gap: 8px; align-items: center; min-height: 48px; padding: 0 12px; border-top: 1px solid #232421; color: {{o.color}}">
+            <span role="cell" style="font-size: 14px; font-weight: 500; line-height: 1.25">{{o.name}}</span>
+            <span role="cell" class="mono" style="font-size: 13px; text-align: right">{{o.kcal}}</span>
+            <span role="cell" class="mono" style="font-size: 13px; text-align: right; color: {{o.pColor}}">{{o.p}}</span>
+            <span role="cell" class="mono" style="font-size: 13px; text-align: right; color: {{o.spareColor}}">{{o.spare}}</span>
+          </a>
+        </sc-for>
+        <div role="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 44px 40px 64px; gap: 8px; align-items: center; min-height: 40px; padding: 0 12px; border-top: 1px solid #232421; color: #9A9C95">
+          <span role="cell" style="display: flex; align-items: center; gap: 8px; font-size: 13px"><span class="hatch" aria-hidden="true" style="width: 14px; height: 10px; box-shadow: inset 0 0 0 1px #5A5C56"></span>Evening bowl, held back</span>
+          <span role="cell" class="mono" style="font-size: 13px; text-align: right">240</span>
+          <span role="cell" class="mono" style="font-size: 13px; text-align: right">30</span>
+          <span role="cell"></span>
+        </div>
+      </div>
+
+      <p style="margin: 0; font-size: 14px; line-height: 1.45; color: #C9CBC4">Field Roast + Gusta is the only one that fits and hits protein. Nachos are 173 over.</p>
+
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <a href="ChatWhatIf.dc.html" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #3A3B37; display: flex; align-items: center; font-size: 14px; font-weight: 500">With bread?</a>
+        <a href="ChatWhatIf.dc.html" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #3A3B37; display: flex; align-items: center; font-size: 14px; font-weight: 500">Had the first one</a>
+      </div>
+    </div>
+
+    <form style="flex: none; margin: 0 12px 16px; height: 56px; border-radius: 28px; border: 1px solid #3A3B37; background: #1A1B19; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 18px">
+      <label for="cmd-plan" class="sr">Reply or log</label>
+      <input id="cmd-plan" class="cmd" placeholder="What if…, or say what you ate" autocomplete="off" style="flex: 1; min-width: 0; height: 48px; border: 0; background: transparent; color: #EDEDE8; font: inherit; font-size: 16px">
+      <a href="ChatTalk.dc.html" aria-label="Talk" style="flex: none; width: 46px; height: 46px; border-radius: 23px; background: #FFB547; color: #111210; display: flex; align-items: center; justify-content: center">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11.5" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"></path></svg>
+      </a>
+    </form>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+const BUDGET = 496;
+const PROTEIN = 49;
+const OPTIONS = [
+  { name: 'Field Roast + Gusta salad', kcal: 448, p: 60 },
+  { name: 'Gusta burger salad', kcal: 368, p: 42 },
+  { name: 'Chipotle sausage, 2 slices', kcal: 340, p: 34 },
+  { name: 'Nachos', kcal: 669, p: 58 },
+];
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      options: OPTIONS.map((o) => {
+        const spare = BUDGET - o.kcal;
+        const fits = spare >= 0;
+        return {
+          name: o.name,
+          kcal: o.kcal,
+          p: o.p,
+          spare: fits ? spare + ' spare' : -spare + ' over',
+          color: fits ? '#EDEDE8' : '#9A9C95',
+          pColor: o.p >= PROTEIN ? '#FFB547' : '#9A9C95',
+          spareColor: fits ? '#C9CBC4' : '#FF7A66',
+          href: 'ChatWhatIf.dc.html',
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>
