@@ -1,0 +1,6 @@
+// Copy to Signing.local.xcconfig and fill in, then run `xcodegen generate`.
+// Your team id is in Xcode → Settings → Accounts, or in the Signing & Capabilities tab
+// after picking your team once.
+
+DEVELOPMENT_TEAM = ABCDE12345
+BUNDLE_ID_BASE = com.yourname.macronome

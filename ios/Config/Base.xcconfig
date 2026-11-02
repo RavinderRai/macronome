@@ -1,0 +1,9 @@
+// Signing and ids. Bundle ids and App Group ids are unique across all Apple teams, so
+// anyone building this (including with a free Apple ID) sets their own in
+// Signing.local.xcconfig, which is gitignored. See Signing.example.xcconfig.
+
+DEVELOPMENT_TEAM =
+BUNDLE_ID_BASE = com.macronome.app
+APP_GROUP_ID = group.$(BUNDLE_ID_BASE)
+
+#include? "Signing.local.xcconfig"

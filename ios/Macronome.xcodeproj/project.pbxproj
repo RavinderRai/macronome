@@ -180,6 +180,7 @@
 		6204A7EF5CEF31BEA5EA0E89 /* Format.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Format.swift; sourceTree = "<group>"; };
 		62465BF0D679600D3EEA2D20 /* DaySnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaySnapshot.swift; sourceTree = "<group>"; };
 		63AEF74973C42BA6E2DC2EC8 /* MacronomeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacronomeApp.swift; sourceTree = "<group>"; };
+		67D40936E4CFDFC30345A579 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
 		6ABA92554BD3D5D213C7A7BA /* Providers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Providers.swift; sourceTree = "<group>"; };
 		6DF49615830A77EA31F24F3C /* LocalLogInterpreter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLogInterpreter.swift; sourceTree = "<group>"; };
 		7050AF89359B64C35B3202A0 /* FoodStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodStore.swift; sourceTree = "<group>"; };
@@ -423,6 +424,7 @@
 		9A5552CB376B19794B4C2E6F = {
 			isa = PBXGroup;
 			children = (
+				CC369EAB487171C510D781ED /* Config */,
 				60D7EF553DD224AE5C975133 /* Macronome */,
 				8998F078B30813F8F4BBDA97 /* macronome */,
 				FDF57D29B2F13E9D100FE7D3 /* MacronomeTests */,
@@ -530,6 +532,14 @@
 				C12830349EF6B0141EA48F0A /* WidgetViews.swift */,
 			);
 			path = Widgets;
+			sourceTree = "<group>";
+		};
+		CC369EAB487171C510D781ED /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				67D40936E4CFDFC30345A579 /* Base.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		EAC18FD99116A519CF889F68 /* MacronomeWidget */ = {
@@ -850,7 +860,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.macronome.app;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_BASE)";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -869,7 +879,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.macronome.app;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_BASE)";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -877,9 +887,9 @@
 		};
 		7D31585D84F3165BC9D8CF74 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 67D40936E4CFDFC30345A579 /* Base.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				APP_GROUP_ID = group.com.macronome.app;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -913,7 +923,6 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -978,7 +987,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.macronome.app.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_BASE).widget";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -986,9 +995,9 @@
 		};
 		BC5F0BA915BFC87F0EB19280 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 67D40936E4CFDFC30345A579 /* Base.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				APP_GROUP_ID = group.com.macronome.app;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1022,7 +1031,6 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -1062,7 +1070,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.macronome.app.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_BASE).widget";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

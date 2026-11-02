@@ -223,3 +223,6 @@ node_modules/
 ios/build/
 *.xcuserstate
 xcuserdata/
+
+# Personal signing settings for the iOS app
+ios/Config/Signing.local.xcconfig

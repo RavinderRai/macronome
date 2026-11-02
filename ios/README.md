@@ -13,9 +13,29 @@ xcodegen generate
 open Macronome.xcodeproj
 ```
 
-Pick the `Macronome` scheme and an iPhone simulator, then run. To install on a phone, set
-your team under Signing & Capabilities for both the `Macronome` and `MacronomeWidget`
-targets.
+Pick the `Macronome` scheme and an iPhone simulator, then run.
+
+### On your iPhone
+
+A free Apple ID is enough. Bundle ids and App Group ids are unique across every Apple
+team, so set your own before the first install:
+
+```bash
+cp Config/Signing.example.xcconfig Config/Signing.local.xcconfig
+# edit DEVELOPMENT_TEAM and BUNDLE_ID_BASE, then
+xcodegen generate
+```
+
+`Signing.local.xcconfig` is gitignored. The App Group becomes `group.<BUNDLE_ID_BASE>`,
+and the widget's id is `<BUNDLE_ID_BASE>.widget`. Turn on Developer Mode on the phone
+(Settings → Privacy & Security) the first time.
+
+With a free Apple ID the install stops opening after 7 days. Renew it weekly with
+`scripts/renew.sh`: it copies the log off the phone to `~/Documents/Macronome/backups`
+(outside the repo; set `MACRONOME_BACKUP_DIR` to change it), then rebuilds and reinstalls.
+`scripts/renew.sh --backup-only` just takes the copy. Your data stays on the phone either
+way. A phone takes at most 3 free-signed apps. iCloud and push notifications need the paid program; nothing in the app
+uses them yet.
 
 The Xcode project is generated from `project.yml`, so edit that file (not the project)
 when adding targets or settings. New Swift files under `Macronome/`, `Shared/` or

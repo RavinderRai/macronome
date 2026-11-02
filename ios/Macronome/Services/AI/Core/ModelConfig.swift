@@ -69,24 +69,24 @@ struct ServicePreset: Identifiable, Hashable, Sendable {
 
     static let openAI: [ServicePreset] = [
         ServicePreset(id: "openrouter", name: "OpenRouter", baseURL: "https://openrouter.ai/api/v1",
-                      fastModel: "google/gemini-2.5-flash-lite", smartModel: "anthropic/claude-sonnet-5.5",
+                      fastModel: "qwen/qwen3.7-flash", smartModel: "anthropic/claude-haiku-5.5",
                       note: "One key for most models"),
         ServicePreset(id: "groq", name: "Groq", baseURL: "https://api.groq.com/openai/v1",
                       fastModel: "llama-3.1-8b-instant", smartModel: "openai/gpt-oss-120b",
                       note: "Fast, has a free tier"),
         ServicePreset(id: "gemini", name: "Google Gemini", baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
-                      fastModel: "gemini-2.5-flash-lite", smartModel: "gemini-2.5-flash",
-                      note: "Has a free tier"),
+                      fastModel: "gemini-2.5-flash-lite", smartModel: "gemini-3.1-flash-lite",
+                      note: "Free tier; Google may use free-tier requests for training"),
         ServicePreset(id: "deepseek", name: "DeepSeek", baseURL: "https://api.deepseek.com/v1",
                       fastModel: "deepseek-chat", smartModel: "deepseek-chat", note: "Text only"),
         ServicePreset(id: "openai", name: "OpenAI", baseURL: "https://api.openai.com/v1",
-                      fastModel: "gpt-5-nano", smartModel: "gpt-5-mini", note: ""),
+                      fastModel: "gpt-5-nano", smartModel: "gpt-6-luna", note: ""),
         ServicePreset(id: "ollama", name: "Ollama", baseURL: "http://localhost:11434/v1",
                       fastModel: "llama3.2", smartModel: "qwen2.5vl", note: "Replace localhost with your Mac's address"),
     ]
 
     static let anthropicFast = "claude-haiku-5-5"
-    static let anthropicSmart = "claude-sonnet-5-5"
+    static let anthropicSmart = "claude-haiku-5-5"
 
     static func matching(_ baseURL: String) -> ServicePreset? {
         let u = baseURL.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()

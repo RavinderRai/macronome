@@ -22,7 +22,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.macronome.app</string>
+			<string>$(BUNDLE_ID_BASE)</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>macronome</string>
