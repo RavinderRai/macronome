@@ -80,6 +80,7 @@ private struct LogCardView: View {
     private var showsDays: Bool { card.groups.contains { $0.title != "Today" } }
 
     private var heading: String {
+        if card.edited == true { return "Updated" }
         let entries = card.groups.count
         if entries == 1, let slot = card.groups.first?.slot { return "Logged · \(slot)" }
         return entries == 1 ? "Logged" : "Logged \(entries)"

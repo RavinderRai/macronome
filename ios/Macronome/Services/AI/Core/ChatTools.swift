@@ -36,6 +36,7 @@ final class ChatTools {
             case "show_options": out = try showOptions(a)
             case "solve": out = try solve(a)
             case "log": out = try log(a)
+            case "edit_entries": out = try editEntries(a)
             case "delete_entries": out = try deleteEntries(a)
             case "find": out = find(a["query"]?.string ?? "")
             case "history": out = try history(a)
@@ -95,7 +96,6 @@ final class ChatTools {
             out["held_back"] = .object(["meal": .string(hb.meal.name), "kcal": num(hb.macros.kcal), "protein": num(hb.macros.protein)])
             out["left_after_held_back"] = .object(["kcal": num(s.afterHoldBackKcal), "protein": num(s.afterHoldBackProtein)])
         }
-        if let bank = ledger.bank { out["calorie_bank"] = num(bank, digits: 1) }
         return .object(out)
     }
 
@@ -376,6 +376,57 @@ final class ChatTools {
         ]
         if !replace.isEmpty { out["replaced"] = num(Double(replace.count)) }
         return .object(out)
+    }
+
+    /// New amounts for entries already logged: a part weighed later ("300 grams" for the
+    /// cauliflower) or a correction ("it was 13 g"). Same food, day, slot and meal.
+    func editEntries(_ a: [String: JSONValue]) throws -> JSONValue {
+        let edits = a["edits"]?.array?.compactMap(\.object) ?? []
+        guard !edits.isEmpty else { throw ToolError("Pass edits: entry_id and the new qty.") }
+        var events: [Event] = []
+        var replaced: [String] = []
+        var entryIDs: [String] = []
+        var groups: [LogCard.DayGroup] = []
+        for edit in edits {
+            guard let id = edit["entry_id"]?.string, let e = ledger.entries.first(where: { $0.id == id }) else {
+                throw ToolError("No entry with id \(edit["entry_id"]?.string ?? "?"). Today's entry ids are in the context.")
+            }
+            guard let qty = edit["qty"]?.double, qty > 0 else { throw ToolError("The new amount must be more than zero.") }
+            let unit = edit["unit"]?.string ?? e.unit
+            let estimate = edit["estimate"].flatMap { if case .bool(let b) = $0 { return b } else { return nil } } ?? false
+            let ev: Event
+            let kcal: Double
+            if let fid = e.foodID, let f = ledger.foods[fid] {
+                let p = try part(f, qty: qty, unit: unit, estimate: estimate)
+                ev = try Commands.log(f, qty: qty, unit: unit, day: e.eatenOn, meal: e.meal, source: "chat",
+                                      confidence: estimate ? "estimate" : "high", note: estimate ? "estimate" : nil,
+                                      groupID: e.groupID, groupLabel: e.groupLabel, at: Clock.parseISO(e.eatenAt) ?? now)
+                kcal = p.macros.kcal
+            } else {
+                // A one-off estimate scales with its amount.
+                let k = qty / max(e.qty, 0.0001)
+                let m = Macros(kcal: e.kcal * k, protein: e.protein * k, carbs: e.carbs * k, fat: e.fat * k, fiber: (e.fiber ?? 0) * k)
+                ev = Commands.logEstimate(label: e.label, macros: m, day: e.eatenOn, meal: e.meal, source: "chat",
+                                          groupID: e.groupID, groupLabel: e.groupLabel)
+                kcal = m.kcal
+            }
+            events += [Commands.deleteEntry(id), ev]
+            replaced.append(id)
+            entryIDs.append(ev.id)
+            let row = LogCard.Row(label: Format.shortName(e.label), amount: Format.amount(qty: qty, unit: unit),
+                                  kcal: kcal.rounded(), estimate: estimate)
+            let name = e.groupLabel ?? Format.shortName(e.label)
+            if let i = groups.firstIndex(where: { $0.day == e.eatenOn && $0.name == name }) {
+                groups[i].rows.append(row)
+            } else {
+                groups.append(LogCard.DayGroup(day: e.eatenOn, title: dayTitle(e.eatenOn), slot: e.meal?.title, name: name, rows: [row]))
+            }
+        }
+        store.append(events)
+        cards.append(.logged(LogCard(groups: groups, entryIDs: entryIDs, assumption: a["assumption"]?.string,
+                                     status: status(on: today), replacedEventIDs: replaced, edited: true)))
+        return .object(["edited": num(Double(replaced.count)), "entry_ids": .array(entryIDs.map { .string($0) }),
+                        "today_left": budget(day: today), "shown_as_card": true])
     }
 
     func deleteEntries(_ a: [String: JSONValue]) throws -> JSONValue {

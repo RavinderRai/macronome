@@ -105,6 +105,30 @@ final class ChatAgentTests: XCTestCase {
         XCTAssertEqual(store.ledger.entries(on: day).filter { $0.foodID == "83ae20" }.map(\.qty), [350])
     }
 
+    func testEditEntriesChangesAnAmountInPlace() throws {
+        let (store, day) = try makeStore()
+        let tools = ChatTools(store: store, today: day)
+        _ = try result(tools.run(call("log", ["items": [["meal_id": "m-potato-bowl"]]])))
+        let cauli = try XCTUnwrap(store.ledger.entries(on: day).first { $0.foodID == "3fcb3b" })
+        _ = try result(tools.run(call("edit_entries", ["edits": [["entry_id": .string(cauli.id), "qty": 300]]])))
+        let now = store.ledger.entries(on: day).filter { $0.foodID == "3fcb3b" }
+        XCTAssertEqual(now.map(\.qty), [300])
+        XCTAssertEqual(now.first?.groupID, cauli.groupID, "stays in the potato bowl")
+        XCTAssertEqual(store.ledger.entries(on: day).count, 4)
+        guard case .logged(let card) = tools.cards.last else { return XCTFail() }
+        XCTAssertEqual(card.edited, true)
+        store.append(ChatCard.logged(card).undoEvents(in: store.ledger))
+        XCTAssertEqual(store.ledger.entries(on: day).filter { $0.foodID == "3fcb3b" }.map(\.qty), [80])
+    }
+
+    func testModelDefaultsAreHaikuForFastAndSonnetForSmart() {
+        let c = TierConfig(kind: .anthropic)
+        XCTAssertEqual(c.resolvedModel(fast: true), "claude-haiku-5-5")
+        XCTAssertEqual(c.resolvedModel(fast: false), "claude-sonnet-5-5")
+        XCTAssertEqual(TierConfig(kind: .anthropic, model: "claude-opus-5-5").resolvedModel(fast: true), "claude-opus-5-5")
+        XCTAssertEqual(c.modelChoices.map(\.id), ["claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5"])
+    }
+
     func testOptionsCountTheHeldBackBowlAndFlagProtein() throws {
         let (store, day) = try makeStore()
         let tools = ChatTools(store: store, today: day)

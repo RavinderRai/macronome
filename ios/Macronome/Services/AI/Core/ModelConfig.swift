@@ -57,8 +57,16 @@ struct TierConfig: Codable, Hashable, Sendable {
     }
 }
 
-/// Known OpenAI-compatible services. Model names are only placeholder suggestions:
-/// the field is free text and nothing here is a price list.
+/// A model offered in the picker. `note` is what it costs per million tokens, in / out,
+/// as listed in October 2026.
+struct ModelChoice: Identifiable, Hashable, Sendable {
+    var id: String
+    var name: String
+    var note: String = ""
+}
+
+/// Known OpenAI-compatible services, each with models to pick from. "Other" in the
+/// picker still takes any model name.
 struct ServicePreset: Identifiable, Hashable, Sendable {
     var id: String
     var name: String
@@ -66,31 +74,81 @@ struct ServicePreset: Identifiable, Hashable, Sendable {
     var fastModel: String
     var smartModel: String
     var note: String
+    var models: [ModelChoice] = []
 
     static let openAI: [ServicePreset] = [
         ServicePreset(id: "openrouter", name: "OpenRouter", baseURL: "https://openrouter.ai/api/v1",
-                      fastModel: "qwen/qwen3.7-flash", smartModel: "anthropic/claude-haiku-5.5",
-                      note: "One key for most models"),
+                      fastModel: "anthropic/claude-haiku-5.5", smartModel: "anthropic/claude-sonnet-5.5",
+                      note: "One key for most models", models: [
+                          ModelChoice(id: "anthropic/claude-haiku-5.5", name: "Claude Haiku 5.5", note: "$0.10 / $0.50"),
+                          ModelChoice(id: "anthropic/claude-sonnet-5.5", name: "Claude Sonnet 5.5", note: "$2 / $10"),
+                          ModelChoice(id: "anthropic/claude-opus-5.5", name: "Claude Opus 5.5", note: "$4 / $20"),
+                          ModelChoice(id: "openai/gpt-6-luna", name: "GPT-6 Luna", note: "$0.10 / $0.50"),
+                          ModelChoice(id: "google/gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite", note: "$0.25 / $1.50"),
+                          ModelChoice(id: "qwen/qwen3.7-flash", name: "Qwen 3.7 Flash", note: "$0.03 / $0.13"),
+                          ModelChoice(id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash", note: "$0.09 / $0.18 · text only"),
+                      ]),
         ServicePreset(id: "groq", name: "Groq", baseURL: "https://api.groq.com/openai/v1",
                       fastModel: "llama-3.1-8b-instant", smartModel: "openai/gpt-oss-120b",
-                      note: "Fast, has a free tier"),
+                      note: "Fast, has a free tier", models: [
+                          ModelChoice(id: "llama-3.1-8b-instant", name: "Llama 3.1 8B"),
+                          ModelChoice(id: "openai/gpt-oss-120b", name: "gpt-oss 120B"),
+                      ]),
         ServicePreset(id: "gemini", name: "Google Gemini", baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
                       fastModel: "gemini-2.5-flash-lite", smartModel: "gemini-3.1-flash-lite",
-                      note: "Free tier; Google may use free-tier requests for training"),
+                      note: "Free tier; Google may use free-tier requests for training", models: [
+                          ModelChoice(id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash-Lite", note: "$0.10 / $0.40"),
+                          ModelChoice(id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite", note: "$0.25 / $1.50"),
+                          ModelChoice(id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", note: "$0.30 / $2.50"),
+                      ]),
         ServicePreset(id: "deepseek", name: "DeepSeek", baseURL: "https://api.deepseek.com/v1",
-                      fastModel: "deepseek-chat", smartModel: "deepseek-chat", note: "Text only"),
+                      fastModel: "deepseek-chat", smartModel: "deepseek-chat", note: "Text only", models: [
+                          ModelChoice(id: "deepseek-chat", name: "DeepSeek Chat"),
+                      ]),
         ServicePreset(id: "openai", name: "OpenAI", baseURL: "https://api.openai.com/v1",
-                      fastModel: "gpt-5-nano", smartModel: "gpt-6-luna", note: ""),
+                      fastModel: "gpt-5-nano", smartModel: "gpt-6-luna", note: "", models: [
+                          ModelChoice(id: "gpt-5-nano", name: "GPT-5 nano", note: "$0.05 / $0.40"),
+                          ModelChoice(id: "gpt-6-luna", name: "GPT-6 Luna", note: "$0.10 / $0.50"),
+                      ]),
         ServicePreset(id: "ollama", name: "Ollama", baseURL: "http://localhost:11434/v1",
                       fastModel: "llama3.2", smartModel: "qwen2.5vl", note: "Replace localhost with your Mac's address"),
     ]
 
     static let anthropicFast = "claude-haiku-5-5"
-    static let anthropicSmart = "claude-haiku-5-5"
+    static let anthropicSmart = "claude-sonnet-5-5"
+    static let anthropicModels = [
+        ModelChoice(id: "claude-haiku-5-5", name: "Claude Haiku 5.5", note: "$0.10 / $0.50"),
+        ModelChoice(id: "claude-sonnet-5-5", name: "Claude Sonnet 5.5", note: "$2 / $10"),
+        ModelChoice(id: "claude-opus-5-5", name: "Claude Opus 5.5", note: "$4 / $20"),
+    ]
 
     static func matching(_ baseURL: String) -> ServicePreset? {
         let u = baseURL.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         return openAI.first { u.hasPrefix($0.baseURL.lowercased()) }
+    }
+}
+
+extension TierConfig {
+    /// The models the picker offers for this service.
+    var modelChoices: [ModelChoice] {
+        switch kind {
+        case .anthropic: ServicePreset.anthropicModels
+        case .openAI: ServicePreset.matching(baseURL)?.models ?? []
+        case .onDevice, .off: []
+        }
+    }
+
+    /// The model to use: the one picked, else the service's default for the tier
+    /// (Haiku for fast, Sonnet for smart on Anthropic).
+    func resolvedModel(fast: Bool) -> String {
+        if !trimmedModel.isEmpty { return trimmedModel }
+        switch kind {
+        case .anthropic: return fast ? ServicePreset.anthropicFast : ServicePreset.anthropicSmart
+        case .openAI:
+            guard let p = ServicePreset.matching(baseURL) else { return "" }
+            return fast ? p.fastModel : p.smartModel
+        case .onDevice, .off: return ""
+        }
     }
 }
 

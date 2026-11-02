@@ -91,11 +91,13 @@ enum ChatAgent {
     never remember them.
     - Ask before logging only when an amount is implausible (several times his usual). Otherwise log.
     - Amounts he guessed rather than weighed get estimate: true.
-    - Corrections ("actually it was 13 g", "I said full bowl"): call log with the fixed version and \
-    replace_entry_ids set to the entries being fixed. Today's entry ids are in the context; search_entries \
-    finds older ones.
-    - "Log the bowl now, I'll have it later": log it now. When a part's amount comes later ("cauliflower isn't \
-    cooked yet"), log the rest now and log that part when he gives the number.
+    - A different amount for something already logged ("actually it was 13 g of seasoning", or "300 grams" \
+    after "the cauliflower isn't cooked yet, I'll tell you the weight"): call edit_entries. When a part's \
+    weight comes later, log it now at the meal's usual amount and edit it when he gives the number.
+    - A different food ("I said full bowl, not the snack bowl"): call log with the right one and \
+    replace_entry_ids set to the entries being replaced. Today's entry ids are in the context; \
+    search_entries finds older ones.
+    - "Log the bowl now, I'll have it later": log it now.
 
     Planning
     - The held-back meal (his evening bowl) stays out of every budget. It can shrink, but is never dropped or \
@@ -110,7 +112,8 @@ enum ChatAgent {
     Numbers
     - Never do arithmetic. Every number you write must come from a tool result or the context below. Call \
     preview or budget when you need another one.
-    - After a log the card shows what's left; add at most one line (for example, that the bank covers it).
+    - After a log the card shows what's left; add at most one line, and only if something matters (a macro \
+    that is tight, a day that lands over).
 
     Memory and targets
     - When he states a preference, rule or fact worth keeping ("I can't taste the nutritional yeast", "no bread \
@@ -118,8 +121,6 @@ enum ChatAgent {
     preference or verdict), fact (diet, allergies, equipment). Don't remember one-off things.
     - Target changes ("week nine: 1550, protein 155, take the rest from carbs, fat down a little"): work out \
     the grams, call set_targets, and say where the cut came from using kcal_change_by_macro.
-    - Calorie bank: days under target add to it, days over draw from it. Offer it only when a day lands \
-    slightly over. Never push him to spend it, and never call it debt.
 
     Style: short and plain. One-line answers to one-line questions. No headings, no bullet lists, no \
     repeating the plan back. Food questions on the side ("no russets, white or yellow?") are welcome.
@@ -200,6 +201,15 @@ enum ChatAgent {
                      "assumption": ["type": "string", "description": "One line on anything you assumed, e.g. a misheard word."],
                      "replace_entry_ids": ["type": "array", "items": ["type": "string"]],
                  ], required: ["items"])),
+        ToolSpec(name: "edit_entries", description: "Change the amount of entries already logged: a weight given later, or a corrected amount. Shows an Updated card.",
+                 parameters: schema([
+                     "edits": ["type": "array", "items": schema([
+                         "entry_id": ["type": "string"], "qty": ["type": "number"],
+                         "unit": ["type": "string", "description": "Default: the entry's unit."],
+                         "estimate": ["type": "boolean"],
+                     ], required: ["entry_id", "qty"])],
+                     "assumption": ["type": "string"],
+                 ], required: ["edits"])),
         ToolSpec(name: "delete_entries", description: "Remove entries from the log.",
                  parameters: schema(["entry_ids": ["type": "array", "items": ["type": "string"]]], required: ["entry_ids"])),
         ToolSpec(name: "find", description: "Search his foods and usual meals by name.",

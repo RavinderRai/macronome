@@ -28,8 +28,9 @@ final class ModelRouter {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let stored = defaults.data(forKey: Self.configKey).flatMap { try? JSONDecoder().decode([String: TierConfig].self, from: $0) }
-        fast = stored?[Tier.fast.rawValue] ?? TierConfig(kind: .onDevice)
-        smart = stored?[Tier.smart.rawValue] ?? TierConfig(kind: .off)
+        // Anthropic for both until changed: Haiku logs, Sonnet chats. One key covers both.
+        fast = stored?[Tier.fast.rawValue] ?? TierConfig(kind: .anthropic)
+        smart = stored?[Tier.smart.rawValue] ?? TierConfig(kind: .anthropic)
         usage = defaults.data(forKey: Self.usageKey).flatMap { try? JSONDecoder().decode(UsageLog.self, from: $0) } ?? UsageLog()
         for t in Tier.allCases { keys[t] = Keychain.read(t.rawValue) }
     }
@@ -77,17 +78,18 @@ final class ModelRouter {
     /// The provider behind a tier, or nil when it is off or incomplete.
     func provider(_ tier: Tier) -> (any ModelProvider)? {
         let c = config(tier)
+        let model = c.resolvedModel(fast: tier == .fast)
         switch c.kind {
         case .off: return nil
         case .onDevice: return OnDeviceModel.isAvailable ? OnDeviceProvider() : nil
         case .openAI:
-            guard !c.trimmedBaseURL.isEmpty, !c.trimmedModel.isEmpty else { return nil }
+            guard !c.trimmedBaseURL.isEmpty, !model.isEmpty else { return nil }
             let key = apiKey(tier)
             if c.needsKey && key == nil { return nil }
-            return OpenAICompatibleProvider(baseURL: c.trimmedBaseURL, model: c.trimmedModel, apiKey: key)
+            return OpenAICompatibleProvider(baseURL: c.trimmedBaseURL, model: model, apiKey: key)
         case .anthropic:
-            guard !c.trimmedModel.isEmpty, let key = apiKey(tier) else { return nil }
-            return AnthropicProvider(baseURL: c.trimmedBaseURL, model: c.trimmedModel, apiKey: key)
+            guard !model.isEmpty, let key = apiKey(tier) else { return nil }
+            return AnthropicProvider(baseURL: c.trimmedBaseURL, model: model, apiKey: key)
         }
     }
 
@@ -128,7 +130,7 @@ final class ModelRouter {
             case .off: return (false, "Off")
             case .onDevice: return (false, OnDeviceModel.statusText)
             default:
-                if c.trimmedModel.isEmpty { return (false, "Add a model name.") }
+                if c.resolvedModel(fast: tier == .fast).isEmpty { return (false, "Pick a model.") }
                 if c.kind == .openAI && c.trimmedBaseURL.isEmpty { return (false, "Add a base URL.") }
                 return (false, "Add an API key.")
             }

@@ -7,9 +7,10 @@ place" (https://claude.ai/artifact/52b8KZ1VtiuKVgmFLb2xi7).
 Built (2026-11-01): the agent loop, the tools, the cards in the chat sheet, memory items
 and the numbers check (`ios/Macronome/Services/AI/Core/ChatAgent.swift`, `ChatTools.swift`,
 `ChatCards.swift`, `Agent.swift`). Not built yet: routing from the Today bar to the agent
-(the bar still uses the local parser, then the fast model), the computed bank and
-`bank_override`, the snack-day size of the evening bowl, deferred amounts as a pending
-part, hands-free mode, and the memory screen's tabs.
+(the bar still uses the local parser, then the fast model), the snack-day size of the
+evening bowl, hands-free mode, and the memory screen's tabs.
+
+Dropped (2026-11-01): the calorie bank. The chat doesn't compute, offer or mention it.
 
 ## Principles (from how Ravi logs today)
 
@@ -59,8 +60,9 @@ what's for dinner?"): it logs first, then answers in chat.
 | Several meals or days | "last night the full bowl, today breakfast and nachos" | Each item on its own date and slot | Logged, grouped by date |
 | Pre-log | "log the bowl now, I'll have it later" | Logged now, slot evening | Logged |
 | Estimate | "forgot to weigh the lettuce, use 165" | Entry marked as an estimate | Logged, with Estimate tag |
-| Deferred amount | "cauliflower isn't cooked yet" … later "300 grams" | Placeholder entry, filled by the next bare amount | Logged (pending part) |
-| Correction | "actually 13 g of seasoning", "I said full bowl" | Edits the last matching entry | The earlier card updates in place |
+| Amount given later | "cauliflower isn't cooked yet" … later "300 grams" | Logged at the usual amount, then `edit_entries` changes it | Logged, then Updated |
+| Correction | "actually 13 g of seasoning" | `edit_entries` changes the amount | Updated |
+| Wrong food | "I said full bowl, not the snack bowl" | `log` with `replace_entry_ids` | Logged |
 | Plan | "what should I have for dinner?" | 3–5 options against the budget with the bowl held back | Options table |
 | What-if | "with 2 slices, or none?", "how much potato and cauliflower can I have?" | Computes variants, or solves for amounts | Small table |
 | Close the loop | "had it, one slice, 160 g lettuce" | Logs the option being discussed, with changes | Logged |
@@ -84,8 +86,6 @@ what's for dinner?"): it logs first, then answers in chat.
 - **Targets**: was → now for kcal, protein, net carbs, fat, and where the cut came from.
   Applied at once, with Undo.
 - **Remembered**: kind and the remembered sentence, with Undo. Links to the memory screen.
-- **Bank line** (inside Logged): offered only when the day lands just over. "Don't bank
-  today" turns today's surplus or overage into a no-op for the bank.
 
 ## Agent turn
 
@@ -99,7 +99,7 @@ Anthropic adapter translates. No server.
 1. System prompt: the principles above, tone, card rules.
 2. Profile: diet, targets for today.
 3. Memory: all items (rules, meals with their parts, likes, facts). It's a few kilobytes.
-4. Today: entries so far, what's left, the bowl budget, the bank.
+4. Today: entries so far (with ids, for edits), what's left, the bowl budget.
 5. The day's thread.
 
 History, frequencies and older days are **not** in the context; the model calls tools for
@@ -117,18 +117,18 @@ All run on the phone over the `Ledger`.
 
 | Tool | Does | Writes? |
 | --- | --- | --- |
-| `log(items, date, slot)` | Logs foods or meals with amounts; marks estimates, pending parts | Yes, Logged card |
-| `edit_entry(id, changes)` / `delete_entry(id)` | Corrections | Yes |
+| `log(items, day, slot, replace_entry_ids)` | Logs foods or meals with amounts; marks estimates; replaces wrong entries | Yes, Logged card |
+| `edit_entries(edits)` / `delete_entries(ids)` | New amounts for logged entries; removals | Yes, Updated card |
 | `preview(items, date)` | Totals and what's left if these were eaten, bowl held back | No |
 | `solve(meal, free_parts, budget)` | Amounts of the variable parts that fit a budget | No |
-| `budget(date)` | What's left, the bowl hold-back, dinner budget, bank | No |
-| `find_food(query)` / `get_meal(name)` | Library lookup, with aliases | No |
+| `budget(day)` | What's left, the bowl hold-back, dinner budget | No |
+| `show_options(title, options)` | Options or what-if variants as a table card | No (card only) |
+| `find(query)` | Foods and usual meals, with aliases | No |
 | `frequent(slot?, days=30)` | Most-eaten meals and foods, typical amounts | No |
 | `history(start, end)` / `search_entries(query, days)` | Day totals; when something was eaten | No |
 | `set_targets(targets, from)` | Applies new targets | Yes, Targets card |
 | `remember(kind, text, data)` / `forget(id)` | Memory | Yes, Remembered card |
-| `bank_override(date, mode)` | "Don't bank today" | Yes |
-| `add_food(fields)` | From a label or a description | Yes |
+| `add_food(fields)` | From a label or a description (not built; the label camera does this) | Yes |
 
 `preview` and `solve` are the what-if engine: the model proposes, they compute.
 
@@ -147,7 +147,7 @@ imported once as items; fl.py ignores the new event types.
 
 | Kind | Holds | Used for |
 | --- | --- | --- |
-| `rule` | Constraints applied to every plan: bowl hold-back, snack-day bowl, bank tone, "always show kcal and protein", what to cut first | Budgets, options |
+| `rule` | Constraints applied to every plan: bowl hold-back, snack-day bowl, "always show kcal and protein", what to cut first | Budgets, options |
 | `meal` | Usual meals: fixed parts, variable parts with range and default, aliases, slot, prep time, verdict | Expansion, planning |
 | `like` | Preferences and verdicts: cinnamon for breakfast, hoops in the evening, pancakes not filling | Choosing options |
 | `fact` | Diet, allergies, equipment | Everything |
@@ -171,15 +171,11 @@ default (the last 15 potato bowls averaged 308 g potato and 207 g cauliflower ag
   the same log.
 - **Widget:** reloads after every write, so a log from chat shows on the home screen at
   once.
-- **Bank:** computed from the log from a start date, plus `bank_override` days, instead of
-  the hand-kept note. A day closes at midnight (decided 2026-11-01); there is no explicit
-  "close the day". Until then a log that lands over says what the bank will be at
-  midnight.
+- **Days** close at midnight (decided 2026-11-01); there is no explicit "close the day".
 - **Memory screen:** Settings → What it remembers, tabs Rules, Meals, Likes, Usuals.
 
 ## Open questions
 
-1. **Bank start.** Start the computed bank from 6.3 on 1 Nov, or recompute it from day one?
-2. **Read replies aloud.** Wanted in hands-free mode, or text only?
-3. **Thread length.** One thread per day (a fresh chat every morning, older days in
+1. **Read replies aloud.** Wanted in hands-free mode, or text only?
+2. **Thread length.** One thread per day (a fresh chat every morning, older days in
    History), or one running thread?

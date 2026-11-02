@@ -168,7 +168,6 @@ enum ChatPrompt {
             out.append("Eaten today:\n" + g.joined(separator: "\n"))
         }
         if let note = ledger.dayNotes[day], !note.isEmpty { out.append("Note for today: \(note)") }
-        if let bank = ledger.profile["calorie_bank"], !bank.isEmpty { out.append("Calorie bank: \(bank)") }
         return out.joined(separator: "\n\n")
     }
 

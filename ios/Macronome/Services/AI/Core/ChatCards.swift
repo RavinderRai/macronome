@@ -56,6 +56,8 @@ struct LogCard: Codable, Hashable, Sendable {
     var status: StatusLine
     /// Entries removed by a correction, put back if this card is undone.
     var replacedEventIDs: [String] = []
+    /// Amounts changed on entries already logged, rather than a new log.
+    var edited: Bool?
 }
 
 struct OptionsCard: Codable, Hashable, Sendable {

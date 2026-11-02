@@ -44,6 +44,8 @@ private struct TierSection: View {
     @State private var keyDraft = ""
     @State private var testing = false
     @State private var result: (ok: Bool, message: String)?
+    /// "Other…" picked: type any model name.
+    @State private var customModel = false
     @FocusState private var keyFocused: Bool
 
     private var models: ModelRouter { services.models }
@@ -114,7 +116,8 @@ private struct TierSection: View {
         Menu {
             ForEach(ServicePreset.openAI) { p in
                 Button {
-                    set { $0.baseURL = p.baseURL }
+                    customModel = false
+                    set { $0.baseURL = p.baseURL; $0.model = "" }
                 } label: {
                     if p.id == preset?.id { Label(p.name, systemImage: "checkmark") } else { Text(p.name) }
                 }
@@ -123,15 +126,48 @@ private struct TierSection: View {
             SettingsRow(label: "Service", value: preset?.name ?? "Custom", chevron: true, note: preset?.note.nilIfEmpty)
         }
         FieldRow(label: "Base URL", placeholder: "https://…/v1", text: binding(\.baseURL), keyboard: .URL)
-        FieldRow(label: "Model", placeholder: tier == .fast ? (preset?.fastModel ?? "model name") : (preset?.smartModel ?? "model name"),
-                 text: binding(\.model))
+        modelRows
         keyRow(optional: config.isLocal)
     }
 
     @ViewBuilder private var anthropicRows: some View {
-        FieldRow(label: "Model", placeholder: tier == .fast ? ServicePreset.anthropicFast : ServicePreset.anthropicSmart,
-                 text: binding(\.model))
+        modelRows
         keyRow(optional: false)
+    }
+
+    /// A picker of the service's models with their prices, and "Other…" for any name.
+    @ViewBuilder private var modelRows: some View {
+        let choices = config.modelChoices
+        let current = config.resolvedModel(fast: tier == .fast)
+        let picked = choices.first { $0.id == current }
+        let other = choices.isEmpty || customModel || picked == nil
+        if !choices.isEmpty {
+            Menu {
+                ForEach(choices) { m in
+                    Button {
+                        customModel = false
+                        set { $0.model = m.id }
+                    } label: {
+                        if m.id == current && !other {
+                            Label { Text(m.name); Text(m.note) } icon: { Image(systemName: "checkmark") }
+                        } else {
+                            Text(m.name)
+                            Text(m.note)
+                        }
+                    }
+                }
+                Button { customModel = true } label: {
+                    if other { Label("Other…", systemImage: "checkmark") } else { Text("Other…") }
+                }
+            } label: {
+                SettingsRow(label: "Model", value: other ? "Other" : picked?.name ?? current, chevron: true,
+                            note: other ? nil : picked.map { "\($0.note) per million tokens in / out" })
+            }
+        }
+        if other {
+            FieldRow(label: choices.isEmpty ? "Model" : "Model name", placeholder: current.isEmpty ? "model name" : current,
+                     text: binding(\.model))
+        }
     }
 
     private func keyRow(optional: Bool) -> some View {
@@ -190,7 +226,7 @@ private struct TierSection: View {
         case .onDevice: "Not available"
         case .off: ""
         default:
-            config.trimmedModel.isEmpty ? "Add a model name" : config.kind == .openAI && config.trimmedBaseURL.isEmpty
+            config.resolvedModel(fast: tier == .fast).isEmpty ? "Pick a model" : config.kind == .openAI && config.trimmedBaseURL.isEmpty
                 ? "Add a base URL" : "Add an API key"
         }
     }
