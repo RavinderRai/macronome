@@ -234,6 +234,16 @@ final class ChatAgentTests: XCTestCase {
         XCTAssertTrue(note.contains("777"))
     }
 
+    func testLoopFlagsNumbersItStillCannotBackUp() async throws {
+        let (store, day) = try makeStore()
+        let tools = ChatTools(store: store, today: day)
+        let made = AgentReply(text: "That would be 393 kcal.", calls: [], raw: nil, usage: ModelUsage())
+        let model = ScriptedModel([made, made, made])
+        let out = try await ChatAgent.run(provider: model, system: ["rules"], history: [.user("1.5 bowls?")], tools: tools) { _ in }
+        XCTAssertEqual(model.requests.count, 3)
+        XCTAssertTrue(out.text.hasSuffix(ChatAgent.uncheckedNote))
+    }
+
     // MARK: encoding
 
     func testOpenAIToolEncodingRoundTrips() throws {

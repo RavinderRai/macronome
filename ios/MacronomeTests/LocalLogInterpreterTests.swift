@@ -199,4 +199,15 @@ final class LocalLogInterpreterTests: XCTestCase {
     private func date(hour: Int) -> Date {
         Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date())!
     }
+
+    // MARK: several meals in one message
+
+    func testTwoUsualMealsLogAsTwoRowsInTheirOwnSlots() {
+        let d = draft("standard breakfast and standard poutine, 310 g potatoes 230 g cauliflower")
+        let parts = d.split()
+        XCTAssertEqual(parts.map { $0.meals.map(\.name) }, [["Standard breakfast"], ["Potato bowl"]])
+        XCTAssertEqual(parts.map(\.slot), [.breakfast, .lunch])
+        XCTAssertEqual(parts[1].lines.first { $0.food.id == "83ae20" }?.qty, 310)
+        XCTAssertEqual(parts.map { $0.label(ledger: ledger) }, ["Standard breakfast", "Potato bowl"])
+    }
 }

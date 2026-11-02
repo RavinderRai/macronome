@@ -23,6 +23,8 @@ struct Ledger: Sendable {
     private(set) var meals: [String: UsualMeal] = [:]
     private(set) var plans: [String: PlannedItem] = [:]
     private(set) var deletedMemory: Set<String> = []
+    /// Groups that had an entry deleted; their stored name may no longer fit.
+    private(set) var trimmedGroups: Set<String> = []
     /// Items the chat remembered (`memory_set`), by key. fl.py ignores these events.
     private(set) var memoryItems: [String: MemoryNote] = [:]
 
@@ -74,6 +76,7 @@ struct Ledger: Sendable {
                 }
             case "entry_delete":
                 if let t = ev.string("target"), let i = entryIndex[t] {
+                    if let gid = list[i]?.groupID { trimmedGroups.insert(gid) }
                     list[i] = nil
                     entryIndex[t] = nil
                 }
@@ -279,7 +282,14 @@ struct Ledger: Sendable {
         }
         return out.map { g in
             var g = g
-            if g.entries.count > 1, g.entries.first?.groupLabel == nil { g.label = guessMealName(g.entries) }
+            // A group that lost entries ("Potato bowl + Standard breakfast" after the
+            // breakfast was removed) is named again from what is left in it.
+            if trimmedGroups.contains(g.id) {
+                let name = Format.shortName(g.entries[0].label)
+                g.label = g.entries.count > 1 ? guessMealName(g.entries) : name.prefix(1).uppercased() + name.dropFirst()
+            } else if g.entries.count > 1, g.entries.first?.groupLabel == nil {
+                g.label = guessMealName(g.entries)
+            }
             return g
         }
     }

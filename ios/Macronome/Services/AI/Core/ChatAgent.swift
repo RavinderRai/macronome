@@ -7,6 +7,9 @@ import Foundation
 @MainActor
 enum ChatAgent {
     static let maxRounds = 8
+    /// How many times a reply with numbers no tool produced is sent back.
+    static let maxNumberChecks = 2
+    static let uncheckedNote = "(Some numbers above weren't worked out by the app.)"
 
     struct Outcome {
         var text: String
@@ -18,7 +21,7 @@ enum ChatAgent {
         for part in system { tools.allowNumbers(in: part) }
         for case .user(let t) in history { tools.allowNumbers(in: t) }
         var items = history
-        var checked = false
+        var checks = 0
         var lastText = ""
         for _ in 0..<maxRounds {
             let reply = try await provider.respond(AgentRequest(system: system, items: items, tools: specs))
@@ -27,11 +30,14 @@ enum ChatAgent {
             lastText = reply.text
             if reply.calls.isEmpty {
                 let bad = unsupportedNumbers(in: reply.text, allowed: tools.numbers)
-                if bad.isEmpty || checked { return Outcome(text: clean(reply.text), cards: tools.cards) }
-                checked = true
+                if bad.isEmpty { return Outcome(text: clean(reply.text), cards: tools.cards) }
+                if checks == maxNumberChecks {
+                    return Outcome(text: clean(reply.text) + "\n\n" + uncheckedNote, cards: tools.cards)
+                }
+                checks += 1
                 items.append(.user("(App check, not from Ravi) These numbers in your reply didn't come from a tool result "
-                    + "or the context: \(bad.joined(separator: ", ")). Get them with preview or budget, or leave them out, "
-                    + "and give the reply again. Don't log anything twice."))
+                    + "or the context: \(bad.joined(separator: ", ")). Call preview (or budget) to get them, then give the "
+                    + "reply again using only those results. Don't log anything twice."))
                 continue
             }
             items.append(.results(reply.calls.map(tools.run)))
@@ -110,8 +116,10 @@ enum ChatAgent {
     - "Had it", "I had exactly that": log the option being discussed, with any changes he gives.
 
     Numbers
-    - Never do arithmetic. Every number you write must come from a tool result or the context below. Call \
-    preview or budget when you need another one.
+    - Never do arithmetic. Every number you write must come from a tool result or the context below. Any \
+    question about the calories or protein of something not logged yet ("how many calories would 1.5 bowls \
+    be?") starts with a preview call, even when you think you know the answer.
+    - Questions are not logs. Only call log when he says he ate something or asks you to log it.
     - After a log the card shows what's left; add at most one line, and only if something matters (a macro \
     that is tight, a day that lands over).
 

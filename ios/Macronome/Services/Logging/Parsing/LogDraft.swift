@@ -18,6 +18,8 @@ struct LogDraft: Sendable {
         var macros: Macros?
         /// The words used for it ("cookie dough protein"), when they were not a mishearing.
         var spoken: String?
+        /// Index into `meals` when this line is one of that meal's components.
+        var meal: Int?
 
         /// The spoken amount differs from the meal's default ("350 g, was 300").
         var changedFromDefault: Bool {
@@ -47,7 +49,8 @@ struct LogDraft: Sendable {
                     guard let food = ledger.foods[c.foodID] else { continue }
                     lines.append(Line(food: food, qty: c.qty * scale, unit: c.unit, defaultQty: c.qty * scale,
                                       defaultUnit: c.unit, mentioned: false, alternatives: [],
-                                      macros: ledger.preview(food, qty: c.qty * scale, unit: c.unit)))
+                                      macros: ledger.preview(food, qty: c.qty * scale, unit: c.unit),
+                                      meal: meals.count - 1))
                 }
                 mealLines = start..<lines.count
             } else if let fid = item.foodID, let food = ledger.foods[fid] {
@@ -85,6 +88,27 @@ struct LogDraft: Sendable {
             return false
         }
     }
+
+    /// One draft per usual meal named, plus one for anything else, so "standard breakfast
+    /// and the potato bowl" logs as two rows, each in its own meal's slot.
+    func split() -> [LogDraft] {
+        guard meals.count > 1 else { return [self] }
+        var out: [LogDraft] = meals.indices.map { i in
+            var d = LogDraft()
+            d.meals = [meals[i]]
+            d.lines = lines.filter { $0.meal == i }
+            d.slot = slot ?? meals[i].slot
+            return d
+        }
+        var rest = LogDraft()
+        rest.lines = lines.filter { $0.meal == nil }
+        rest.estimates = estimates
+        rest.slot = slot
+        if !rest.isEmpty { out.append(rest) }
+        return out.filter { !$0.isEmpty }
+    }
+
+    private init() {}
 
     /// The amount to log when the words gave only part of it.
     static func amount(for food: Food, qty: Double?, unit: String?, ledger: Ledger) -> (qty: Double, unit: String)? {

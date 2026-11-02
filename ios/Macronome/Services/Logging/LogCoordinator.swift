@@ -3,7 +3,7 @@ import Observation
 
 /// Takes what was typed or said and either opens the chat or logs it. Logs never ask
 /// first: the local parser runs, a model fills gaps when one is set up, everything
-/// resolved is logged as one group, and anything left over gets a small card.
+/// resolved is logged (one row per usual meal named), and anything left over gets a small card.
 @MainActor
 @Observable
 final class LogCoordinator {
@@ -85,9 +85,11 @@ final class LogCoordinator {
         let ledger = store.ledger
         let today = Clock.dayString()
         let plan = matchingPlan(draft, ledger: ledger, day: today)
-        let slot = draft.slot ?? plan?.meal ?? draft.resolvedSlot()
-        let label = draft.label(ledger: ledger)
-        let events = draft.events(ledger: ledger, source: source.rawValue, slot: slot, label: label, day: today)
+        var events: [Event] = []
+        for part in draft.split() {
+            let slot = part.slot ?? plan?.meal ?? part.resolvedSlot()
+            events += part.events(ledger: ledger, source: source.rawValue, slot: slot, label: part.label(ledger: ledger), day: today)
+        }
         guard !events.isEmpty else { return }
         store.log(events, replacing: plan)
         let gid = events.first?.string("group_id") ?? events.first?.id ?? ""
