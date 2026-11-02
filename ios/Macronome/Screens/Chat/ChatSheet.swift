@@ -138,6 +138,14 @@ struct ChatSheet: View {
                 .textSelection(.enabled)
         case .assistant, .system:
             VStack(alignment: .leading, spacing: 14) {
+                // Cards first: a log lands before the answer that follows from it.
+                ForEach(m.cards) { card in
+                    ChatCardView(card: card, undone: chat.isUndone(card), onUndo: { chat.undo(card, store: store) },
+                                 onPick: { label in
+                                     input = "Had the \(label.prefix(1).lowercased() + label.dropFirst())"
+                                     focused = true
+                                 })
+                }
                 if !m.text.isEmpty {
                     Text(m.text).font(.system(size: 15)).lineSpacing(4)
                         .fixedSize(horizontal: false, vertical: true)

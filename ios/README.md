@@ -86,3 +86,9 @@ Models are optional and configured in Settings → Models, in two tiers:
   endpoint (OpenRouter, Groq, Gemini, OpenAI, Ollama…) or Anthropic, with your own key.
 
 Keys are stored in the Keychain on the phone and requests go straight to the provider.
+
+The chat is an agent: the model calls tools (`Services/AI/Core/ChatTools.swift`) that run on
+the phone over the ledger, log, preview, solve for amounts, read history and remember
+things, and every number it shows comes from those tools. Any model with tool calling
+works; the on-device model has none, so with only that the chat falls back to a single
+planning reply. Design: `docs/v2-chat-design.md`.

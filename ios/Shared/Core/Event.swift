@@ -5,7 +5,7 @@ import Foundation
 /// Types food-log already writes: food_add, food_update, food_delete, entry_add,
 /// entry_delete, profile_set, day_target, day_note.
 /// Types added by the app (fl.py skips them): meal_set, meal_delete, plan_add,
-/// plan_delete, memory_delete. entry_add also gains optional group_id / group_label
+/// plan_delete, memory_set, memory_delete. entry_add also gains optional group_id / group_label
 /// so a meal logged in one go shows as one row.
 struct Event: Codable, Hashable, Sendable, Identifiable {
     var fields: [String: JSONValue]

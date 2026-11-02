@@ -82,6 +82,12 @@ enum Commands {
 
     static func forgetMemory(_ key: String) -> Event { Event.new("memory_delete", ["key": .string(key)]) }
 
+    /// Something the chat was told to remember. `key` names it, so saying it again
+    /// with the same key replaces it.
+    static func remember(_ text: String, kind: String, key: String = "m-" + EventID.make()) -> Event {
+        Event.new("memory_set", ["key": .string(key), "kind": .string(kind), "text": .string(text)])
+    }
+
     static func setTarget(_ key: MacroStatus.Key, _ value: Double, day: String? = nil) -> Event {
         if let day {
             return Event.new("day_target", ["day": .string(day), "key": .string(key.rawValue), "value": .string(String(value))])

@@ -37,6 +37,9 @@ protocol ModelProvider: Sendable {
     var usageKey: String { get }
     var acceptsImages: Bool { get }
     func complete(_ request: ModelRequest) async throws -> ModelReply
+    /// Tool calling for the chat agent (Agent.swift); false and throwing by default.
+    var supportsTools: Bool { get }
+    func respond(_ request: AgentRequest) async throws -> AgentReply
 }
 
 enum ProviderError: LocalizedError, Equatable {

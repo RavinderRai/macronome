@@ -14,6 +14,8 @@ final class ChatSession {
         /// option id -> plan event id, once "Add to today" was tapped.
         var planned: [UUID: String] = [:]
         var logged: Set<UUID> = []
+        /// Cards whose Undo was tapped. Optional so chats saved before it still open.
+        var undoneCards: Set<UUID>?
     }
 
     private(set) var snapshot: Snapshot
@@ -102,6 +104,20 @@ final class ChatSession {
         save()
     }
 
+    // MARK: cards
+
+    func isUndone(_ card: ChatCard) -> Bool { snapshot.undoneCards?.contains(card.id) ?? false }
+
+    /// Reverses what the card's tool wrote: a log (putting back anything it corrected),
+    /// a target change, or a remembered item.
+    func undo(_ card: ChatCard, store: FoodStore) {
+        let events = card.undoEvents(in: store.ledger)
+        guard !isUndone(card), !events.isEmpty else { return }
+        store.append(events)
+        snapshot.undoneCards = (snapshot.undoneCards ?? []).union([card.id])
+        save()
+    }
+
     // MARK: sending
 
     func send(_ text: String, models: ModelRouter, store: FoodStore) async {
@@ -123,7 +139,7 @@ final class ChatSession {
         error = nil
         defer { busy = false }
         do {
-            let reply = try await models.reply(to: snapshot.messages, ledger: store.ledger)
+            let reply = try await models.agentReply(to: snapshot.messages, store: store)
             snapshot.messages.append(reply)
             save()
         } catch {

@@ -171,6 +171,28 @@ final class ModelRouter {
         return ChatReplyParser.parse(text, ledger: ledger)
     }
 
+    /// One chat turn through the agent: the model calls tools that run on the phone and
+    /// leave cards. Falls back to the one-shot reply for a model without tools (the
+    /// on-device one).
+    func agentReply(to history: [ChatMessage], store: FoodStore) async throws -> ChatMessage {
+        guard let tier = chatTier, let p = provider(tier) else { throw ModelError.notConfigured(.smart) }
+        guard p.supportsTools else { return try await reply(to: history, ledger: store.ledger) }
+        let tools = ChatTools(store: store)
+        let system = ChatAgent.system(ledger: store.ledger, tools: tools)
+        do {
+            let out = try await ChatAgent.run(provider: p, system: system, history: ChatAgent.history(history), tools: tools) { u in
+                self.record(p.usageKey, u)
+            }
+            return ChatMessage(role: .assistant, text: out.text, cards: out.cards)
+        } catch let e as ProviderError {
+            // Anything the tools already logged stays logged; show it with the error.
+            if !tools.cards.isEmpty {
+                return ChatMessage(role: .assistant, text: ModelError(e).localizedDescription, cards: tools.cards)
+            }
+            throw ModelError(e)
+        }
+    }
+
     /// Past assistant turns are sent with their options in words, so a follow-up like
     /// "make the second one bigger" has something to refer to.
     private static func turn(_ m: ChatMessage) -> ModelMessage {

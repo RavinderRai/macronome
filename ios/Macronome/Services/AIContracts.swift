@@ -39,7 +39,22 @@ struct ChatMessage: Identifiable, Hashable, Codable, Sendable {
     var text: String
     /// Meal options the assistant proposed, shown as cards under the message.
     var options: [MealOption] = []
+    /// What the agent's tools did and showed: logs, option tables, targets, memory.
+    var cards: [ChatCard] = []
     var date = Date()
+}
+
+extension ChatMessage {
+    /// Chats saved before cards existed still open.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        role = try c.decode(ChatRole.self, forKey: .role)
+        text = try c.decode(String.self, forKey: .text)
+        options = try c.decodeIfPresent([MealOption].self, forKey: .options) ?? []
+        cards = try c.decodeIfPresent([ChatCard].self, forKey: .cards) ?? []
+        date = try c.decodeIfPresent(Date.self, forKey: .date) ?? Date()
+    }
 }
 
 /// A meal idea from the chat that can be planned or logged in one tap.

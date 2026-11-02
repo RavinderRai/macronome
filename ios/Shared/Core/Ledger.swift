@@ -23,6 +23,8 @@ struct Ledger: Sendable {
     private(set) var meals: [String: UsualMeal] = [:]
     private(set) var plans: [String: PlannedItem] = [:]
     private(set) var deletedMemory: Set<String> = []
+    /// Items the chat remembered (`memory_set`), by key. fl.py ignores these events.
+    private(set) var memoryItems: [String: MemoryNote] = [:]
 
     init(events: [Event] = []) {
         self.events = events
@@ -81,8 +83,16 @@ struct Ledger: Sendable {
                     profileUpdatedAt[k] = ev.ts
                     deletedMemory.remove(k)
                 }
+            case "memory_set":
+                if let k = ev.string("key"), let text = ev.string("text") {
+                    memoryItems[k] = MemoryNote(key: k, value: text, updatedAt: ev.ts, kind: ev.string("kind"))
+                    deletedMemory.remove(k)
+                }
             case "memory_delete":
-                if let k = ev.string("key") { deletedMemory.insert(k) }
+                if let k = ev.string("key") {
+                    deletedMemory.insert(k)
+                    memoryItems[k] = nil
+                }
             case "day_target":
                 if let d = ev.string("day"), let k = ev.string("key"), let v = ev.double("value") {
                     dayTargets[d, default: [:]][k] = v
@@ -312,11 +322,13 @@ struct Ledger: Sendable {
     static let structuralKeys: Set<String> = ["fiber_mode", "carb_mode", "calorie_bank"]
 
     var memoryNotes: [MemoryNote] {
-        profile.compactMap { key, value in
+        (profile.compactMap { key, value -> MemoryNote? in
             if key.hasPrefix("target_") || key.hasPrefix("meal_") || Self.structuralKeys.contains(key)
                 || deletedMemory.contains(key) { return nil }
             return MemoryNote(key: key, value: value, updatedAt: profileUpdatedAt[key] ?? "")
-        }.sorted { $0.updatedAt > $1.updatedAt }
+        }
+        + Array(memoryItems.values)
+        ).sorted { $0.updatedAt > $1.updatedAt }
     }
 
     // MARK: foods

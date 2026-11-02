@@ -203,6 +203,8 @@ struct MemoryNote: Identifiable, Hashable, Sendable {
     var key: String
     var value: String
     var updatedAt: String
+    /// rule, meal, like or fact, for items the chat remembered; nil for profile notes.
+    var kind: String? = nil
     var title: String {
         key.replacingOccurrences(of: "_", with: " ").capitalized
     }

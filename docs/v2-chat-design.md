@@ -2,7 +2,14 @@
 
 How the app's chat should work so it feels like the last seven weeks of logging through
 Claude Code. The screens are on the design canvas, in the row "Logging and asking in one
-place" (https://claude.ai/artifact/52b8KZ1VtiuKVgmFLb2xi7). Nothing here is built yet.
+place" (https://claude.ai/artifact/52b8KZ1VtiuKVgmFLb2xi7). 
+
+Built (2026-11-01): the agent loop, the tools, the cards in the chat sheet, memory items
+and the numbers check (`ios/Macronome/Services/AI/Core/ChatAgent.swift`, `ChatTools.swift`,
+`ChatCards.swift`, `Agent.swift`). Not built yet: routing from the Today bar to the agent
+(the bar still uses the local parser, then the fast model), the computed bank and
+`bank_override`, the snack-day size of the evening bowl, deferred amounts as a pending
+part, hands-free mode, and the memory screen's tabs.
 
 ## Principles (from how Ravi logs today)
 
